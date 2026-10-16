@@ -40,12 +40,13 @@ def register_customer(
         )
 
     customer = Customer(
-        name=customer_data.name,
-        email=email,
-        hashed_password=hash_password(customer_data.password),
-        customer_type=customer_data.customer_type,
-        role="customer",
-    )
+    name=customer_data.name,
+    email=email,
+    hashed_password=hash_password(customer_data.password),
+    customer_type=customer_data.customer_type,
+    role="customer",
+    is_active=True,
+)
 
     db.add(customer)
 
