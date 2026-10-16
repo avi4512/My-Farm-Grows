@@ -8,7 +8,7 @@ from app.core.config import settings
 from app.db.session import Base
 from app.models.product import Product  # Register Product model
 from app.models.customer import Customer #register Customer model
-
+from app.models import Address  #register Address model
 # Alembic configuration
 config = context.config
 
