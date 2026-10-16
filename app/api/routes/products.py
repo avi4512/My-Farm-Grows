@@ -1,11 +1,13 @@
 
 from alembic.util import status
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
 from app.db.session import SessionLocal
 from app.models import Product
 from app.schemas.product import ProductCreate, ProductResponse,ProductUpdate
+
+from typing import Optional
 
 router = APIRouter(prefix="/api/products", tags=["Products"])
 
@@ -31,13 +33,42 @@ def create_product(
 
 
 @router.get("/", response_model=list[ProductResponse])
-def get_products(db: Session = Depends(get_db)):
+def get_products(
+    search: Optional[str] = Query(default=None, min_length=1),
+    category: Optional[str] = Query(default=None),
+    max_price: Optional[float] = Query(default=None, gt=0),
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=10, ge=1, le=100),
+    active_only: bool = Query(default=True),
+    db: Session = Depends(get_db),
+):
+    query = db.query(Product)
+
+    if search:
+        query = query.filter(
+            Product.name.ilike(f"%{search.strip()}%")
+        )
+
+    if category:
+        query = query.filter(
+            Product.category.ilike(category.strip())
+        )
+
+    if max_price is not None:
+        query = query.filter(
+            Product.retail_price <= max_price
+        )
+
+    if active_only:
+        query = query.filter(Product.is_active.is_(True))
+
     return (
-        db.query(Product)
-        .filter(Product.is_active.is_(True))
-        .order_by(Product.id)
+        query.order_by(Product.id)
+        .offset(skip)
+        .limit(limit)
         .all()
     )
+
 
 
 @router.get("/{product_id}", response_model=ProductResponse)
