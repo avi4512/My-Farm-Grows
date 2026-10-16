@@ -7,6 +7,7 @@ from sqlalchemy import engine_from_config, pool
 from app.core.config import settings
 from app.db.session import Base
 from app.models.product import Product  # Register Product model
+from app.models.customer import Customer #register Customer model
 
 # Alembic configuration
 config = context.config
