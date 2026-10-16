@@ -8,6 +8,8 @@ from app.models import Product
 from app.schemas.product import ProductCreate, ProductResponse,ProductUpdate
 
 from typing import Optional
+from app.core.permissions import require_admin
+from app.models.customer import Customer
 
 router = APIRouter(prefix="/api/products", tags=["Products"])
 
@@ -20,10 +22,12 @@ def get_db():
         db.close()
 
 
+
 @router.post("/", response_model=ProductResponse, status_code=201)
 def create_product(
     product: ProductCreate,
     db: Session = Depends(get_db),
+    current_admin: Customer = Depends(require_admin),
 ):
     db_product = Product(**product.model_dump())
     db.add(db_product)
@@ -83,14 +87,13 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
 
     return product
 
-@router.put(
-    "/{product_id}",
-    response_model=ProductResponse,
-)
+
+@router.put("/{product_id}", response_model=ProductResponse)
 def update_product(
     product_id: int,
     product_data: ProductUpdate,
     db: Session = Depends(get_db),
+    current_admin: Customer = Depends(require_admin),
 ):
     product = (
         db.query(Product)
@@ -115,13 +118,12 @@ def update_product(
     return product
 
 
-@router.delete(
-    "/{product_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-)
+
+@router.delete("/{product_id}", status_code=204)
 def delete_product(
     product_id: int,
     db: Session = Depends(get_db),
+    current_admin: Customer = Depends(require_admin),
 ):
     product = (
         db.query(Product)
@@ -139,3 +141,4 @@ def delete_product(
     db.commit()
 
     return None
+
