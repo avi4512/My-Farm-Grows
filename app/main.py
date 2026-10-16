@@ -8,6 +8,7 @@ from app.api.routes.auth import router as auth_router
 from app.api.routes import admin
 from app.api.routes.address import router as addresses_router
 from app.api.routes.cart import router as cart_router
+from app.api.routes.order import router as orders_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -22,6 +23,7 @@ app.include_router(auth_router)
 app.include_router(admin.router)
 app.include_router(addresses_router)
 app.include_router(cart_router)
+app.include_router(orders_router)
 @app.get("/")
 def home():
     return {
