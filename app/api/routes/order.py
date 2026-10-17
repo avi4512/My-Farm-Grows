@@ -213,3 +213,91 @@ def get_order(
     customer: Customer = Depends(get_current_customer),
 ):
     return get_order_or_404(db, order_id, customer.id)
+
+
+@router.post("/{order_id}/cancel", response_model=OrderResponse)
+def cancel_order(
+    order_id: int,
+    db: Session = Depends(get_db),
+    customer: Customer = Depends(get_current_customer),
+):
+    # Lock the order row so concurrent cancellation requests
+    # cannot restore stock more than once.
+    order = (
+        db.query(Order)
+        .options(selectinload(Order.items))
+        .filter(
+            Order.id == order_id,
+            Order.customer_id == customer.id,
+        )
+        .with_for_update()
+        .first()
+    )
+
+    if order is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found",
+        )
+
+    # Customers can cancel only orders that are still pending.
+    if order.status != "pending":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"Order cannot be cancelled because its "
+                f"current status is '{order.status}'"
+            ),
+        )
+
+    try:
+        # Lock products in a consistent order to reduce the
+        # possibility of deadlocks.
+        quantities_by_product = {}
+
+        for item in order.items:
+            quantities_by_product[item.product_id] = (
+                quantities_by_product.get(item.product_id, 0)
+                + item.quantity
+            )
+
+        product_ids = sorted(quantities_by_product)
+
+        products = (
+            db.query(Product)
+            .filter(Product.id.in_(product_ids))
+            .order_by(Product.id)
+            .with_for_update()
+            .all()
+        )
+
+        products_by_id = {product.id: product for product in products}
+
+        # Restore the stock reserved when the order was created.
+        for product_id, quantity in quantities_by_product.items():
+            product = products_by_id.get(product_id)
+
+            if product is None:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=(
+                        f"Product ID {product_id} is missing; "
+                        "order cancellation could not be completed"
+                    ),
+                )
+
+            product.stock_quantity += quantity
+
+        # Change the status in the same transaction as stock restoration.
+        order.status = "cancelled"
+
+        # Do not mark a payment as refunded automatically.
+        # An actual refund must be completed separately.
+
+        db.commit()
+
+        return get_order_or_404(db, order_id, customer.id)
+
+    except Exception:
+        db.rollback()
+        raise

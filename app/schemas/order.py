@@ -3,7 +3,19 @@ from datetime import datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
+from typing import Literal
+from pydantic import BaseModel
 
+
+
+class OrderStatusUpdate(BaseModel):
+    status: Literal[
+        "pending",
+        "processing",
+        "shipped",
+        "delivered",
+        "cancelled",
+    ]
 
 class OrderCreate(BaseModel):
     address_id: int = Field(gt=0)
