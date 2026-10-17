@@ -1,5 +1,4 @@
 
-from alembic.util import status
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
@@ -10,6 +9,7 @@ from app.schemas.product import ProductCreate, ProductResponse,ProductUpdate
 from typing import Optional
 from app.core.permissions import require_admin
 from app.models.customer import Customer
+from app.services.inventory import record_inventory_movement
 
 router = APIRouter(prefix="/api/products", tags=["Products"])
 
@@ -29,11 +29,34 @@ def create_product(
     db: Session = Depends(get_db),
     current_admin: Customer = Depends(require_admin),
 ):
-    db_product = Product(**product.model_dump())
-    db.add(db_product)
-    db.commit()
-    db.refresh(db_product)
-    return db_product
+    try:
+        db_product = Product(**product.model_dump())
+        if db_product.stock_quantity < 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Stock quantity cannot be negative",
+            )
+        db.add(db_product)
+        db.flush()
+
+        if db_product.stock_quantity > 0:
+            record_inventory_movement(
+                db,
+                product=db_product,
+                movement_type="initial_stock",
+                quantity_change=db_product.stock_quantity,
+                previous_stock=0,
+                new_stock=db_product.stock_quantity,
+                reason="Initial stock when product was created",
+                changed_by_customer_id=current_admin.id,
+            )
+
+        db.commit()
+        db.refresh(db_product)
+        return db_product
+    except Exception:
+        db.rollback()
+        raise
 
 
 @router.get("/", response_model=list[ProductResponse])
@@ -98,6 +121,7 @@ def update_product(
     product = (
         db.query(Product)
         .filter(Product.id == product_id)
+        .with_for_update()
         .first()
     )
 
@@ -108,14 +132,47 @@ def update_product(
         )
 
     update_data = product_data.model_dump(exclude_unset=True)
+    if (
+        "stock_quantity" in update_data
+        and update_data["stock_quantity"] < 0
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Stock quantity cannot be negative",
+        )
 
-    for field, value in update_data.items():
-        setattr(product, field, value)
+    previous_stock = product.stock_quantity
+    old_name = product.name
 
-    db.commit()
-    db.refresh(product)
+    try:
+        for field, value in update_data.items():
+            setattr(product, field, value)
 
-    return product
+        db.flush()
+        new_stock = product.stock_quantity
+        stock_delta = new_stock - previous_stock
+
+        if stock_delta != 0:
+            record_inventory_movement(
+                db,
+                product=product,
+                movement_type="stock_adjustment",
+                quantity_change=stock_delta,
+                previous_stock=previous_stock,
+                new_stock=new_stock,
+                reason=(
+                    f"Administrator updated stock for product "
+                    f"'{old_name}'"
+                ),
+                changed_by_customer_id=current_admin.id,
+            )
+
+        db.commit()
+        db.refresh(product)
+        return product
+    except Exception:
+        db.rollback()
+        raise
 
 
 
