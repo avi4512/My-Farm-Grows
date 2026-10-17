@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
 from typing import Literal
-from pydantic import BaseModel
+
 
 
 
@@ -61,3 +61,13 @@ class OrderResponse(BaseModel):
     items: list[OrderItemResponse]
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class PaymentStatusUpdate(BaseModel):
+    payment_status: Literal[
+        "pending",
+        "paid",
+        "failed",
+        "refunded",
+        "partially_refunded",
+    ]
