@@ -8,7 +8,11 @@ from app.models.customer import Customer
 from app.models.order import Order
 from app.models import Product
 from app.schemas.order import OrderResponse, OrderStatusUpdate
-
+from app.schemas.order import (
+    OrderResponse,
+    OrderStatusUpdate,
+    PaymentStatusUpdate,
+)
 
 router = APIRouter(
     prefix="/api/admin",
@@ -121,6 +125,97 @@ def update_order_status(
 
         # Payment status is deliberately not changed here.
         # A refund must only be recorded after it is completed.
+        db.commit()
+
+        return (
+            db.query(Order)
+            .options(selectinload(Order.items))
+            .filter(Order.id == order_id)
+            .first()
+        )
+
+    except Exception:
+        db.rollback()
+        raise
+
+
+@router.get(
+    "/orders/{order_id}/payment-status",
+    response_model=OrderResponse,
+)
+def get_payment_status(
+    order_id: int,
+    db: Session = Depends(get_db),
+    current_admin: Customer = Depends(require_admin),
+):
+    order = (
+        db.query(Order)
+        .options(selectinload(Order.items))
+        .filter(Order.id == order_id)
+        .first()
+    )
+
+    if order is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found",
+        )
+
+    return order
+
+
+@router.patch(
+    "/orders/{order_id}/payment-status",
+    response_model=OrderResponse,
+)
+def update_payment_status(
+    order_id: int,
+    payload: PaymentStatusUpdate,
+    db: Session = Depends(get_db),
+    current_admin: Customer = Depends(require_admin),
+):
+    order = (
+        db.query(Order)
+        .options(selectinload(Order.items))
+        .filter(Order.id == order_id)
+        .with_for_update()
+        .first()
+    )
+
+    if order is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found",
+        )
+
+    current_status = order.payment_status
+    new_status = payload.payment_status
+
+    allowed_transitions = {
+        "pending": {"paid", "failed"},
+        "failed": {"pending"},
+        "paid": {"refunded", "partially_refunded"},
+        "partially_refunded": {"refunded"},
+        "refunded": set(),
+    }
+
+    # Repeating the current status is allowed.
+    if current_status == new_status:
+        return order
+
+    if new_status not in allowed_transitions.get(
+        current_status, set()
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"Cannot change payment status from "
+                f"'{current_status}' to '{new_status}'"
+            ),
+        )
+
+    try:
+        order.payment_status = new_status
         db.commit()
 
         return (
