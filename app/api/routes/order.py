@@ -12,13 +12,14 @@ from app.models.cart import CartItem
 from app.models.customer import Customer
 from app.models.order import Order, OrderItem
 from app.schemas.order import OrderCreate, OrderResponse
+from app.services.inventory import record_inventory_movement
 
 
 router = APIRouter(prefix="/api/orders", tags=["Orders"])
 
 
 def get_product_price(product: Product, quantity: int) -> Decimal:
-    """Choose price based on the quantity of this product."""
+    """Choose the product price based on the ordered quantity."""
     if quantity >= product.min_wholesale_quantity:
         price = product.wholesale_price
     else:
@@ -32,6 +33,7 @@ def get_order_or_404(
     order_id: int,
     customer_id: int,
 ) -> Order:
+    """Return an order belonging to the specified customer."""
     order = (
         db.query(Order)
         .options(selectinload(Order.items))
@@ -61,83 +63,117 @@ def create_order(
     db: Session = Depends(get_db),
     customer: Customer = Depends(get_current_customer),
 ):
-    # Verify that the address belongs to the logged-in customer.
-    address = (
-        db.query(Address)
-        .filter(
-            Address.id == payload.address_id,
-            Address.customer_id == customer.id,
-        )
-        .first()
-    )
-
-    if address is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Delivery address not found",
-        )
-
-    # Retrieve the customer's cart.
-    cart_items = (
-        db.query(CartItem)
-        .filter(CartItem.customer_id == customer.id)
-        .order_by(CartItem.id)
-        .with_for_update()
-        .all()
-    )
-
-    if not cart_items:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Your cart is empty",
-        )
-
-    # Validate all products and stock before creating the order.
-    order_lines = []
-    total_amount = Decimal("0.00")
-
-    for cart_item in cart_items:
-        product = (
-            db.query(Product)
-            .filter(Product.id == cart_item.product_id)
-            .with_for_update()
+    """
+    Create an order, deduct stock, and clear the customer's cart
+    in one database transaction.
+    """
+    try:
+        # 1. Verify that the delivery address belongs to the customer.
+        address = (
+            db.query(Address)
+            .filter(
+                Address.id == payload.address_id,
+                Address.customer_id == customer.id,
+            )
             .first()
         )
 
-        if product is None or not product.is_active:
+        if address is None:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Product ID {cart_item.product_id} is unavailable",
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Delivery address not found",
             )
 
-        if cart_item.quantity > product.stock_quantity:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=(
-                    f"Insufficient stock for {product.name}. "
-                    f"Available stock: {product.stock_quantity}"
-                ),
-            )
-
-        unit_price = get_product_price(product, cart_item.quantity)
-        subtotal = (
-            unit_price * cart_item.quantity
-        ).quantize(Decimal("0.01"))
-
-        total_amount += subtotal
-
-        order_lines.append(
-            {
-                "product": product,
-                "quantity": cart_item.quantity,
-                "unit_price": unit_price,
-                "subtotal": subtotal,
-            }
+        # 2. Lock the customer's cart rows.
+        cart_items = (
+            db.query(CartItem)
+            .filter(CartItem.customer_id == customer.id)
+            .order_by(CartItem.id)
+            .with_for_update()
+            .all()
         )
 
-    total_amount = total_amount.quantize(Decimal("0.01"))
+        if not cart_items:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Your cart is empty",
+            )
 
-    try:
+        # 3. Collect unique product IDs and lock products in a
+        # consistent order to reduce the risk of deadlocks.
+        product_ids = sorted(
+            {item.product_id for item in cart_items}
+        )
+
+        products = (
+            db.query(Product)
+            .filter(Product.id.in_(product_ids))
+            .order_by(Product.id)
+            .with_for_update()
+            .all()
+        )
+
+        products_by_id = {
+            product.id: product for product in products
+        }
+
+        # 4. Validate every product and available stock before
+        # creating the order or deducting any stock.
+        order_lines = []
+        total_amount = Decimal("0.00")
+
+        for cart_item in cart_items:
+            product = products_by_id.get(cart_item.product_id)
+
+            if product is None or not product.is_active:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        f"Product ID {cart_item.product_id} "
+                        "is unavailable"
+                    ),
+                )
+
+            if cart_item.quantity <= 0:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        f"Invalid quantity for product {product.name}"
+                    ),
+                )
+
+            if cart_item.quantity > product.stock_quantity:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        f"Insufficient stock for {product.name}. "
+                        f"Available stock: {product.stock_quantity}"
+                    ),
+                )
+
+            unit_price = get_product_price(
+                product,
+                cart_item.quantity,
+            )
+
+            subtotal = (
+                unit_price * cart_item.quantity
+            ).quantize(Decimal("0.01"))
+
+            total_amount += subtotal
+
+            order_lines.append(
+                {
+                    "product": product,
+                    "quantity": cart_item.quantity,
+                    "unit_price": unit_price,
+                    "subtotal": subtotal,
+                }
+            )
+
+        total_amount = total_amount.quantize(Decimal("0.01"))
+
+        # 5. Create the order and persist its ID inside the transaction.
         order = Order(
             customer_id=customer.id,
             address_id=address.id,
@@ -159,6 +195,8 @@ def create_order(
         db.add(order)
         db.flush()
 
+        # 6. Create order items and deduct stock.
+        # Product rows remain locked until commit or rollback.
         for line in order_lines:
             product = line["product"]
             quantity = line["quantity"]
@@ -175,17 +213,37 @@ def create_order(
 
             db.add(order_item)
 
-            # Reserve stock by reducing available stock.
+            previous_stock = product.stock_quantity
             product.stock_quantity -= quantity
+            record_inventory_movement(
+                db,
+                product=product,
+                movement_type="order_deduction",
+                quantity_change=-quantity,
+                previous_stock=previous_stock,
+                new_stock=product.stock_quantity,
+                reason=f"Stock deducted for order #{order.id}",
+                order_id=order.id,
+                changed_by_customer_id=customer.id,
+            )
 
-        # Remove cart items only after all order records are prepared.
+        # 7. Clear the cart only after all order items are prepared.
         db.query(CartItem).filter(
             CartItem.customer_id == customer.id
         ).delete(synchronize_session=False)
 
+        # 8. Commit order creation, stock deduction, and cart clearing
+        # together. Any failure before commit rolls back the transaction.
         db.commit()
 
-        return get_order_or_404(db, order.id, customer.id)
+        # Save the ID before loading the response.
+        order_id = order.id
+
+        return get_order_or_404(
+            db,
+            order_id,
+            customer.id,
+        )
 
     except Exception:
         db.rollback()
@@ -197,6 +255,7 @@ def get_my_orders(
     db: Session = Depends(get_db),
     customer: Customer = Depends(get_current_customer),
 ):
+    """Return the logged-in customer's orders."""
     return (
         db.query(Order)
         .options(selectinload(Order.items))
@@ -212,7 +271,12 @@ def get_order(
     db: Session = Depends(get_db),
     customer: Customer = Depends(get_current_customer),
 ):
-    return get_order_or_404(db, order_id, customer.id)
+    """Return one order belonging to the logged-in customer."""
+    return get_order_or_404(
+        db,
+        order_id,
+        customer.id,
+    )
 
 
 @router.post("/{order_id}/cancel", response_model=OrderResponse)
@@ -221,38 +285,41 @@ def cancel_order(
     db: Session = Depends(get_db),
     customer: Customer = Depends(get_current_customer),
 ):
-    # Lock the order row so concurrent cancellation requests
-    # cannot restore stock more than once.
-    order = (
-        db.query(Order)
-        .options(selectinload(Order.items))
-        .filter(
-            Order.id == order_id,
-            Order.customer_id == customer.id,
-        )
-        .with_for_update()
-        .first()
-    )
-
-    if order is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Order not found",
-        )
-
-    # Customers can cancel only orders that are still pending.
-    if order.status != "pending":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                f"Order cannot be cancelled because its "
-                f"current status is '{order.status}'"
-            ),
-        )
-
+    """
+    Cancel a pending order and restore its stock exactly once,
+    within the same transaction as the status change.
+    """
     try:
-        # Lock products in a consistent order to reduce the
-        # possibility of deadlocks.
+        # 1. Lock the customer's order to prevent concurrent
+        # cancellation requests from restoring stock twice.
+        order = (
+            db.query(Order)
+            .options(selectinload(Order.items))
+            .filter(
+                Order.id == order_id,
+                Order.customer_id == customer.id,
+            )
+            .with_for_update()
+            .first()
+        )
+
+        if order is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found",
+            )
+
+        # Customers can cancel pending orders only.
+        if order.status != "pending":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "Order cannot be cancelled because its "
+                    f"current status is '{order.status}'"
+                ),
+            )
+
+        # 2. Aggregate quantities by product.
         quantities_by_product = {}
 
         for item in order.items:
@@ -261,6 +328,7 @@ def cancel_order(
                 + item.quantity
             )
 
+        # 3. Lock products in ascending ID order.
         product_ids = sorted(quantities_by_product)
 
         products = (
@@ -271,9 +339,11 @@ def cancel_order(
             .all()
         )
 
-        products_by_id = {product.id: product for product in products}
+        products_by_id = {
+            product.id: product for product in products
+        }
 
-        # Restore the stock reserved when the order was created.
+        # 4. Restore the reserved stock.
         for product_id, quantity in quantities_by_product.items():
             product = products_by_id.get(product_id)
 
@@ -286,17 +356,32 @@ def cancel_order(
                     ),
                 )
 
+            previous_stock = product.stock_quantity
             product.stock_quantity += quantity
+            record_inventory_movement(
+                db,
+                product=product,
+                movement_type="order_cancellation_restock",
+                quantity_change=quantity,
+                previous_stock=previous_stock,
+                new_stock=product.stock_quantity,
+                reason=f"Stock restored after customer cancelled order #{order.id}",
+                order_id=order.id,
+                changed_by_customer_id=customer.id,
+            )
 
-        # Change the status in the same transaction as stock restoration.
+        # 5. Update status in the same transaction as restocking.
         order.status = "cancelled"
+        cancelled_order_id = order.id
 
-        # Do not mark a payment as refunded automatically.
-        # An actual refund must be completed separately.
-
+        # Do not automatically mark a payment as refunded.
         db.commit()
 
-        return get_order_or_404(db, order_id, customer.id)
+        return get_order_or_404(
+            db,
+            cancelled_order_id,
+            customer.id,
+        )
 
     except Exception:
         db.rollback()

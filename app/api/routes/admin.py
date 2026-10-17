@@ -13,6 +13,9 @@ from app.schemas.order import (
     OrderStatusUpdate,
     PaymentStatusUpdate,
 )
+from app.models import InventoryMovement
+from app.schemas.inventory import InventoryAdjustmentCreate, InventoryMovementResponse
+from app.services.inventory import record_inventory_movement
 
 router = APIRouter(
     prefix="/api/admin",
@@ -29,6 +32,23 @@ def admin_test(
         "admin_id": current_admin.id,
         "role": current_admin.role,
     }
+
+
+@router.get(
+    "/orders",
+    response_model=list[OrderResponse],
+)
+def list_all_orders(
+    db: Session = Depends(get_db),
+    current_admin: Customer = Depends(require_admin),
+):
+    """Return all orders for the admin dashboard, newest first."""
+    return (
+        db.query(Order)
+        .options(selectinload(Order.items))
+        .order_by(Order.created_at.desc())
+        .all()
+    )
 
 
 @router.patch(
@@ -119,7 +139,19 @@ def update_order_status(
                         ),
                     )
 
+                previous_stock = product.stock_quantity
                 product.stock_quantity += quantity
+                record_inventory_movement(
+                    db,
+                    product=product,
+                    movement_type="order_cancellation_restock",
+                    quantity_change=quantity,
+                    previous_stock=previous_stock,
+                    new_stock=product.stock_quantity,
+                    reason=f"Stock restored after administrator cancelled order #{order.id}",
+                    order_id=order.id,
+                    changed_by_customer_id=current_admin.id,
+                )
 
         order.status = new_status
 
@@ -225,6 +257,95 @@ def update_payment_status(
             .first()
         )
 
+    except Exception:
+        db.rollback()
+        raise
+
+
+@router.get(
+    "/inventory/movements",
+    response_model=list[InventoryMovementResponse],
+)
+def list_inventory_movements(
+    product_id: int | None = None,
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_admin: Customer = Depends(require_admin),
+):
+    """List stock history, newest first. Admin access required."""
+    if skip < 0:
+        raise HTTPException(status_code=400, detail="skip must be zero or greater")
+    if limit < 1 or limit > 500:
+        raise HTTPException(status_code=400, detail="limit must be between 1 and 500")
+
+    query = db.query(InventoryMovement)
+    if product_id is not None:
+        query = query.filter(InventoryMovement.product_id == product_id)
+
+    return (
+        query.order_by(InventoryMovement.created_at.desc(), InventoryMovement.id.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+
+@router.post(
+    "/products/{product_id}/inventory",
+    response_model=InventoryMovementResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def adjust_product_inventory(
+    product_id: int,
+    payload: InventoryAdjustmentCreate,
+    db: Session = Depends(get_db),
+    current_admin: Customer = Depends(require_admin),
+):
+    """Manually add or remove stock, recording the reason and actor."""
+    if payload.quantity_change == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="quantity_change must not be zero",
+        )
+
+    try:
+        product = (
+            db.query(Product)
+            .filter(Product.id == product_id)
+            .with_for_update()
+            .first()
+        )
+        if product is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Product not found",
+            )
+
+        previous_stock = product.stock_quantity
+        new_stock = previous_stock + payload.quantity_change
+        if new_stock < 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Insufficient stock. Available stock: {previous_stock}",
+            )
+
+        product.stock_quantity = new_stock
+        movement = record_inventory_movement(
+            db,
+            product=product,
+            movement_type=(
+                "stock_in" if payload.quantity_change > 0 else "stock_out"
+            ),
+            quantity_change=payload.quantity_change,
+            previous_stock=previous_stock,
+            new_stock=new_stock,
+            reason=payload.reason,
+            changed_by_customer_id=current_admin.id,
+        )
+        db.commit()
+        db.refresh(movement)
+        return movement
     except Exception:
         db.rollback()
         raise

@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Farm Grows - Farm-Fresh Groceries Delivered</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f2f8f4',
+              100: '#e1efe6',
+              600: '#2d6a4f',
+              700: '#1b4332',
+              800: '#143626',
+              gold: '#d4a373',
+              accent: '#e9c46a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#faf8f5] text-stone-800 font-sans flex flex-col min-h-screen">
+
+  <!-- Header / Navigation -->
+  <header class="bg-brand-700 text-white sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between py-3">
+      <!-- Logo -->
+      <div class="flex items-center space-x-2 cursor-pointer" onclick="navigate('home')">
+        <i data-lucide="sprout" class="w-8 h-8 text-brand-accent"></i>
+        <span class="text-2xl font-serif font-bold tracking-tight text-white">My Farm Grow</span>
+      </div>
+
+      <!-- Center Links -->
+      <nav class="hidden md:flex space-x-8 text-stone-200 font-medium text-sm">
+        <button onclick="navigate('home')" id="nav-home" class="hover:text-white transition pb-1 border-b-2 border-transparent">Home</button>
+        <button onclick="navigate('products')" id="nav-products" class="hover:text-white transition pb-1 border-b-2 border-transparent">Products</button>
+        <button onclick="navigate('about')" id="nav-about" class="hover:text-white transition pb-1 border-b-2 border-transparent">About</button>
+        <button onclick="navigate('contact')" id="nav-contact" class="hover:text-white transition pb-1 border-b-2 border-transparent">Contact</button>
+        <button onclick="navigate('orders')" id="nav-orders" class="hover:text-white transition pb-1 border-b-2 border-transparent">My Orders</button>
+        <button onclick="navigate('admin')" id="nav-admin" class="hidden hover:text-white transition pb-1 border-b-2 border-transparent">Admin Dashboard</button>
+      </nav>
+
+      <!-- Cart / CTA -->
+      <div class="flex items-center space-x-4">
+        <button onclick="openAccount()" id="account-button" class="hidden sm:inline-flex items-center bg-white/10 border border-white/20 text-white font-semibold px-4 py-2 rounded-full text-sm hover:bg-white/20 transition">Login / Register</button>
+        <button id="customer-order-now" onclick="navigate('products')" class="hidden sm:inline-flex items-center bg-brand-accent text-brand-800 font-semibold px-4 py-2 rounded-full text-sm shadow hover:bg-yellow-400 transition">
+          Order Now
+        </button>
+        <!-- Admin-only hamburger menu -->
+        <div id="admin-menu-wrap" class="relative hidden">
+          <button id="admin-menu-toggle" type="button" onclick="toggleAdminMenu()" aria-label="Open admin menu" aria-expanded="false" class="inline-flex items-center justify-center w-11 h-11 rounded-lg border border-white/25 text-white hover:bg-white/10 transition">
+            <i data-lucide="menu" class="w-6 h-6"></i>
+          </button>
+          <div id="admin-menu-panel" class="hidden absolute right-0 top-14 w-64 rounded-xl bg-white text-stone-800 shadow-xl border border-stone-200 overflow-hidden z-[80]">
+            <div class="px-4 py-3 bg-brand-50 border-b border-stone-200">
+              <p class="font-bold text-brand-800">Admin Menu</p>
+              <p class="text-xs text-stone-500">Manage your store</p>
+            </div>
+            <button onclick="adminMenuAction('orders')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="clipboard-list" class="w-4 h-4"></i> Track & manage orders</button>
+            <button onclick="adminMenuAction('inventory')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="boxes" class="w-4 h-4"></i> Inventory management</button>
+            <button onclick="adminMenuAction('inventory-history')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="history" class="w-4 h-4"></i> Inventory movement history</button>
+            <button onclick="adminMenuAction('products')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="package" class="w-4 h-4"></i> View product catalog</button>
+            <button onclick="adminMenuAction('payments')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="credit-card" class="w-4 h-4"></i> Payment status</button>
+            <div class="border-t border-stone-200 px-4 py-3 text-xs text-stone-500">More admin tools can be added here later.</div>
+          </div>
+        </div>
+        <button onclick="navigate('cart')" class="relative p-2 text-stone-200 hover:text-white transition">
+          <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+          <span id="cart-badge" class="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Areas -->
+  <main class="flex-grow">
+    
+    <!-- VIEW: HOME PAGE -->
+    <section id="view-home" class="view-panel">
+      <!-- Hero Section -->
+      <div class="relative bg-brand-800 text-white py-20 px-6 sm:px-12 overflow-hidden bg-cover bg-center" style="background-image: linear-gradient(rgba(20, 54, 38, 0.85), rgba(20, 54, 38, 0.9)), url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1600&q=80');">
+        <div class="max-w-4xl mx-auto text-center space-y-6">
+          <span class="inline-block bg-brand-700/80 border border-brand-600 text-brand-accent px-4 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
+            Andhra Pradesh's Farm-Fresh Store
+          </span>
+          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-serif font-extrabold leading-tight">
+            Farm-Fresh Groceries, Delivered to Your Door
+          </h1>
+          <p class="text-lg sm:text-xl text-stone-200 font-light max-w-2xl mx-auto">
+             Good Harvest, Good Life. Fresh rice, dal, spices, and essentials directly from local farms.
+          </p>
+          <div class="pt-4 flex flex-wrap justify-center gap-4">
+            <button onclick="navigate('products')" class="bg-brand-accent hover:bg-yellow-400 text-brand-800 px-6 py-3 rounded-md font-semibold text-base shadow transition">
+              Order Now
+            </button>
+            <button onclick="navigate('products')" class="bg-transparent border border-white hover:bg-white/10 text-white px-6 py-3 rounded-md font-semibold text-base transition">
+              Browse Products &rarr;
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categories Section -->
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+        <div class="text-center sm:text-left mb-8">
+          <h2 class="text-3xl font-serif font-bold text-brand-800">Shop by Category</h2>
+          <p class="text-stone-500 mt-1">Everything your kitchen needs, straight from the farm.</p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <!-- Category 1 -->
+          <div onclick="filterCategory('Rice & Grains')" class="cursor-pointer group bg-white rounded-xl shadow-sm hover:shadow-md border border-stone-100 overflow-hidden text-center transition">
+            <div class="h-32 bg-cover bg-center group-hover:scale-105 transition duration-300" style="background-image: url('https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=500&q=80');"></div>
+            <div class="p-3">
+              <h3 class="font-bold text-stone-800 group-hover:text-brand-600 text-sm">Rice & Grains</h3>
+              <p class="text-xs text-stone-500">Sona Masoori & more</p>
+            </div>
+          </div>
+          <!-- Category 2 -->
+          <div onclick="filterCategory('Pulses & Dal')" class="cursor-pointer group bg-white rounded-xl shadow-sm hover:shadow-md border border-stone-100 overflow-hidden text-center transition">
+            <div class="h-32 bg-cover bg-center group-hover:scale-105 transition duration-300" style="background-image: url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80');"></div>
+            <div class="p-3">
+              <h3 class="font-bold text-stone-800 group-hover:text-brand-600 text-sm">Pulses & Dal</h3>
+              <p class="text-xs text-stone-500">Toor, Moong & Chana</p>
+            </div>
+          </div>
+          <!-- Category 3 -->
+          <div onclick="filterCategory('Spices & Mirchi')" class="cursor-pointer group bg-white rounded-xl shadow-sm hover:shadow-md border border-stone-100 overflow-hidden text-center transition">
+            <div class="h-32 bg-cover bg-center group-hover:scale-105 transition duration-300" style="background-image: url('https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=500&q=80');"></div>
+            <div class="p-3">
+              <h3 class="font-bold text-stone-800 group-hover:text-brand-600 text-sm">Spices & Mirchi</h3>
+              <p class="text-xs text-stone-500">Guntur red chillies</p>
+            </div>
+          </div>
+          <!-- Category 4 -->
+          <div onclick="filterCategory('Fresh Vegetables')" class="cursor-pointer group bg-white rounded-xl shadow-sm hover:shadow-md border border-stone-100 overflow-hidden text-center transition">
+            <div class="h-32 bg-cover bg-center group-hover:scale-105 transition duration-300" style="background-image: url('https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=500&q=80');"></div>
+            <div class="p-3">
+              <h3 class="font-bold text-stone-800 group-hover:text-brand-600 text-sm">Vegetables</h3>
+              <p class="text-xs text-stone-500">Seasonal & crisp</p>
+            </div>
+          </div>
+          <!-- Category 5 -->
+          <div onclick="filterCategory('Oils & Ghee')" class="cursor-pointer group bg-white rounded-xl shadow-sm hover:shadow-md border border-stone-100 overflow-hidden text-center transition">
+            <div class="h-32 bg-cover bg-center group-hover:scale-105 transition duration-300" style="background-image: url('https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=500&q=80');"></div>
+            <div class="p-3">
+              <h3 class="font-bold text-stone-800 group-hover:text-brand-600 text-sm">Oils & Ghee</h3>
+              <p class="text-xs text-stone-500">Pure cold-pressed</p>
+            </div>
+          </div>
+          <!-- Category 6 -->
+          <div onclick="filterCategory('Dry Fruits')" class="cursor-pointer group bg-white rounded-xl shadow-sm hover:shadow-md border border-stone-100 overflow-hidden text-center transition">
+            <div class="h-32 bg-cover bg-center group-hover:scale-105 transition duration-300" style="background-image: url('https://images.unsplash.com/photo-1596591606975-97ee5cef3a1e?auto=format&fit=crop&w=500&q=80');"></div>
+            <div class="p-3">
+              <h3 class="font-bold text-stone-800 group-hover:text-brand-600 text-sm">Dry Fruits</h3>
+              <p class="text-xs text-stone-500">Cashews & almonds</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Why Farm-Fresh Matters -->
+      <section class="bg-brand-50 border-y border-stone-200 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center mb-12">
+            <h2 class="text-3xl font-serif font-bold text-brand-800">Why Farm-Fresh Matters</h2>
+            <p class="text-stone-600">Pure produce, transparent sourcing, direct support for farmers.</p>
+          </div>
+          <div class="grid md:grid-cols-3 gap-8">
+            <div class="bg-white p-6 rounded-xl border border-stone-100 text-center shadow-sm">
+              <div class="w-12 h-12 bg-brand-100 text-brand-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="handshake" class="w-6 h-6"></i>
+              </div>
+              <h3 class="text-lg font-bold text-stone-800 mb-2">No Middlemen</h3>
+              <p class="text-sm text-stone-600">Direct sourcing guarantees fair earnings for growers and competitive prices for your household.</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl border border-stone-100 text-center shadow-sm">
+              <div class="w-12 h-12 bg-brand-100 text-brand-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="clock" class="w-6 h-6"></i>
+              </div>
+              <h3 class="text-lg font-bold text-stone-800 mb-2">Delivered Fresh Daily</h3>
+              <p class="text-sm text-stone-600">Orders placed before 10 AM are packed and dispatched promptly to keep produce crisp and nutritious.</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl border border-stone-100 text-center shadow-sm">
+              <div class="w-12 h-12 bg-brand-100 text-brand-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="shield-check" class="w-6 h-6"></i>
+              </div>
+              <h3 class="text-lg font-bold text-stone-800 mb-2">Quality Assured</h3>
+              <p class="text-sm text-stone-600">Grown naturally using ethical cultivation practices, thoroughly inspected before packing.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- VIEW: PRODUCTS CATALOG -->
+    <section id="view-products" class="view-panel hidden py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="mb-8">
+        <h1 class="text-3xl font-serif font-bold text-brand-800">Our Products</h1>
+        <p class="text-stone-600 text-sm">Farm-fresh groceries, sourced directly from regional fields.</p>
+      </div>
+
+      <div class="flex flex-col md:flex-row gap-8">
+        <!-- Sidebar Filters -->
+        <aside class="w-full md:w-64 flex-shrink-0">
+          <div class="bg-white p-5 rounded-xl border border-stone-200 sticky top-24">
+            <h3 class="font-bold text-xs uppercase tracking-wider text-stone-400 mb-4">Categories</h3>
+            <ul id="category-filter-list" class="space-y-2 text-sm font-medium">
+              <!-- Dynamically populated or static -->
+              <li>
+                <button onclick="filterCategory('All')" class="cat-btn w-full text-left px-3 py-2 rounded-lg bg-brand-50 text-brand-700 font-semibold" data-category="All">
+                  All Products
+                </button>
+              </li>
+              <li>
+                <button onclick="filterCategory('Rice & Grains')" class="cat-btn w-full text-left px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-600" data-category="Rice & Grains">
+                  Rice & Grains
+                </button>
+              </li>
+              <li>
+                <button onclick="filterCategory('Pulses & Dal')" class="cat-btn w-full text-left px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-600" data-category="Pulses & Dal">
+                  Pulses & Dal
+                </button>
+              </li>
+              <li>
+                <button onclick="filterCategory('Spices & Mirchi')" class="cat-btn w-full text-left px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-600" data-category="Spices & Mirchi">
+                  Spices & Mirchi
+                </button>
+              </li>
+              <li>
+                <button onclick="filterCategory('Fresh Vegetables')" class="cat-btn w-full text-left px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-600" data-category="Fresh Vegetables">
+                  Fresh Vegetables
+                </button>
+              </li>
+              <li>
+                <button onclick="filterCategory('Oils & Ghee')" class="cat-btn w-full text-left px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-600" data-category="Oils & Ghee">
+                  Oils & Ghee
+                </button>
+              </li>
+            </ul>
+          </div>
+        </aside>
+
+        <!-- Product Grid -->
+        <div class="flex-grow">
+          <!-- Search input -->
+          <div class="mb-6 relative">
+            <i data-lucide="search" class="w-5 h-5 absolute left-3 top-3 text-stone-400"></i>
+            <input 
+              type="text" 
+              id="search-input" 
+              oninput="handleSearch()" 
+              placeholder="Search products by name or category..." 
+              class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-stone-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+            />
+          </div>
+
+          <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Product cards inserted by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: CART -->
+    <section id="view-cart" class="view-panel hidden py-12 max-w-4xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between border-b pb-4 mb-6">
+        <h1 class="text-3xl font-serif font-bold text-brand-800">Shopping Cart</h1>
+        <button onclick="navigate('products')" class="text-brand-600 text-sm font-semibold hover:underline">
+          &larr; Continue Shopping
+        </button>
+      </div>
+
+      <div id="cart-container">
+        <!-- Rendered by JS: either empty state or list -->
+      </div>
+    </section>
+
+
+    <!-- Checkout -->
+    <section id="view-checkout" class="view-panel hidden py-10 max-w-5xl mx-auto px-4 sm:px-6">
+      <h1 class="text-3xl font-serif font-bold text-brand-800 mb-2">Checkout</h1>
+      <p class="text-sm text-stone-500 mb-6">Choose or add a delivery address and place your order.</p>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl border border-stone-200 p-6">
+          <h2 class="font-bold text-lg mb-4">Delivery address</h2>
+          <div id="address-list" class="space-y-3 mb-5"></div>
+          <h3 class="font-semibold mb-3">Add a new address</h3>
+          <form id="address-form" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input name="recipient_name" required placeholder="Recipient name" class="border rounded-lg p-2 text-sm">
+            <input name="phone" required minlength="10" placeholder="Phone number" class="border rounded-lg p-2 text-sm">
+            <input name="address_line1" required placeholder="Address line 1" class="border rounded-lg p-2 text-sm sm:col-span-2">
+            <input name="address_line2" placeholder="Address line 2 (optional)" class="border rounded-lg p-2 text-sm sm:col-span-2">
+            <input name="landmark" placeholder="Landmark (optional)" class="border rounded-lg p-2 text-sm sm:col-span-2">
+            <input name="city" required placeholder="City" class="border rounded-lg p-2 text-sm">
+            <input name="state" required placeholder="State" class="border rounded-lg p-2 text-sm">
+            <input name="postal_code" required placeholder="Postal code" class="border rounded-lg p-2 text-sm">
+            <input name="country" value="India" required placeholder="Country" class="border rounded-lg p-2 text-sm">
+            <label class="text-sm flex items-center gap-2 sm:col-span-2"><input type="checkbox" name="is_default"> Set as default address</label>
+            <button class="sm:col-span-2 bg-brand-700 text-white rounded-lg p-3 font-semibold hover:bg-brand-800">Save address</button>
+          </form>
+        </div>
+        <div class="bg-white rounded-xl border border-stone-200 p-6 h-fit">
+          <h2 class="font-bold text-lg mb-4">Order summary</h2>
+          <div id="checkout-summary" class="text-sm space-y-3 mb-5"></div>
+          <label class="block text-sm font-semibold mb-2" for="payment-method">Payment method</label>
+          <select id="payment-method" class="w-full border rounded-lg p-3 mb-4">
+            <option value="cash_on_delivery">Cash on delivery</option>
+            <option value="online">Online payment (transaction record only)</option>
+          </select>
+          <button onclick="placeOrder()" class="w-full bg-brand-accent text-brand-800 rounded-lg p-3 font-bold hover:bg-yellow-400">Place order</button>
+          <p class="text-xs text-stone-500 mt-3">Online payment is not connected to a payment gateway yet. This demo creates a pending transaction only.</p>
+        </div>
+      </div>
+    </section>
+    <!-- Customer orders -->
+    <section id="view-orders" class="view-panel hidden py-10 max-w-5xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between mb-6"><div><h1 class="text-3xl font-serif font-bold text-brand-800">My Orders</h1><p class="text-sm text-stone-500">View your order history and cancel eligible pending orders.</p></div><button onclick="loadOrders()" class="border rounded-lg px-4 py-2 text-sm">Refresh</button></div>
+      <div id="orders-container" class="space-y-4"></div>
+    </section>
+    <!-- ADMIN DASHBOARD: visible only to authenticated administrators -->
+    <section id="view-admin" class="view-panel hidden py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 class="text-3xl font-serif font-bold text-brand-800">Admin Dashboard</h1>
+          <p class="text-sm text-stone-500 mt-1">Review orders and manage fulfilment and payment status.</p>
+        </div>
+        <button onclick="loadAdminOrders()" class="border rounded-lg px-4 py-2 text-sm hover:bg-stone-50">Refresh orders</button>
+      </div>
+      <div id="admin-summary" class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6"></div>
+      <div class="bg-white border border-stone-200 rounded-xl p-4 mb-5 flex flex-wrap gap-3 items-center">
+        <input id="admin-order-search" oninput="renderAdminOrders()" placeholder="Search order ID, customer or status..." class="border rounded-lg p-2 text-sm flex-1 min-w-56">
+        <select id="admin-status-filter" onchange="renderAdminOrders()" class="border rounded-lg p-2 text-sm">
+          <option value="">All order statuses</option>
+          <option value="pending">Pending</option><option value="processing">Processing</option>
+          <option value="shipped">Shipped</option><option value="delivered">Delivered</option><option value="cancelled">Cancelled</option>
+        </select>
+        <label class="text-sm flex items-center gap-2"><input id="admin-today-only" type="checkbox" onchange="renderAdminOrders()"> Today's orders</label>
+      </div>
+      <div id="admin-orders-container" class="space-y-4">
+        <p class="text-stone-500">Loading admin orders...</p>
+      </div>
+
+    </section>
+
+    <!-- DEDICATED VIEW: INVENTORY MANAGEMENT -->
+    <section id="view-inventory" class="view-panel hidden py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 class="text-3xl font-serif font-bold text-brand-800">Inventory Management</h1>
+          <p class="text-sm text-stone-500 mt-1">Manage stock levels and review stock movement history.</p>
+        </div>
+        <button onclick="loadAdminInventory()" class="border rounded-lg px-4 py-2 text-sm hover:bg-stone-50">Refresh inventory</button>
+      </div>
+      <div class="grid lg:grid-cols-3 gap-5 mb-6">
+        <div class="lg:col-span-1 bg-white border border-stone-200 rounded-xl p-5">
+          <h3 class="font-bold text-lg mb-1">Adjust product stock</h3>
+          <p class="text-xs text-stone-500 mb-4">Positive quantity adds stock; negative quantity removes stock.</p>
+          <form id="inventory-adjust-form" class="space-y-3">
+            <div><label for="inventory-product" class="block text-sm font-medium mb-1">Product</label><select id="inventory-product" required class="w-full border rounded-lg p-2.5 text-sm"><option value="">Loading products...</option></select></div>
+            <div><label for="inventory-quantity" class="block text-sm font-medium mb-1">Quantity change</label><input id="inventory-quantity" type="number" step="1" required class="w-full border rounded-lg p-2.5 text-sm" placeholder="e.g. 20 or -5"></div>
+            <div><label for="inventory-reason" class="block text-sm font-medium mb-1">Reason</label><input id="inventory-reason" type="text" required maxlength="500" class="w-full border rounded-lg p-2.5 text-sm" placeholder="e.g. Received stock from supplier"></div>
+            <button type="submit" class="w-full bg-brand-700 hover:bg-brand-800 text-white rounded-lg p-3 font-semibold">Update stock</button>
+            <p class="text-xs text-stone-500">Every manual stock change is recorded in movement history.</p>
+          </form>
+        </div>
+        <div class="lg:col-span-2 bg-white border border-stone-200 rounded-xl p-5">
+          <h3 class="font-bold text-lg mb-4">Current product stock</h3>
+          <div id="admin-inventory-products" class="space-y-3"><p class="text-sm text-stone-500">Loading product stock...</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DEDICATED VIEW: INVENTORY MOVEMENT HISTORY -->
+    <section id="view-inventory-history" class="view-panel hidden py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 class="text-3xl font-serif font-bold text-brand-800">Inventory Movement History</h1>
+          <p class="text-sm text-stone-500 mt-1">Review stock additions, order deductions, cancellation restocks, and manual adjustments.</p>
+        </div>
+        <button onclick="loadInventoryMovements()" class="border rounded-lg px-4 py-2 text-sm hover:bg-stone-50">Refresh history</button>
+      </div>
+      <div class="bg-white border border-stone-200 rounded-xl p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <h3 class="font-bold text-lg">Inventory movement history</h3>
+          <select id="inventory-history-product" onchange="loadInventoryMovements()" class="border rounded-lg p-2 text-sm"><option value="">All products</option></select>
+        </div>
+        <div id="admin-inventory-movements" class="overflow-x-auto"><p class="text-sm text-stone-500">Loading inventory movements...</p></div>
+      </div>
+    </section>
+
+    <!-- Account modal -->
+    <div id="account-modal" class="hidden fixed inset-0 z-[100] bg-black/50 p-4 overflow-y-auto">
+      <div class="max-w-md mx-auto mt-10 bg-white rounded-2xl p-6 shadow-xl">
+        <div class="flex justify-between items-center mb-4"><h2 id="account-title" class="text-2xl font-serif font-bold text-brand-800">Login</h2><button onclick="closeAccount()" class="text-2xl" aria-label="Close">&times;</button></div>
+        <div class="flex gap-2 mb-5"><button onclick="setAuthMode('login')" id="login-tab" class="flex-1 rounded-lg p-2 bg-brand-700 text-white">Login</button><button onclick="setAuthMode('register')" id="register-tab" class="flex-1 rounded-lg p-2 bg-stone-100">Register</button></div>
+        <form id="account-form" class="space-y-3">
+          <div id="name-field" class="hidden"><label class="text-sm font-medium">Full name</label><input name="name" class="w-full border rounded-lg p-3" placeholder="Your name"></div>
+          <div><label class="text-sm font-medium">Email</label><input name="email" type="email" required class="w-full border rounded-lg p-3" placeholder="you@example.com"></div>
+          <div><label class="text-sm font-medium">Password</label><input name="password" type="password" required minlength="8" class="w-full border rounded-lg p-3" placeholder="At least 8 characters"></div>
+          <div id="customer-type-field" class="hidden"><label class="text-sm font-medium">Account type</label><select name="customer_type" class="w-full border rounded-lg p-3"><option value="retail">Retail customer</option><option value="wholesale">Wholesale customer</option></select></div>
+          <button id="account-submit" class="w-full bg-brand-700 text-white rounded-lg p-3 font-semibold">Login</button>
+          <p class="text-xs text-stone-500">Registration creates a customer account. Admin access is never available through public registration.</p>
+        </form>
+        <button id="logout-button" onclick="logout()" class="hidden w-full mt-3 border border-red-200 text-red-700 rounded-lg p-3">Logout</button>
+      </div>
+    </div>
+    <div id="toast" class="hidden fixed bottom-5 right-5 z-[120] max-w-md bg-stone-900 text-white px-5 py-3 rounded-xl shadow-lg text-sm"></div>
+
+    <!-- VIEW: ABOUT / CONTACT PLACEHOLDER -->
+    <section id="view-generic" class="view-panel hidden py-20 max-w-2xl mx-auto px-4 text-center">
+      <div class="bg-white p-8 rounded-2xl border border-stone-200 shadow-sm space-y-4">
+        <div class="w-12 h-12 bg-brand-100 text-brand-700 rounded-full flex items-center justify-center mx-auto">
+          <i data-lucide="leaf" class="w-6 h-6"></i>
+        </div>
+        <h2 id="generic-title" class="text-2xl font-serif font-bold text-brand-800">Section Title</h2>
+        <p id="generic-desc" class="text-stone-600 text-sm">Farm-fresh groceries directly from local growers to your family table.</p>
+        <button onclick="navigate('products')" class="mt-4 bg-brand-700 hover:bg-brand-800 text-white px-5 py-2 rounded-lg text-sm font-semibold transition">
+          Browse Catalog
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-brand-800 text-stone-300 pt-12 pb-8 border-t border-brand-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 text-sm">
+      <div class="space-y-3">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="sprout" class="w-6 h-6 text-brand-accent"></i>
+          <span class="text-xl font-serif font-bold text-white">My Farm Grow</span>
+        </div>
+        <p class="text-xs text-stone-400 leading-relaxed">
+          Delivering fresh agricultural produce directly from Andhra Pradesh growers to your kitchen.
+        </p>
+      </div>
+
+      <div>
+        <h4 class="text-white font-semibold mb-3">Quick Links</h4>
+        <ul class="space-y-2 text-xs">
+          <li><a href="#" onclick="navigate('home')" class="hover:text-white">Home</a></li>
+          <li><a href="#" onclick="navigate('products')" class="hover:text-white">Products</a></li>
+          <li><a href="#" onclick="navigate('about')" class="hover:text-white">About Us</a></li>
+          <li><a href="#" onclick="navigate('contact')" class="hover:text-white">Contact</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-white font-semibold mb-3">Delivery Zones</h4>
+        <p class="text-xs text-stone-400">Vijayawada, Guntur, Visakhapatnam, Tirupati, Rajahmundry, Nellore, and surrounding areas.</p>
+      </div>
+
+      <div>
+        <h4 class="text-white font-semibold mb-3">Customer Support</h4>
+        <p class="text-xs text-stone-400">Email: help@myfarmgrows.in</p>
+        <p class="text-xs text-stone-400 mt-1">Available 7:00 AM – 8:00 PM</p>
+      </div>
+    </div>
+    
+    <div class="max-w-7xl mx-auto px-4 border-t border-brand-700 pt-4 text-center text-xs text-stone-500">
+      &copy; 2026 My Farm Grow. All rights reserved.
+    </div>
+  </footer>
+
+  <!-- Application Logic: connected to the FastAPI backend -->
+  <script>
+    const API_BASE = window.location.origin;
+    let token = localStorage.getItem("mfg_access_token") || "";
+    let currentUser = null;
+    let authMode = "login";
+    let products = [];
+    let adminOrders = [];
+    let cart = {items: [], total: 0};
+    let addresses = [];
+    let selectedAddressId = null;
+    let selectedCategory = "All";
+    let toastTimer;
+
+    async function api(path, options = {}) {
+      const headers = {...(options.headers || {})};
+      if (options.body && !(options.body instanceof FormData) && typeof options.body !== "string") {
+        headers["Content-Type"] = "application/json";
+        options.body = JSON.stringify(options.body);
+      }
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const response = await fetch(`${API_BASE}${path}`, {...options, headers});
+      if (response.status === 204) return null;
+      const text = await response.text();
+      let data = null;
+      try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+      if (!response.ok) {
+        if (response.status === 401) { token = ""; localStorage.removeItem("mfg_access_token"); currentUser = null; updateAccountButton(); }
+        const detail = data && (data.detail || data.message) ? (typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail)) : `Request failed (${response.status})`;
+        throw new Error(detail);
+      }
+      return data;
+    }
+    function notify(message) {
+      const el = document.getElementById("toast");
+      el.textContent = message; el.classList.remove("hidden");
+      clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.add("hidden"), 3500);
+    }
+    function money(value) { return new Intl.NumberFormat("en-IN", {style:"currency", currency:"INR", maximumFractionDigits:2}).format(Number(value || 0)); }
+    function esc(value) { return String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+    function updateAccountButton() {
+      const btn = document.getElementById("account-button");
+      btn.textContent = currentUser ? `${currentUser.name} · Logout` : "Login / Register";
+      const adminNav = document.getElementById("nav-admin");
+      if (adminNav) adminNav.classList.toggle("hidden", currentUser?.role !== "admin");
+      const adminMenu = document.getElementById("admin-menu-wrap");
+      const orderNow = document.getElementById("customer-order-now");
+      const isAdmin = currentUser?.role === "admin";
+      if (adminMenu) adminMenu.classList.toggle("hidden", !isAdmin);
+      if (orderNow) orderNow.classList.toggle("hidden", isAdmin);
+    }
+    function openAccount() {
+      document.getElementById("account-modal").classList.remove("hidden");
+      if (currentUser) {
+        document.getElementById("account-title").textContent = "Your account";
+        document.getElementById("account-form").classList.add("hidden");
+        document.getElementById("logout-button").classList.remove("hidden");
+      } else {
+        document.getElementById("account-form").classList.remove("hidden");
+        document.getElementById("logout-button").classList.add("hidden");
+        setAuthMode("login");
+      }
+    }
+    function closeAccount() { document.getElementById("account-modal").classList.add("hidden"); }
+    function setAuthMode(mode) {
+      authMode = mode;
+      document.getElementById("account-title").textContent = mode === "login" ? "Login" : "Create account";
+      document.getElementById("name-field").classList.toggle("hidden", mode !== "register");
+      document.getElementById("customer-type-field").classList.toggle("hidden", mode !== "register");
+      document.getElementById("account-form").elements.name.required = mode === "register";
+      document.getElementById("account-form").elements.name.disabled = mode !== "register";
+      document.getElementById("account-submit").textContent = mode === "login" ? "Login" : "Create account";
+      document.getElementById("login-tab").className = mode === "login" ? "flex-1 rounded-lg p-2 bg-brand-700 text-white" : "flex-1 rounded-lg p-2 bg-stone-100";
+      document.getElementById("register-tab").className = mode === "register" ? "flex-1 rounded-lg p-2 bg-brand-700 text-white" : "flex-1 rounded-lg p-2 bg-stone-100";
+    }
+    async function loadMe() {
+      if (!token) return;
+      try { currentUser = await api("/api/auth/me"); }
+      catch { currentUser = null; token = ""; localStorage.removeItem("mfg_access_token"); }
+      updateAccountButton();
+    }
+    async function logout() {
+      token = ""; currentUser = null; localStorage.removeItem("mfg_access_token");
+      cart = {items:[], total:0}; updateCartBadge(); updateAccountButton(); closeAccount();
+      notify("You have logged out."); navigate("home");
+    }
+    document.getElementById("account-form").addEventListener("submit", async event => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      try {
+        if (authMode === "register") {
+          await api("/api/auth/register", {method:"POST", body:{
+            name:form.get("name"), email:form.get("email"), password:form.get("password"),
+            customer_type:form.get("customer_type")
+          }});
+          notify("Account created. Please log in.");
+          setAuthMode("login");
+          event.currentTarget.elements.password.value = "";
+          return;
+        }
+        const body = new URLSearchParams({username:form.get("email"), password:form.get("password")});
+        const result = await fetch(`${API_BASE}/api/auth/login`, {method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"}, body});
+        const data = await result.json();
+        if (!result.ok) throw new Error(data.detail || "Login failed");
+        token = data.access_token; localStorage.setItem("mfg_access_token", token);
+        currentUser = await api("/api/auth/me"); updateAccountButton(); closeAccount();
+        notify(`Welcome, ${currentUser.name}!`);
+        if (currentUser.role === "admin") { navigate("admin"); return; }
+        if (window.pendingCartProduct) { const id = window.pendingCartProduct; window.pendingCartProduct = null; await addToCart(id); }
+      } catch (error) { notify(error.message); }
+    });
+
+    function toggleAdminMenu() {
+      const panel = document.getElementById("admin-menu-panel");
+      const toggle = document.getElementById("admin-menu-toggle");
+      if (!panel || !toggle) return;
+      const willOpen = panel.classList.contains("hidden");
+      panel.classList.toggle("hidden", !willOpen);
+      toggle.setAttribute("aria-expanded", String(willOpen));
+    }
+
+    function closeAdminMenu() {
+      document.getElementById("admin-menu-panel")?.classList.add("hidden");
+      document.getElementById("admin-menu-toggle")?.setAttribute("aria-expanded", "false");
+    }
+
+    function adminMenuAction(action) {
+      closeAdminMenu();
+      if (!currentUser || currentUser.role !== "admin") {
+        notify("Administrator access is required.");
+        return;
+      }
+      if (action === "orders") {
+        navigate("admin");
+      } else if (action === "inventory") {
+        navigate("inventory");
+      } else if (action === "inventory-history") {
+        navigate("inventory-history");
+      } else if (action === "products") {
+        navigate("products");
+        notify("Product catalog opened. Product create/edit controls can be added as a separate admin feature.");
+      } else if (action === "payments") {
+        navigate("admin");
+        notify("Payment status controls are available in the admin order cards.");
+      }
+    }
+
+    document.addEventListener("click", event => {
+      const wrap = document.getElementById("admin-menu-wrap");
+      if (wrap && !wrap.contains(event.target)) closeAdminMenu();
+    });
+
+    function navigate(viewName) {
+      document.querySelectorAll(".view-panel").forEach(el => el.classList.add("hidden"));
+      const view = document.getElementById(`view-${viewName}`);
+      if (view) view.classList.remove("hidden");
+      if (viewName === "products") renderProducts();
+      if (viewName === "cart") loadCart();
+      if (viewName === "checkout") loadCheckout();
+      if (viewName === "orders") loadOrders();
+      if (viewName === "admin" || viewName === "inventory" || viewName === "inventory-history") {
+        if (!currentUser || currentUser.role !== "admin") {
+          notify("Administrator access is required.");
+          navigate("home");
+          return;
+        }
+        if (viewName === "admin") loadAdminOrders();
+        if (viewName === "inventory") loadAdminInventory();
+        if (viewName === "inventory-history") loadInventoryHistoryView();
+      }
+      if (viewName === "about" || viewName === "contact") {
+        document.getElementById("view-generic").classList.remove("hidden");
+        document.getElementById("generic-title").innerText = viewName === "about" ? "About My Farm Grows" : "Contact Our Team";
+        document.getElementById("generic-desc").innerText = viewName === "about" ? "A farm-to-home grocery experience connecting customers with agricultural products." : "Contact our team for questions and bulk order support.";
+      }
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+    function filterCategory(category) {
+      selectedCategory = category;
+      document.querySelectorAll(".cat-btn").forEach(btn => {
+        const active = btn.getAttribute("data-category") === category;
+        btn.className = `cat-btn w-full text-left px-3 py-2 rounded-lg ${active ? "bg-brand-50 text-brand-700 font-semibold" : "hover:bg-stone-50 text-stone-600"}`;
+      });
+      navigate("products");
+    }
+    function handleSearch() { renderProducts(); }
+    // Product image paths served by FastAPI from frontend/images/.
+    // Windows path example: D:\\Project\\frontend\\images\\basmati-rice.jpg
+    // Browser URL for that file: /static/images/basmati-rice.jpg
+    function getProductImage(product) {
+      const name = String(product.name || "").toLowerCase();
+      if (name.includes("sona masoori")) return "/static/images/sona-masoori-rice.jpg";
+      if (name.includes("basmati")) return "/static/images/basmati-rice.jpg";
+      if (name.includes("rice")) return "/static/images/basmati-rice.jpg";
+      if (name.includes("toor dal")) return "/static/images/toor-dal.jpg";
+      if (name.includes("red chilli") || name.includes("red chili") || name.includes("chilli powder") || name.includes("chili powder") || name.includes("mirchi powder")) return "/static/images/red-mirchi.jpg";
+      if (name.includes("masoor dal")) return "/static/images/masoor-dal.jpg";
+      if (name.includes("moong dal")) return "/static/images/moong-dal.jpg";
+      if (name.includes("mirchi") || name.includes("chilli")) return "/static/images/red-mirchi.jpg";
+      if (name.includes("turmeric")) return "/static/images/turmeric.jpg";
+      if (name.includes("ghee")) return "/static/images/desi-ghee.jpg";
+      if (name.includes("sunflower oil")) return "/static/images/sunflower-oil.jpg";
+      if (name.includes("whole green gram") || name.includes("green gram") || name.includes("mung bean")) return "/static/images/whole-green-gram.jpg";
+      if (name.includes("groundnut oil")) return "/static/images/groundnut-oil.jpg";
+      if (name.includes("sesame oil")) return "/static/images/sesame-oil.jpg";
+      if (name.includes("jaggery")) return "/static/images/jaggery.jpg";
+      if (name.includes("sugar")) return "/static/images/sugar.jpg";
+      if (name.includes("wheat flour")) return "/static/images/wheat-flour.jpg";
+      if (name.includes("ragi flour")) return "/static/images/ragi-flour.jpg";
+      if (name.includes("spice")) return "/static/images/spices.jpg";
+      return product.image_url || "";
+    }
+
+    async function renderProducts() {
+      const grid = document.getElementById("product-grid");
+      grid.innerHTML = '<div class="col-span-full text-center py-10 text-stone-500">Loading products…</div>';
+      try {
+        const query = document.getElementById("search-input")?.value.trim() || "";
+        const params = new URLSearchParams({limit:"100", active_only:"true"});
+        if (query) params.set("search", query);
+        if (selectedCategory !== "All") params.set("category", selectedCategory);
+        products = await api(`/api/products/?${params.toString()}`);
+        if (!products.length) { grid.innerHTML = '<div class="col-span-full py-12 text-center text-stone-500">No products found. Try another search or category.</div>'; return; }
+        grid.innerHTML = products.map(p => {
+          const price = currentUser?.customer_type === "wholesale" ? p.wholesale_price : p.retail_price;
+          const priceLabel = currentUser?.customer_type === "wholesale" ? "Wholesale price" : "Retail price";
+          return `<article class="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm flex flex-col justify-between hover:border-brand-600 transition">
+            <div><div class="h-44 bg-stone-100 flex items-center justify-center relative overflow-hidden">
+              <img src="${esc(getProductImage(p))}" alt="${esc(p.name)}" class="w-full h-full object-cover ${getProductImage(p) ? "" : "hidden"}" onerror="this.classList.add('hidden')">
+              <span class="absolute top-2 left-2 bg-brand-700 text-white text-[11px] font-bold px-2 py-1 rounded">${esc(p.category)}</span>
+            </div><div class="p-4">
+              <h3 class="text-base font-bold text-stone-800">${esc(p.name)}</h3>
+              <p class="text-xs text-stone-500 mt-1">${esc(p.description || "Farm-sourced grocery essential.")}</p>
+              <div class="mt-3 flex flex-wrap gap-2 text-xs"><span class="bg-stone-100 px-2 py-1 rounded">${esc(p.unit)}</span><span class="bg-stone-100 px-2 py-1 rounded">${Number(p.stock_quantity)} in stock</span></div>
+              <p class="text-xs text-stone-500 mt-2">${priceLabel}: <b class="text-brand-800">${money(price)}</b></p>
+              ${Number(p.min_wholesale_quantity)>0 ? `<p class="text-xs text-stone-400 mt-1">Wholesale threshold: ${p.min_wholesale_quantity} ${esc(p.unit)}</p>` : ""}
+            </div></div>
+            <div class="p-4 pt-0 flex items-center justify-between border-t border-stone-100 mt-2"><span class="text-lg font-bold text-brand-800">${money(price)}</span>
+            <button onclick="addToCart(${p.id})" ${p.stock_quantity<=0 ? "disabled" : ""} class="bg-brand-50 hover:bg-brand-100 disabled:opacity-40 text-brand-700 border border-brand-600 font-medium text-xs px-3 py-2 rounded-md">${p.stock_quantity<=0 ? "Out of stock" : "+ Add to cart"}</button></div></article>`;
+        }).join("");
+        if (window.lucide) lucide.createIcons();
+      } catch (error) { grid.innerHTML = `<div class="col-span-full p-6 bg-red-50 text-red-700 rounded-xl">Could not load products: ${esc(error.message)}. Check that the FastAPI server and database are running.</div>`; }
+    }
+    async function addToCart(productId) {
+      if (!token || !currentUser) { window.pendingCartProduct = productId; openAccount(); notify("Please log in to add items to your cart."); return; }
+      try { cart = await api("/api/cart/items", {method:"POST", body:{product_id:productId, quantity:1}}); updateCartBadge(); notify("Added to your cart."); }
+      catch (error) { notify(error.message); }
+    }
+    function updateCartBadge() {
+      document.getElementById("cart-badge").textContent = (cart.items || []).reduce((n, item) => n + Number(item.quantity), 0);
+    }
+    async function loadCart() {
+      const container = document.getElementById("cart-container");
+      if (!token) { container.innerHTML = `<div class="text-center py-12 bg-white border rounded-xl"><p class="mb-4">Log in to view your saved cart.</p><button onclick="openAccount()" class="bg-brand-700 text-white px-5 py-2 rounded-lg">Login</button></div>`; cart={items:[],total:0}; updateCartBadge(); return; }
+      try { cart = await api("/api/cart"); renderCart(); }
+      catch(error) { container.innerHTML = `<p class="text-red-700">${esc(error.message)}</p>`; }
+    }
+    function renderCart() {
+      const container = document.getElementById("cart-container");
+      updateCartBadge();
+      if (!cart.items?.length) { container.innerHTML = `<div class="text-center py-16 bg-white border border-stone-200 rounded-xl"><i data-lucide="shopping-cart" class="w-12 h-12 text-stone-300 mx-auto mb-3"></i><h3 class="text-lg font-bold">Your cart is empty</h3><p class="text-stone-400 text-sm mb-6">Explore the store and add products.</p><button onclick="navigate('products')" class="bg-brand-700 text-white px-6 py-2 rounded-lg">Browse Store</button></div>`; if(window.lucide)lucide.createIcons(); return; }
+      container.innerHTML = `<div class="bg-white rounded-xl border border-stone-200 p-6 shadow-sm"><div class="divide-y">${cart.items.map(item=>`<div class="py-4 flex flex-wrap gap-3 items-center justify-between"><div class="flex min-w-0 items-center gap-3"><img src="${esc(getProductImage({name:item.product_name, image_url:item.image_url}))}" alt="${esc(item.product_name)}" class="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover border border-stone-200 bg-stone-50 flex-shrink-0" onerror="this.classList.add('hidden')"><div class="min-w-0"><h4 class="font-bold text-sm">${esc(item.product_name)}</h4><p class="text-xs text-stone-500">${money(item.unit_price)} each · Item #${item.id}</p></div></div><div class="flex items-center gap-3"><div class="flex items-center border rounded-lg"><button onclick="changeQty(${item.id},${Number(item.quantity)-1})" class="px-3 py-1 hover:bg-stone-100">−</button><span class="px-2 text-sm">${item.quantity}</span><button onclick="changeQty(${item.id},${Number(item.quantity)+1})" class="px-3 py-1 hover:bg-stone-100">+</button></div><b class="w-24 text-right">${money(item.subtotal)}</b><button onclick="removeCartItem(${item.id})" class="text-red-600 text-sm">Remove</button></div></div>`).join("")}</div><div class="border-t mt-4 pt-4 flex justify-between font-bold text-lg"><span>Total</span><span>${money(cart.total)}</span></div><div class="mt-5 flex flex-wrap gap-3"><button onclick="clearCart()" class="border rounded-lg px-4 py-3 text-sm">Clear cart</button><button onclick="navigate('checkout')" class="flex-1 bg-brand-accent text-brand-800 font-bold py-3 rounded-lg">Proceed to checkout</button></div></div>`;
+    }
+    async function changeQty(itemId, quantity) {
+      try { if (quantity < 1) await removeCartItem(itemId); else { cart=await api(`/api/cart/items/${itemId}`,{method:"PATCH",body:{quantity}}); renderCart(); } }
+      catch(error) { notify(error.message); }
+    }
+    async function removeCartItem(itemId) { try { await api(`/api/cart/items/${itemId}`,{method:"DELETE"}); await loadCart(); notify("Item removed."); } catch(error){notify(error.message);} }
+    async function clearCart() { try { await api("/api/cart",{method:"DELETE"}); await loadCart(); notify("Cart cleared."); } catch(error){notify(error.message);} }
+    async function loadCheckout() {
+      if (!token) { notify("Please log in before checkout."); openAccount(); navigate("cart"); return; }
+      try {
+        cart = await api("/api/cart");
+        if (!cart.items.length) { notify("Your cart is empty."); navigate("cart"); return; }
+        addresses = await api("/api/addresses/");
+        selectedAddressId = addresses.find(a=>a.is_default)?.id || addresses[0]?.id || null;
+        renderAddresses();
+        document.getElementById("checkout-summary").innerHTML = cart.items.map(i=>`<div class="flex justify-between gap-3"><span>${esc(i.product_name)} × ${i.quantity}</span><b>${money(i.subtotal)}</b></div>`).join("") + `<div class="border-t pt-3 flex justify-between font-bold text-base"><span>Total</span><span>${money(cart.total)}</span></div>`;
+      } catch(error) { notify(error.message); }
+    }
+    function renderAddresses() {
+      const el=document.getElementById("address-list");
+      if(!addresses.length) { el.innerHTML='<p class="text-sm text-amber-700 bg-amber-50 p-3 rounded-lg">Add a delivery address below to continue.</p>'; return; }
+      el.innerHTML=addresses.map(a=>`<label class="block border rounded-xl p-3 cursor-pointer ${selectedAddressId===a.id?'border-brand-600 bg-brand-50':''}"><div class="flex gap-2"><input type="radio" name="selected-address" value="${a.id}" ${selectedAddressId===a.id?'checked':''} onchange="selectedAddressId=${a.id}"><div class="text-sm"><b>${esc(a.recipient_name)} ${a.is_default?'<span class="text-xs text-brand-700">(Default)</span>':''}</b><p>${esc(a.phone)}</p><p>${esc(a.address_line1)} ${esc(a.address_line2||'')}</p><p>${esc(a.city)}, ${esc(a.state)} ${esc(a.postal_code)}, ${esc(a.country)}</p></div></div></label>`).join("");
+    }
+    document.getElementById("address-form").addEventListener("submit", async event=>{
+      event.preventDefault(); const f=new FormData(event.currentTarget);
+      const payload={recipient_name:f.get("recipient_name"),phone:f.get("phone"),address_line1:f.get("address_line1"),address_line2:f.get("address_line2")||null,landmark:f.get("landmark")||null,city:f.get("city"),state:f.get("state"),postal_code:f.get("postal_code"),country:f.get("country"),is_default:f.get("is_default")==="on"};
+      try { const a=await api("/api/addresses/",{method:"POST",body:payload}); addresses=await api("/api/addresses/"); selectedAddressId=a.id; renderAddresses(); event.currentTarget.reset(); event.currentTarget.elements.country.value="India"; notify("Address saved."); }
+      catch(error){notify(error.message);}
+    });
+    async function placeOrder() {
+      if(!selectedAddressId){notify("Please add or select a delivery address.");return;}
+      try {
+        const order=await api("/api/orders/",{method:"POST",body:{address_id:selectedAddressId,payment_method:document.getElementById("payment-method").value}});
+        if(order.payment_method==="online") {
+          try { await api("/api/payments/",{method:"POST",body:{order_id:order.id,payment_method:"online"}}); }
+          catch(error) { notify(`Order #${order.id} created, but payment record failed: ${error.message}`); navigate("orders"); return; }
+        }
+        notify(`Order #${order.id} placed successfully.`);
+        navigate("orders");
+      } catch(error) { notify(error.message); }
+    }
+    async function loadOrders() {
+      const el=document.getElementById("orders-container");
+      if(!token){el.innerHTML='<div class="bg-white border rounded-xl p-8 text-center">Please log in to view your orders. <button onclick="openAccount()" class="text-brand-700 underline">Login</button></div>';return;}
+      el.innerHTML='<p class="text-stone-500">Loading your orders…</p>';
+      try {
+        const orders=await api("/api/orders/");
+        if(!orders.length){el.innerHTML='<div class="bg-white border rounded-xl p-8 text-center text-stone-500">No orders yet. <button onclick="navigate(\'products\')" class="text-brand-700 underline">Browse products</button></div>';return;}
+        el.innerHTML=orders.map(o=>`<article class="bg-white border border-stone-200 rounded-xl p-5"><div class="flex flex-wrap justify-between gap-3"><div><h3 class="font-bold text-lg">Order #${o.id}</h3><p class="text-xs text-stone-500">${new Date(o.created_at).toLocaleString()}</p></div><div class="text-right"><p class="font-bold text-brand-800">${money(o.total_amount)}</p><p class="text-xs capitalize">Order: <b>${esc(o.status)}</b> · Payment: <b>${esc(o.payment_status)}</b></p></div></div><div class="border-t mt-4 pt-3 space-y-3 text-sm">${o.items.map(i=>`<div class="flex items-center justify-between gap-3"><div class="flex min-w-0 items-center gap-3"><img src="${esc(getProductImage({name:i.product_name, image_url:i.image_url}))}" alt="${esc(i.product_name)}" class="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover border border-stone-200 bg-stone-50 flex-shrink-0" onerror="this.classList.add('hidden')"><span class="min-w-0">${esc(i.product_name)} × ${i.quantity} ${esc(i.unit)}</span></div><span class="font-medium whitespace-nowrap">${money(i.subtotal)}</span></div>`).join("")}</div><div class="border-t mt-4 pt-3 text-xs text-stone-500">Deliver to: ${esc(o.recipient_name)}, ${esc(o.address_line1)}, ${esc(o.city)}, ${esc(o.state)} ${esc(o.postal_code)} · ${esc(o.payment_method.replaceAll("_"," "))}</div>${o.status==="pending"?`<button onclick="cancelOrder(${o.id})" class="mt-4 text-sm border border-red-300 text-red-700 rounded-lg px-3 py-2">Cancel order</button>`:""}</article>`).join("");
+      } catch(error){el.innerHTML=`<p class="text-red-700">${esc(error.message)}</p>`;}
+    }
+    async function cancelOrder(id) { if(!confirm(`Cancel order #${id}?`))return; try{await api(`/api/orders/${id}/cancel`,{method:"POST"});notify("Order cancelled and eligible stock restored.");loadOrders();}catch(error){notify(error.message);} }
+    function adminStatusOptions(current) {
+      const options = {
+        pending: ["processing", "cancelled"],
+        processing: ["shipped", "cancelled"],
+        shipped: ["delivered"],
+        delivered: [],
+        cancelled: []
+      };
+      return options[current] || [];
+    }
+
+    function adminBadge(status) {
+      const colors = {
+        pending: "bg-amber-100 text-amber-800",
+        processing: "bg-blue-100 text-blue-800",
+        shipped: "bg-violet-100 text-violet-800",
+        delivered: "bg-green-100 text-green-800",
+        cancelled: "bg-red-100 text-red-800",
+        paid: "bg-green-100 text-green-800",
+        failed: "bg-red-100 text-red-800",
+        refunded: "bg-slate-100 text-slate-800",
+        partially_refunded: "bg-orange-100 text-orange-800"
+      };
+      return `<span class="inline-block rounded-full px-2 py-1 text-xs font-semibold ${colors[status] || "bg-stone-100 text-stone-700"}">${esc(String(status || "unknown").replaceAll("_"," "))}</span>`;
+    }
+
+    async function loadAdminOrders() {
+      const container = document.getElementById("admin-orders-container");
+      if (!currentUser || currentUser.role !== "admin") {
+        container.innerHTML = '<div class="bg-red-50 text-red-700 rounded-xl p-5">Administrator access is required.</div>';
+        return;
+      }
+      container.innerHTML = '<p class="text-stone-500">Loading orders...</p>';
+      try {
+        // This endpoint is added to app/api/routes/admin.py.
+        adminOrders = await api("/api/admin/orders");
+        renderAdminOrders();
+      } catch (error) {
+        container.innerHTML = `<div class="bg-red-50 text-red-700 rounded-xl p-5"><b>Could not load orders.</b><p class="mt-1">${esc(error.message)}</p><p class="text-sm mt-2">Confirm the updated admin.py is installed and the server has restarted.</p></div>`;
+      }
+    }
+
+    function renderAdminOrders() {
+      const container = document.getElementById("admin-orders-container");
+      if (!container) return;
+      const today = new Date().toLocaleDateString();
+      const todaysOrders = adminOrders.filter(o => o.created_at && new Date(o.created_at).toLocaleDateString() === today);
+      const counts = [
+        ["All orders", adminOrders.length],
+        ["Today's orders", todaysOrders.length],
+        ["Pending", adminOrders.filter(o => o.status === "pending").length],
+        ["Processing", adminOrders.filter(o => o.status === "processing").length],
+        ["Shipped", adminOrders.filter(o => o.status === "shipped").length]
+      ];
+      document.getElementById("admin-summary").innerHTML = counts.map(([label,value]) => `<div class="bg-white border border-stone-200 rounded-xl p-4"><p class="text-xs text-stone-500">${label}</p><p class="text-2xl font-bold text-brand-800 mt-1">${value}</p></div>`).join("");
+
+      const search = (document.getElementById("admin-order-search")?.value || "").trim().toLowerCase();
+      const status = document.getElementById("admin-status-filter")?.value || "";
+      const todayOnly = document.getElementById("admin-today-only")?.checked || false;
+      const filtered = adminOrders.filter(o => {
+        const haystack = [o.id, o.customer_id, o.recipient_name, o.status, o.payment_status, o.city].join(" ").toLowerCase();
+        return (!search || haystack.includes(search)) &&
+          (!status || o.status === status) &&
+          (!todayOnly || (o.created_at && new Date(o.created_at).toLocaleDateString() === today));
+      }).sort((a,b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+      if (!filtered.length) {
+        container.innerHTML = '<div class="bg-white border rounded-xl p-8 text-center text-stone-500">No matching orders found.</div>';
+        return;
+      }
+      container.innerHTML = filtered.map(o => {
+        const allowed = adminStatusOptions(o.status);
+        const statusControl = allowed.length
+          ? `<div class="flex flex-wrap gap-2"><select id="admin-status-${o.id}" class="border rounded-lg p-2 text-sm">${allowed.map(s=>`<option value="${s}">${s.replaceAll("_"," ")}</option>`).join("")}</select><button onclick="updateAdminOrderStatus(${o.id})" class="bg-brand-700 text-white rounded-lg px-3 py-2 text-sm">Update order</button></div>`
+          : `<span class="text-xs text-stone-500">No further order status changes allowed</span>`;
+        const paymentOptions = {
+          pending: ["paid","failed"],
+          failed: ["pending"],
+          paid: ["refunded","partially_refunded"],
+          partially_refunded: ["refunded"],
+          refunded: []
+        }[o.payment_status] || [];
+        const paymentControl = paymentOptions.length
+          ? `<div class="flex flex-wrap gap-2"><select id="admin-payment-${o.id}" class="border rounded-lg p-2 text-sm">${paymentOptions.map(s=>`<option value="${s}">${s.replaceAll("_"," ")}</option>`).join("")}</select><button onclick="updateAdminPaymentStatus(${o.id})" class="border border-brand-600 text-brand-700 rounded-lg px-3 py-2 text-sm">Update payment</button></div>`
+          : `<span class="text-xs text-stone-500">No further payment status changes allowed</span>`;
+        const items = (o.items || []).map(i=>`<div class="flex items-center justify-between gap-3 py-2 text-sm">
+          <div class="flex min-w-0 items-center gap-3">
+            <img src="${esc(getProductImage({name: i.product_name, image_url: i.image_url}))}" alt="${esc(i.product_name || "Product")}" class="w-12 h-12 rounded-lg object-cover border border-stone-200 bg-stone-50 flex-shrink-0" onerror="this.classList.add('hidden')">
+            <span class="min-w-0">${esc(i.product_name || ("Product #" + i.product_id))} × ${i.quantity} ${esc(i.unit || "")}</span>
+          </div>
+          <b class="whitespace-nowrap">${money(i.subtotal)}</b>
+        </div>`).join("");
+        return `<article class="bg-white border border-stone-200 rounded-xl p-5 shadow-sm">
+          <div class="flex flex-wrap justify-between gap-4">
+            <div><h3 class="font-bold text-lg">Order #${o.id}</h3><p class="text-xs text-stone-500 mt-1">${o.created_at ? new Date(o.created_at).toLocaleString() : "Date unavailable"}</p><p class="text-sm mt-2">Customer ID: ${esc(o.customer_id ?? "—")} · ${esc(o.recipient_name || "Customer")}</p><p class="text-sm text-stone-500">${esc(o.phone || "")}</p></div>
+            <div class="text-right"><p class="font-bold text-xl text-brand-800">${money(o.total_amount)}</p><div class="flex flex-wrap gap-2 justify-end mt-2">Order ${adminBadge(o.status)} Payment ${adminBadge(o.payment_status)}</div></div>
+          </div>
+          <div class="grid md:grid-cols-2 gap-5 border-t mt-4 pt-4">
+            <div><h4 class="font-semibold mb-2">Items</h4>${items || '<p class="text-sm text-stone-500">No item details returned.</p>'}</div>
+            <div><h4 class="font-semibold mb-2">Delivery details</h4><p class="text-sm">${esc(o.recipient_name || "")}</p><p class="text-sm">${esc(o.address_line1 || "")} ${esc(o.address_line2 || "")}</p><p class="text-sm">${esc(o.city || "")}, ${esc(o.state || "")} ${esc(o.postal_code || "")}</p><p class="text-sm text-stone-500 mt-1">Payment method: ${esc(String(o.payment_method || "").replaceAll("_"," "))}</p></div>
+          </div>
+          <div class="border-t mt-4 pt-4 grid md:grid-cols-2 gap-4"><div><p class="text-xs font-semibold text-stone-500 mb-2">ORDER STATUS</p>${statusControl}</div><div><p class="text-xs font-semibold text-stone-500 mb-2">PAYMENT STATUS</p>${paymentControl}</div></div>
+        </article>`;
+      }).join("");
+    }
+
+    async function updateAdminOrderStatus(orderId) {
+      const select = document.getElementById(`admin-status-${orderId}`);
+      if (!select) return;
+      try {
+        await api(`/api/admin/orders/${orderId}/status`, {method:"PATCH", body:{status:select.value}});
+        notify(`Order #${orderId} status updated.`);
+        await loadAdminOrders();
+      } catch(error) { notify(error.message); }
+    }
+
+    async function updateAdminPaymentStatus(orderId) {
+      const select = document.getElementById(`admin-payment-${orderId}`);
+      if (!select) return;
+      try {
+        await api(`/api/admin/orders/${orderId}/payment-status`, {method:"PATCH", body:{payment_status:select.value}});
+        notify(`Order #${orderId} payment status updated.`);
+        await loadAdminOrders();
+      } catch(error) { notify(error.message); }
+    }
+
+    async function loadAdminInventory() {
+      if (!currentUser || currentUser.role !== "admin") { notify("Administrator access is required."); return; }
+      const productsEl = document.getElementById("admin-inventory-products");
+      const productSelect = document.getElementById("inventory-product");
+      const historySelect = document.getElementById("inventory-history-product");
+      productsEl.innerHTML = '<p class="text-sm text-stone-500">Loading product stock...</p>';
+      try {
+        const inventoryProducts = await api("/api/products/?limit=100&active_only=false");
+        const currentSelection = productSelect.value, historySelection = historySelect.value;
+        productSelect.innerHTML = '<option value="">Select a product</option>' + inventoryProducts.map(p => `<option value="${p.id}">${esc(p.name)} (ID: ${p.id})</option>`).join("");
+        historySelect.innerHTML = '<option value="">All products</option>' + inventoryProducts.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join("");
+        if (currentSelection) productSelect.value = currentSelection;
+        if (historySelection) historySelect.value = historySelection;
+        if (!inventoryProducts.length) productsEl.innerHTML = '<p class="text-sm text-stone-500">No products found.</p>';
+        else productsEl.innerHTML = inventoryProducts.map(p => {
+          const stock = Number(p.stock_quantity || 0), low = stock <= 10;
+          return `<div class="flex flex-wrap items-center justify-between gap-3 border-b last:border-b-0 pb-3 last:pb-3"><div class="flex items-center gap-3 min-w-0"><img src="${esc(getProductImage(p))}" alt="${esc(p.name)}" class="w-14 h-14 rounded-lg object-cover border border-stone-200 bg-stone-50 flex-shrink-0 ${getProductImage(p) ? "" : "hidden"}" onerror="this.classList.add('hidden')"><div class="min-w-0"><p class="font-semibold text-sm">${esc(p.name)}</p><p class="text-xs text-stone-500">Product #${p.id} · ${esc(p.unit || "")}</p></div></div><div class="text-right"><p class="text-lg font-bold ${stock <= 0 ? "text-red-700" : low ? "text-amber-700" : "text-brand-800"}">${stock} ${esc(p.unit || "")}</p><p class="text-xs ${stock <= 0 ? "text-red-600" : low ? "text-amber-600" : "text-stone-500"}">${stock <= 0 ? "Out of stock" : low ? "Low stock (10 or less)" : "In stock"}</p></div></div>`;
+        }).join("");
+      } catch (error) { productsEl.innerHTML = `<p class="text-sm text-red-700">${esc(error.message)}</p>`; notify(`Could not load inventory: ${error.message}`); }
+    }
+
+    async function loadInventoryHistoryView() {
+      if (!currentUser || currentUser.role !== "admin") return;
+      try {
+        const productsForHistory = await api("/api/products/?limit=100&active_only=false");
+        const historySelect = document.getElementById("inventory-history-product");
+        if (historySelect) {
+          const selected = historySelect.value;
+          historySelect.innerHTML = '<option value="">All products</option>' + productsForHistory.map(p =>
+            `<option value="${p.id}">${esc(p.name)}</option>`
+          ).join("");
+          if (selected) historySelect.value = selected;
+        }
+        await loadInventoryMovements();
+      } catch (error) {
+        const container = document.getElementById("admin-inventory-movements");
+        if (container) container.innerHTML = `<p class="text-sm text-red-700">${esc(error.message)}</p>`;
+      }
+    }
+
+    async function loadInventoryMovements() {
+      const container = document.getElementById("admin-inventory-movements");
+      if (!container || !currentUser || currentUser.role !== "admin") return;
+      container.innerHTML = '<p class="text-sm text-stone-500">Loading inventory movements...</p>';
+      try {
+        const productId = document.getElementById("inventory-history-product")?.value || "";
+        const query = productId ? `?product_id=${encodeURIComponent(productId)}` : "";
+        const movements = await api(`/api/admin/inventory/movements${query}`);
+        if (!Array.isArray(movements) || !movements.length) { container.innerHTML = '<p class="text-sm text-stone-500 py-4">No inventory movements found.</p>'; return; }
+        container.innerHTML = `<table class="min-w-full text-sm"><thead><tr class="text-left border-b text-xs uppercase tracking-wide text-stone-500"><th class="py-3 pr-4">Date</th><th class="py-3 pr-4">Product</th><th class="py-3 pr-4">Movement</th><th class="py-3 pr-4">Change</th><th class="py-3 pr-4">Previous</th><th class="py-3 pr-4">New stock</th><th class="py-3">Reason</th></tr></thead><tbody>${movements.map(m => { const change=Number(m.quantity_change || 0); return `<tr class="border-b last:border-b-0 align-top"><td class="py-3 pr-4 whitespace-nowrap">${m.created_at ? esc(new Date(m.created_at).toLocaleString()) : "—"}</td><td class="py-3 pr-4"><div class="flex items-center gap-2 min-w-40"><img src="${esc(getProductImage({name:m.product_name || "", image_url:m.image_url || ""}))}" alt="${esc(m.product_name || "Product")}" class="w-9 h-9 rounded-md object-cover border border-stone-200 bg-stone-50 flex-shrink-0" onerror="this.classList.add('hidden')"><span>${esc(m.product_name || `Product #${m.product_id}`)}</span></div></td><td class="py-3 pr-4 capitalize">${esc(String(m.movement_type || "adjustment").replaceAll("_", " "))}</td><td class="py-3 pr-4 font-semibold ${change < 0 ? "text-red-700" : "text-green-700"}">${change > 0 ? "+" : ""}${change}</td><td class="py-3 pr-4">${esc(m.previous_stock ?? "—")}</td><td class="py-3 pr-4 font-semibold">${esc(m.new_stock ?? "—")}</td><td class="py-3 min-w-48">${esc(m.reason || "—")}${m.order_id ? `<p class="text-xs text-stone-500 mt-1">Order #${esc(m.order_id)}</p>` : ""}</td></tr>`; }).join("")}</tbody></table>`;
+      } catch (error) { container.innerHTML = `<p class="text-sm text-red-700 py-3">Could not load inventory movements: ${esc(error.message)}</p>`; }
+    }
+
+    document.getElementById("inventory-adjust-form")?.addEventListener("submit", async event => {
+      event.preventDefault();
+      if (!currentUser || currentUser.role !== "admin") { notify("Administrator access is required."); return; }
+      const productId=document.getElementById("inventory-product").value;
+      const quantityChange=Number(document.getElementById("inventory-quantity").value);
+      const reason=document.getElementById("inventory-reason").value.trim();
+      if (!productId) { notify("Please select a product."); return; }
+      if (!Number.isInteger(quantityChange) || quantityChange === 0) { notify("Quantity change must be a non-zero whole number."); return; }
+      if (!reason) { notify("Please enter a reason for the stock change."); return; }
+      try {
+        const result=await api(`/api/admin/products/${productId}/inventory`, {method:"POST", body:{quantity_change:quantityChange, reason}});
+        notify(`Stock updated successfully. New stock: ${result.new_stock}.`);
+        document.getElementById("inventory-quantity").value=""; document.getElementById("inventory-reason").value="";
+        await loadAdminInventory();
+      } catch(error) { notify(`Stock update failed: ${error.message}`); }
+    });
+
+    async function loadPaymentHistory() { try { return await api("/api/payments/history"); } catch(error) { notify(error.message); return []; } }
+    window.addEventListener("DOMContentLoaded", async ()=>{
+      if(window.lucide) lucide.createIcons();
+      await loadMe();
+      await renderProducts();
+      if(token){try{cart=await api("/api/cart");updateCartBadge();}catch{}}
+    });
+  </script>
+</body>
+</html>
