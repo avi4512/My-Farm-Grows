@@ -29,16 +29,131 @@
       }
     }
   </script>
+
+  <style>
+    /* Motion: responds to actions (add, select, remove, place order). Reduced motion respected below. */
+    @keyframes viewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes popIn{from{opacity:0;transform:scale(.94) translateY(8px)}to{opacity:1;transform:none}}
+    @keyframes dropIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+    @keyframes toastIn{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+    @keyframes shimmer{to{background-position:-200% 0}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.55)}100%{transform:scale(1)}}
+    @keyframes flash{from{background:#e1efe6}to{background:transparent}}
+    @keyframes checkPop{0%{transform:scale(0) rotate(-25deg)}60%{transform:scale(1.18) rotate(6deg)}100%{transform:scale(1)}}
+    @keyframes ring{0%{box-shadow:0 0 0 0 rgba(45,106,79,.45)}100%{box-shadow:0 0 0 18px rgba(45,106,79,0)}}
+    @keyframes fall{0%{transform:translate(0,-8vh) rotate(0);opacity:1}100%{transform:translate(var(--dx),105vh) rotate(var(--rot));opacity:.9}}
+    @keyframes stepIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+    .view-panel:not(.hidden){animation:viewIn .3s ease-out}
+    .fade-up{animation:fadeUp .45s cubic-bezier(.2,.7,.2,1) backwards}
+    button:not(:disabled){transition:transform .15s,background-color .2s,box-shadow .2s,opacity .2s}
+    button:not(:disabled):active{transform:scale(.96)}
+    #account-modal:not(.hidden){animation:fadeIn .2s}
+    #account-modal:not(.hidden)>div{animation:popIn .3s cubic-bezier(.2,.8,.3,1)}
+    #customer-menu-panel:not(.hidden),#admin-menu-panel:not(.hidden){animation:dropIn .18s ease-out}
+    .toast-in{animation:toastIn .35s cubic-bezier(.2,.9,.3,1.2)}
+    .skel{background:linear-gradient(90deg,#eceae4 25%,#f7f5f0 40%,#eceae4 60%);background-size:200% 100%;animation:shimmer 1.2s linear infinite}
+    .fly-dot{position:fixed;width:20px;height:20px;border-radius:50%;background:#e9c46a;box-shadow:0 0 0 4px rgba(233,196,106,.35);z-index:300;pointer-events:none;transition:transform .75s cubic-bezier(.5,0,.75,.4),opacity .75s}
+    .mini-spin{display:inline-block;width:11px;height:11px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-1px}
+    .btn-done{background:#2d6a4f!important;color:#fff!important;border-color:#2d6a4f!important}
+    .badge-bump{animation:bump .45s}
+    .cart-row{transition:opacity .3s,transform .3s,max-height .3s;max-height:220px}
+    .row-out{opacity:0;transform:translateX(40px);max-height:0;padding-top:0!important;padding-bottom:0!important;overflow:hidden}
+    .row-flash{animation:flash .7s}
+    .addr-card{transition:border-color .2s,background-color .2s}
+    .addr-pop{animation:popIn .3s}
+    .check-pop{animation:checkPop .7s .1s backwards,ring 1.2s .8s 2}
+    #tracking-container .flex.items-start.w-full>div{animation:stepIn .5s backwards}
+    #tracking-container .flex.items-start.w-full>div:nth-child(2){animation-delay:.15s}
+    #tracking-container .flex.items-start.w-full>div:nth-child(3){animation-delay:.3s}
+    #tracking-container .flex.items-start.w-full>div:nth-child(4){animation-delay:.45s}
+    #tracking-container .flex.items-start.w-full>div:nth-child(5){animation-delay:.6s}
+    #order-overlay{position:fixed;inset:0;z-index:150;display:none;align-items:center;justify-content:center;background:rgba(20,54,38,.72);backdrop-filter:blur(4px)}
+    #order-overlay.show{display:flex;animation:fadeIn .25s}
+    .ov-card{background:#fff;border-radius:20px;padding:28px 32px;width:min(92vw,360px);text-align:center;animation:popIn .35s cubic-bezier(.2,.8,.3,1)}
+    .ov-spinner{width:54px;height:54px;margin:0 auto 14px;border-radius:50%;border:5px solid #e1efe6;border-top-color:#2d6a4f;animation:spin .9s linear infinite}
+    .ov-card.ok .ov-spinner{animation:checkPop .5s;border-color:#2d6a4f;background:#2d6a4f;text-align:center;color:#fff;font-size:28px;line-height:44px;font-weight:700}
+    .ov-card h3{font:700 20px Georgia,serif;color:#143626;margin-bottom:12px}
+    #ov-steps{list-style:none;padding:0;margin:0;text-align:left;font-size:14px;color:#a8a29e}
+    #ov-steps li{padding:6px 0 6px 26px;position:relative;transition:color .3s}
+    #ov-steps li::before{content:"";position:absolute;left:2px;top:10px;width:12px;height:12px;border-radius:50%;border:2px solid #d6d3d1;transition:.3s}
+    #ov-steps li.active{color:#1b4332;font-weight:600}
+    #ov-steps li.active::before{border-color:#2d6a4f;animation:ring 1s infinite}
+    #ov-steps li.done{color:#2d6a4f}
+    #ov-steps li.done::before{background:#2d6a4f;border-color:#2d6a4f}
+    .confetti-wrap{position:fixed;inset:0;z-index:300;pointer-events:none;overflow:hidden}
+    .confetti-wrap i{position:absolute;top:0;width:9px;height:14px;border-radius:2px;animation:fall linear forwards}
+    @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.confetti-wrap{display:none}}
+  </style>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='22' fill='%23e9c46a'/%3E%3Cpath d='M24 38V22' stroke='%231b4332' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M24 24c0-7 5-11 12-11 0 7-5 11-12 11z' fill='%232d6a4f'/%3E%3Cpath d='M24 29c0-6-4-9-10-9 0 6 4 9 10 9z' fill='%231b4332'/%3E%3C/svg%3E">
+  <style>
+    @keyframes float{50%{transform:translateY(-5px)}}
+    @keyframes sway{25%{transform:rotate(-12deg)}75%{transform:rotate(12deg)}}
+    @keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+    @keyframes ripple{to{transform:scale(2.4);opacity:0}}
+    @keyframes popSlide{from{opacity:0;transform:translateX(60px) scale(.9)}to{opacity:1;transform:none}}
+    @keyframes shrink{to{transform:scaleX(0)}}
+    .logo-float{animation:float 3s ease-in-out infinite}
+    .logo-link:hover svg{animation:sway .7s}
+    header{transition:background-color .3s,box-shadow .3s}
+    header>div{transition:padding .25s}
+    header.scrolled{background:rgba(27,67,50,.93);backdrop-filter:blur(8px);box-shadow:0 8px 24px -10px rgba(0,0,0,.45)}
+    header.scrolled>div{padding-top:.35rem;padding-bottom:.35rem}
+    header nav button{position:relative}
+    header nav button::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:2px;background:#e9c46a;transform:scaleX(0);transform-origin:left;transition:transform .25s}
+    header nav button:hover::after,header nav button.nav-active::after{transform:scaleX(1)}
+    header nav button.nav-active{color:#fff}
+    #scroll-bar{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,#e9c46a,#52b788);z-index:200}
+    #to-top{position:fixed;left:16px;bottom:20px;z-index:90;width:44px;height:44px;border-radius:50%;background:#1b4332;color:#fff;font-size:20px;box-shadow:0 8px 20px -6px rgba(0,0,0,.4);opacity:0;transform:translateY(20px);pointer-events:none;transition:opacity .3s,transform .3s}
+    #to-top.show{opacity:1;transform:none;pointer-events:auto}
+    #to-top:hover{background:#2d6a4f}
+    #splash{position:fixed;inset:0;z-index:400;background:#143626;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#fff;font:700 26px Georgia,serif;transition:opacity .5s,visibility .5s}
+    #splash.out{opacity:0;visibility:hidden}
+    #view-home>div:first-child::before{content:"";position:absolute;inset:0;background:radial-gradient(420px circle at var(--hx,50%) var(--hy,40%),rgba(233,196,106,.17),transparent 60%);pointer-events:none}
+    .card-fx{transition:transform .2s ease-out,box-shadow .25s;will-change:transform}
+    .card-fx:hover{box-shadow:0 18px 30px -14px rgba(20,54,38,.35)}
+    .card-fx img{transition:transform .5s}
+    .card-fx:hover img{transform:scale(1.08)}
+    [data-reveal]{opacity:0;transform:translateY(26px);transition-property:opacity,transform;transition-duration:.7s;transition-timing-function:ease-out}
+    [data-reveal].in{opacity:1;transform:none}
+    button.bg-brand-accent{position:relative;overflow:hidden}
+    button.bg-brand-accent::after{content:"";position:absolute;top:0;left:-70%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-20deg);transition:left .6s}
+    button.bg-brand-accent:hover::after{left:130%}
+    .ripple{position:absolute;border-radius:50%;background:currentColor;opacity:.22;transform:scale(0);animation:ripple .6s ease-out forwards;pointer-events:none}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:#2d6a4f;box-shadow:0 0 0 3px rgba(45,106,79,.18);transition:box-shadow .2s,border-color .2s}
+    #account-form>:nth-child(2){animation-delay:.07s}#account-form>:nth-child(3){animation-delay:.14s}#account-form>:nth-child(4){animation-delay:.21s}#account-form>:nth-child(5){animation-delay:.28s}#account-form>:nth-child(6){animation-delay:.35s}
+    #account-form>div:not(.hidden),#account-form>button,#account-form>p{animation:fadeUp .4s backwards}
+    #account-modal .shake{animation:shake .4s!important}
+    #admin-menu-panel:not(.hidden)>button,#customer-menu-panel:not(.hidden)>button{animation:fadeUp .3s backwards}
+    #admin-menu-panel>button:nth-child(3),#customer-menu-panel>button:nth-child(3){animation-delay:.06s}
+    #admin-menu-panel>button:nth-child(4),#customer-menu-panel>button:nth-child(4){animation-delay:.09s}
+    #admin-menu-panel>button:nth-child(5),#customer-menu-panel>button:nth-child(5){animation-delay:.12s}
+    #admin-menu-panel>button:nth-child(6),#customer-menu-panel>button:nth-child(6){animation-delay:.15s}
+    #admin-menu-panel>button:hover,#customer-menu-panel>button:hover{padding-left:1.25rem;background:#f2f8f4}
+    #admin-menu-panel>button,#customer-menu-panel>button{transition:padding .2s,background-color .2s}
+    #admin-inventory-movements tbody tr,#admin-inventory-products>div{transition:background-color .2s}
+    #admin-inventory-movements tbody tr:hover,#admin-inventory-products>div:hover{background:#f2f8f4}
+    #pop-stack{position:fixed;top:78px;right:14px;z-index:140;display:flex;flex-direction:column;gap:10px;width:min(92vw,340px)}
+    .pop{position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e7e5e4;border-left:4px solid #2d6a4f;border-radius:14px;padding:10px 12px;box-shadow:0 14px 30px -12px rgba(20,54,38,.35);animation:popSlide .45s cubic-bezier(.2,1.2,.3,1)}
+    .pop.out{opacity:0;transform:translateX(30px);transition:.3s}
+    .pop img{width:46px;height:46px;border-radius:10px;object-fit:cover;flex-shrink:0}
+    .pop-ic{width:34px;height:34px;border-radius:50%;background:#e1efe6;color:#2d6a4f;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+    .pop-act{font-size:12px;font-weight:600;color:#1b4332;background:#e9c46a;border-radius:8px;padding:6px 10px;flex-shrink:0}
+    .pop-bar{position:absolute;left:0;bottom:0;height:3px;width:100%;background:#e9c46a;transform-origin:left;animation:shrink linear forwards}
+  </style>
 </head>
-<body class="bg-[#faf8f5] text-stone-800 font-sans flex flex-col min-h-screen">
+<body class="bg-[#faf8f5] text-stone-800 font-sans flex flex-col min-h-screen"><svg style="position:absolute;width:0;height:0" aria-hidden="true"><symbol id="mfg-logo" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#e9c46a"/><path d="M24 38V22" stroke="#1b4332" stroke-width="3" stroke-linecap="round"/><path d="M24 24c0-7 5-11 12-11 0 7-5 11-12 11z" fill="#2d6a4f"/><path d="M24 29c0-6-4-9-10-9 0 6 4 9 10 9z" fill="#1b4332"/><path d="M15 38h18" stroke="#1b4332" stroke-width="3" stroke-linecap="round"/></symbol></svg>
 
   <!-- Header / Navigation -->
   <header class="bg-brand-700 text-white sticky top-0 z-50 shadow-md">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between py-3">
       <!-- Logo -->
-      <div class="flex items-center space-x-2 cursor-pointer" onclick="navigate('home')">
-        <i data-lucide="sprout" class="w-8 h-8 text-brand-accent"></i>
-        <span class="text-2xl font-serif font-bold tracking-tight text-white">My Farm Grow</span>
+      <div class="logo-link flex items-center space-x-2 cursor-pointer" onclick="navigate('home')">
+        <svg class="w-10 h-10 flex-shrink-0"><use href="#mfg-logo"/></svg>
+        <span class="text-2xl font-serif font-bold tracking-tight text-white">My Farm Grows</span>
       </div>
 
       <!-- Center Links -->
@@ -57,6 +172,26 @@
         <button id="customer-order-now" onclick="navigate('products')" class="hidden sm:inline-flex items-center bg-brand-accent text-brand-800 font-semibold px-4 py-2 rounded-full text-sm shadow hover:bg-yellow-400 transition">
           Order Now
         </button>
+        <!-- Customer-only hamburger menu -->
+        <div id="customer-menu-wrap" class="relative hidden">
+          <button id="customer-menu-toggle" type="button" onclick="toggleCustomerMenu()" aria-label="Open customer menu" aria-expanded="false" class="inline-flex items-center justify-center w-11 h-11 rounded-lg border border-white/25 text-white hover:bg-white/10 transition">
+            <i data-lucide="menu" class="w-6 h-6"></i>
+          </button>
+          <div id="customer-menu-panel" class="hidden absolute right-0 top-14 w-72 rounded-xl bg-white text-stone-800 shadow-xl border border-stone-200 overflow-hidden z-[80]">
+            <div class="px-4 py-3 bg-brand-50 border-b border-stone-200">
+              <p class="font-bold text-brand-800">Customer Menu</p>
+              <p id="customer-menu-greeting" class="text-xs text-stone-500">Manage your shopping and account</p>
+            </div>
+            <button onclick="customerMenuAction('dashboard')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="layout-dashboard" class="w-4 h-4 text-brand-700"></i> Customer Dashboard</button>
+            <button onclick="customerMenuAction('orders')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="package" class="w-4 h-4 text-brand-700"></i> Order History</button>
+            <button onclick="customerMenuAction('payments')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="credit-card" class="w-4 h-4 text-brand-700"></i> Payment History</button>
+            <button onclick="customerMenuAction('tracking')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="truck" class="w-4 h-4 text-brand-700"></i> Order Tracking</button>
+            <button onclick="customerMenuAction('addresses')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="map-pin" class="w-4 h-4 text-brand-700"></i> My Addresses</button>
+            <button onclick="customerMenuAction('profile')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="user-round" class="w-4 h-4 text-brand-700"></i> My Profile</button>
+            <button onclick="customerMenuAction('support')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="headset" class="w-4 h-4 text-brand-700"></i> Help & Support</button>
+            <div class="border-t border-stone-200 px-4 py-3 text-xs text-stone-500">Your account and orders are private to you.</div>
+          </div>
+        </div>
         <!-- Admin-only hamburger menu -->
         <div id="admin-menu-wrap" class="relative hidden">
           <button id="admin-menu-toggle" type="button" onclick="toggleAdminMenu()" aria-label="Open admin menu" aria-expanded="false" class="inline-flex items-center justify-center w-11 h-11 rounded-lg border border-white/25 text-white hover:bg-white/10 transition">
@@ -68,6 +203,7 @@
               <p class="text-xs text-stone-500">Manage your store</p>
             </div>
             <button onclick="adminMenuAction('orders')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="clipboard-list" class="w-4 h-4"></i> Track & manage orders</button>
+            <button onclick="adminMenuAction('deliveries')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="truck" class="w-4 h-4"></i> Delivery & shipments</button>
             <button onclick="adminMenuAction('inventory')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="boxes" class="w-4 h-4"></i> Inventory management</button>
             <button onclick="adminMenuAction('inventory-history')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="history" class="w-4 h-4"></i> Inventory movement history</button>
             <button onclick="adminMenuAction('products')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="package" class="w-4 h-4"></i> View product catalog</button>
@@ -324,17 +460,107 @@
         </div>
       </div>
     </section>
+    <!-- ORDER PLACED: customer confirmation and status ribbons -->
+    <section id="view-order-success" class="view-panel hidden py-12 max-w-3xl mx-auto px-4 sm:px-6">
+      <div class="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-sm">
+        <div class="bg-green-50 border-b border-green-200 px-6 py-7 text-center">
+          <div class="check-pop w-16 h-16 rounded-full bg-green-100 text-green-700 flex items-center justify-center mx-auto mb-4">
+            <i data-lucide="check-circle-2" class="w-9 h-9"></i>
+          </div>
+          <span class="inline-flex items-center gap-2 rounded-full bg-green-100 text-green-800 px-4 py-1.5 text-sm font-bold">
+            <i data-lucide="badge-check" class="w-4 h-4"></i> Order placed successfully
+          </span>
+          <h1 class="text-3xl font-serif font-bold text-brand-800 mt-4">Thank you for your order!</h1>
+          <p class="text-sm text-stone-600 mt-2">Your farm-fresh order has been received. You can view it in Order History and follow its shipment in Order Tracking.</p>
+        </div>
+        <div class="p-6 sm:p-8">
+          <div id="order-success-ribbon" class="rounded-xl border border-green-200 bg-green-50 p-4 mb-5">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div><p class="text-xs uppercase tracking-wide font-semibold text-green-700">Order reference</p><p id="order-success-id" class="text-2xl font-bold text-green-900 mt-1">Order #—</p></div>
+              <span id="order-success-status" class="inline-flex rounded-full bg-amber-100 text-amber-800 px-3 py-1.5 text-sm font-bold">Pending</span>
+            </div>
+            <div class="border-t border-green-200 mt-4 pt-4 flex flex-wrap items-center justify-between gap-3">
+              <span class="text-sm text-stone-600">Order total</span><strong id="order-success-total" class="text-xl text-brand-800">₹0.00</strong>
+            </div>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-3 mb-5">
+            <div class="rounded-xl border border-stone-200 p-4"><p class="text-xs text-stone-500 mb-1">Payment method</p><p id="order-success-method" class="font-semibold capitalize">—</p></div>
+            <div class="rounded-xl border border-stone-200 p-4"><p class="text-xs text-stone-500 mb-1">Payment status</p><p id="order-success-payment" class="font-semibold">Pending</p></div>
+          </div>
+          <p id="order-success-message" class="hidden text-sm rounded-lg p-3 mb-5"></p>
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button onclick="navigate('orders')" class="flex-1 bg-brand-700 text-white rounded-lg py-3 px-4 font-semibold hover:bg-brand-800">View my orders</button>
+            <button onclick="navigate('products')" class="flex-1 border border-stone-300 rounded-lg py-3 px-4 font-semibold hover:bg-stone-50">Continue shopping</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CUSTOMER DASHBOARD: personal shopping overview -->
+    <section id="view-dashboard" class="view-panel hidden py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+        <div>
+          <p class="text-sm font-semibold text-brand-600 mb-1">MY FARM GROWS · MY ACCOUNT</p>
+          <h1 class="text-3xl sm:text-4xl font-serif font-bold text-brand-800">Welcome back, <span id="dashboard-customer-name">Customer</span>!</h1>
+          <p class="text-stone-500 mt-2">Your orders, payments, and deliveries in one place.</p>
+        </div>
+        <button onclick="loadCustomerDashboard()" class="border border-stone-300 rounded-lg px-4 py-2 text-sm hover:bg-white"><i data-lucide="refresh-cw" class="w-4 h-4 inline mr-1"></i> Refresh dashboard</button>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+        <button onclick="navigate('orders')" class="card-fx text-left bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand-600 transition">
+          <div class="flex items-center justify-between"><span class="text-sm text-stone-500">Total orders</span><span class="w-10 h-10 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center"><i data-lucide="package" class="w-5 h-5"></i></span></div>
+          <p id="dashboard-total-orders" class="text-3xl font-bold text-brand-800 mt-3">—</p><p class="text-xs text-stone-500 mt-1">View your order history →</p>
+        </button>
+        <button onclick="navigate('orders')" class="card-fx text-left bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand-600 transition">
+          <div class="flex items-center justify-between"><span class="text-sm text-stone-500">In progress</span><span class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center"><i data-lucide="truck" class="w-5 h-5"></i></span></div>
+          <p id="dashboard-active-orders" class="text-3xl font-bold text-brand-800 mt-3">—</p><p class="text-xs text-stone-500 mt-1">Processing or on the way</p>
+        </button>
+        <button onclick="customerMenuAction('payments')" class="card-fx text-left bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand-600 transition">
+          <div class="flex items-center justify-between"><span class="text-sm text-stone-500">Total order value</span><span class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center"><i data-lucide="wallet" class="w-5 h-5"></i></span></div>
+          <p id="dashboard-total-spend" class="text-2xl font-bold text-brand-800 mt-3">—</p><p class="text-xs text-stone-500 mt-1">Across your orders</p>
+        </button>
+        <button onclick="customerMenuAction('addresses')" class="card-fx text-left bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand-600 transition">
+          <div class="flex items-center justify-between"><span class="text-sm text-stone-500">Saved addresses</span><span class="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center"><i data-lucide="map-pin" class="w-5 h-5"></i></span></div>
+          <p id="dashboard-address-count" class="text-3xl font-bold text-brand-800 mt-3">—</p><p class="text-xs text-stone-500 mt-1">Manage delivery addresses</p>
+        </button>
+      </div>
+      <div class="grid lg:grid-cols-3 gap-6 mb-8">
+        <div class="lg:col-span-2 bg-white border border-stone-200 rounded-2xl p-5 sm:p-6">
+          <div class="flex items-center justify-between gap-3 mb-4"><div><h2 class="text-xl font-bold text-brand-800">Recent orders</h2><p class="text-sm text-stone-500 mt-1">A quick look at your latest purchases.</p></div><button onclick="navigate('orders')" class="text-sm font-semibold text-brand-700 hover:underline whitespace-nowrap">View all →</button></div>
+          <div id="dashboard-recent-orders" class="space-y-3"><p class="text-sm text-stone-500">Loading your orders…</p></div>
+        </div>
+        <div class="bg-brand-800 text-white rounded-2xl p-6 flex flex-col justify-between min-h-64">
+          <div><div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-4"><svg class="w-8 h-8 flex-shrink-0"><use href="#mfg-logo"/></svg></div><h2 class="text-xl font-serif font-bold">Good food starts at the farm.</h2><p class="text-sm text-stone-200 mt-2">Shop rice, dal, spices, and everyday essentials sourced for your kitchen.</p></div>
+          <button onclick="navigate('products')" class="mt-6 bg-brand-accent text-brand-800 rounded-lg py-3 px-4 font-bold hover:bg-yellow-400 transition">Browse products <span aria-hidden="true">→</span></button>
+        </div>
+      </div>
+      <div class="bg-white border border-stone-200 rounded-2xl p-5 sm:p-6">
+        <h2 class="text-xl font-bold text-brand-800 mb-4">Quick actions</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <button onclick="navigate('products')" class="border border-stone-200 rounded-xl p-4 text-left hover:border-brand-600 hover:bg-brand-50 transition"><i data-lucide="shopping-basket" class="w-5 h-5 text-brand-700 mb-2"></i><span class="block text-sm font-semibold">Shop products</span></button>
+          <button onclick="navigate('orders')" class="border border-stone-200 rounded-xl p-4 text-left hover:border-brand-600 hover:bg-brand-50 transition"><i data-lucide="clipboard-list" class="w-5 h-5 text-brand-700 mb-2"></i><span class="block text-sm font-semibold">Order history</span></button>
+          <button onclick="customerMenuAction('tracking')" class="border border-stone-200 rounded-xl p-4 text-left hover:border-brand-600 hover:bg-brand-50 transition"><i data-lucide="truck" class="w-5 h-5 text-brand-700 mb-2"></i><span class="block text-sm font-semibold">Track delivery</span></button>
+          <button onclick="customerMenuAction('profile')" class="border border-stone-200 rounded-xl p-4 text-left hover:border-brand-600 hover:bg-brand-50 transition"><i data-lucide="user-round" class="w-5 h-5 text-brand-700 mb-2"></i><span class="block text-sm font-semibold">My profile</span></button>
+        </div>
+      </div>
+    </section>
+
     <!-- Customer orders -->
     <section id="view-orders" class="view-panel hidden py-10 max-w-5xl mx-auto px-4 sm:px-6">
-      <div class="flex items-center justify-between mb-6"><div><h1 class="text-3xl font-serif font-bold text-brand-800">My Orders</h1><p class="text-sm text-stone-500">View your order history and cancel eligible pending orders.</p></div><button onclick="loadOrders()" class="border rounded-lg px-4 py-2 text-sm">Refresh</button></div>
+      <div class="flex items-center justify-between mb-6"><div><h1 class="text-3xl font-serif font-bold text-brand-800">Order History</h1><p class="text-sm text-stone-500">Your past orders, items, totals and payment details. Pending orders can be cancelled here.</p></div><button onclick="loadOrders()" class="border rounded-lg px-4 py-2 text-sm">Refresh</button></div>
       <div id="orders-container" class="space-y-4"></div>
+    </section>
+    <!-- Customer order tracking -->
+    <section id="view-tracking" class="view-panel hidden py-10 max-w-5xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between mb-6"><div><h1 class="text-3xl font-serif font-bold text-brand-800">Order Tracking</h1><p class="text-sm text-stone-500">Follow the shipment progress, delivery partner and estimated delivery date of your orders.</p></div><button onclick="loadTracking()" class="border rounded-lg px-4 py-2 text-sm">Refresh</button></div>
+      <div id="tracking-container" class="space-y-4"></div>
     </section>
     <!-- ADMIN DASHBOARD: visible only to authenticated administrators -->
     <section id="view-admin" class="view-panel hidden py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
           <h1 class="text-3xl font-serif font-bold text-brand-800">Admin Dashboard</h1>
-          <p class="text-sm text-stone-500 mt-1">Review orders and manage fulfilment and payment status.</p>
+          <p class="text-sm text-stone-500 mt-1">Manage order status, payment status, tracking numbers, and shipment progress directly from each order.</p>
         </div>
         <button onclick="loadAdminOrders()" class="border rounded-lg px-4 py-2 text-sm hover:bg-stone-50">Refresh orders</button>
       </div>
@@ -352,6 +578,58 @@
         <p class="text-stone-500">Loading admin orders...</p>
       </div>
 
+    </section>
+
+    <!-- DEDICATED VIEW: DELIVERY & SHIPMENT MANAGEMENT -->
+    <section id="view-deliveries" class="view-panel hidden py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+          <p class="text-sm font-semibold text-brand-600 mb-1">ADMIN · FULFILMENT</p>
+          <h1 class="text-3xl font-serif font-bold text-brand-800">Delivery & Shipment Management</h1>
+          <p class="text-sm text-stone-500 mt-1">Update tracking numbers, delivery partners, estimated delivery dates, and shipment progress directly from the order card or shipment records.</p>
+        </div>
+        <button onclick="loadAdminDeliveries()" class="border rounded-lg px-4 py-2 text-sm hover:bg-stone-50"><i data-lucide="refresh-cw" class="w-4 h-4 inline mr-1"></i> Refresh shipments</button>
+      </div>
+
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6" id="delivery-summary"></div>
+
+      <div class="grid xl:grid-cols-3 gap-5 mb-6">
+        <div class="xl:col-span-1 bg-white border border-stone-200 rounded-xl p-5 h-fit">
+          <h2 class="font-bold text-lg text-brand-800 mb-1">Assign a delivery</h2>
+          <p class="text-xs text-stone-500 mb-4">Choose an existing order that does not already have a delivery record.</p>
+          <form id="delivery-create-form" class="space-y-3">
+            <div>
+              <label for="delivery-order-id" class="block text-sm font-medium mb-1">Order</label>
+              <select id="delivery-order-id" required class="w-full border rounded-lg p-2.5 text-sm">
+                <option value="">Load eligible orders…</option>
+              </select>
+            </div>
+            <div>
+              <label for="delivery-tracking" class="block text-sm font-medium mb-1">Tracking number (optional)</label>
+              <input id="delivery-tracking" maxlength="100" class="w-full border rounded-lg p-2.5 text-sm" placeholder="e.g. MFG-TRACK-1001">
+            </div>
+            <div>
+              <label for="delivery-partner" class="block text-sm font-medium mb-1">Delivery partner (optional)</label>
+              <input id="delivery-partner" maxlength="150" class="w-full border rounded-lg p-2.5 text-sm" placeholder="e.g. Demo Courier">
+            </div>
+            <div>
+              <label for="delivery-estimated-date" class="block text-sm font-medium mb-1">Estimated delivery date (optional)</label>
+              <input id="delivery-estimated-date" type="date" class="w-full border rounded-lg p-2.5 text-sm">
+            </div>
+            <button id="delivery-create-submit" type="submit" class="w-full bg-brand-700 hover:bg-brand-800 text-white rounded-lg p-3 font-semibold">Create delivery</button>
+            <p class="text-xs text-stone-500">New deliveries start with delivery status “pending”. Order and payment statuses are not changed.</p>
+          </form>
+          <p id="delivery-create-message" class="hidden mt-3 rounded-lg p-3 text-sm"></p>
+        </div>
+
+        <div class="xl:col-span-2 bg-white border border-stone-200 rounded-xl p-5">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div><h2 class="font-bold text-lg text-brand-800">Shipment records</h2><p class="text-xs text-stone-500 mt-1">Edit tracking information and use valid delivery status transitions.</p></div>
+            <input id="delivery-search" oninput="renderAdminDeliveries()" placeholder="Search order, tracking, partner…" class="border rounded-lg p-2 text-sm w-full sm:w-64">
+          </div>
+          <div id="admin-deliveries-container" class="space-y-4"><p class="text-sm text-stone-500">Loading deliveries…</p></div>
+        </div>
+      </div>
     </section>
 
     <!-- DEDICATED VIEW: INVENTORY MANAGEMENT -->
@@ -402,7 +680,7 @@
 
     <!-- Account modal -->
     <div id="account-modal" class="hidden fixed inset-0 z-[100] bg-black/50 p-4 overflow-y-auto">
-      <div class="max-w-md mx-auto mt-10 bg-white rounded-2xl p-6 shadow-xl">
+      <div class="max-w-md mx-auto mt-10 bg-white rounded-2xl p-6 shadow-xl"><div class="flex justify-center -mt-1 mb-2"><svg class="w-14 h-14 logo-float"><use href="#mfg-logo"/></svg></div>
         <div class="flex justify-between items-center mb-4"><h2 id="account-title" class="text-2xl font-serif font-bold text-brand-800">Login</h2><button onclick="closeAccount()" class="text-2xl" aria-label="Close">&times;</button></div>
         <div class="flex gap-2 mb-5"><button onclick="setAuthMode('login')" id="login-tab" class="flex-1 rounded-lg p-2 bg-brand-700 text-white">Login</button><button onclick="setAuthMode('register')" id="register-tab" class="flex-1 rounded-lg p-2 bg-stone-100">Register</button></div>
         <form id="account-form" class="space-y-3">
@@ -439,8 +717,8 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 text-sm">
       <div class="space-y-3">
         <div class="flex items-center space-x-2">
-          <i data-lucide="sprout" class="w-6 h-6 text-brand-accent"></i>
-          <span class="text-xl font-serif font-bold text-white">My Farm Grow</span>
+          <svg class="w-8 h-8 flex-shrink-0"><use href="#mfg-logo"/></svg>
+          <span class="text-xl font-serif font-bold text-white">My Farm Grows</span>
         </div>
         <p class="text-xs text-stone-400 leading-relaxed">
           Delivering fresh agricultural produce directly from Andhra Pradesh growers to your kitchen.
@@ -470,7 +748,7 @@
     </div>
     
     <div class="max-w-7xl mx-auto px-4 border-t border-brand-700 pt-4 text-center text-xs text-stone-500">
-      &copy; 2026 My Farm Grow. All rights reserved.
+      &copy; 2026 My Farm Grows. All rights reserved.
     </div>
   </footer>
 
@@ -486,7 +764,109 @@
     let addresses = [];
     let selectedAddressId = null;
     let selectedCategory = "All";
+    let lastPlacedOrder = null;
+    let lastOrderMessage = "";
     let toastTimer;
+
+
+    // ---- Motion helpers ----
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+    function skeletonCards(n) {
+      return Array.from({length:n}, () => `<div class="bg-white rounded-xl border border-stone-200 overflow-hidden"><div class="h-44 skel"></div><div class="p-4 space-y-3"><div class="h-4 w-2/3 rounded skel"></div><div class="h-3 w-full rounded skel"></div><div class="h-3 w-1/2 rounded skel"></div><div class="h-9 w-28 rounded skel mt-4"></div></div></div>`).join("");
+    }
+    function setBtnBusy(btn, label) {
+      const html = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="mini-spin"></span> ${label}`;
+      return ok => {
+        if (!ok) { btn.innerHTML = html; btn.disabled = false; return; }
+        btn.innerHTML = "✓ Added"; btn.classList.add("btn-done");
+        setTimeout(() => { btn.innerHTML = html; btn.disabled = false; btn.classList.remove("btn-done"); }, 1000);
+      };
+    }
+    function bumpCartBadge() {
+      const b = document.getElementById("cart-badge");
+      b.classList.remove("badge-bump"); void b.offsetWidth; b.classList.add("badge-bump");
+    }
+    function flyToCart(btn) {
+      const badge = document.getElementById("cart-badge");
+      if (!badge || !btn || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const a = btn.getBoundingClientRect(), b = badge.getBoundingClientRect();
+      const dot = document.createElement("div");
+      dot.className = "fly-dot";
+      dot.style.left = (a.left + a.width / 2 - 10) + "px";
+      dot.style.top = (a.top + a.height / 2 - 10) + "px";
+      document.body.appendChild(dot);
+      requestAnimationFrame(() => {
+        dot.style.transform = `translate(${b.left + b.width / 2 - a.left - a.width / 2}px,${b.top + b.height / 2 - a.top - a.height / 2}px) scale(.35)`;
+        dot.style.opacity = ".5";
+      });
+      setTimeout(() => dot.remove(), 800);
+    }
+    function flashRow(itemId) {
+      const row = document.getElementById("cart-row-" + itemId);
+      if (row) { row.classList.add("row-flash"); setTimeout(() => row.classList.remove("row-flash"), 700); }
+    }
+    function selectAddress(id) {
+      selectedAddressId = id;
+      document.querySelectorAll("#address-list label").forEach(l => {
+        const on = Number(l.querySelector("input").value) === id;
+        l.classList.toggle("border-brand-600", on);
+        l.classList.toggle("bg-brand-50", on);
+        if (on) { l.classList.remove("addr-pop"); void l.offsetWidth; l.classList.add("addr-pop"); }
+      });
+    }
+    let _ovTimers = [], _ovStart = 0;
+    function showOrderOverlay() {
+      let o = document.getElementById("order-overlay");
+      if (!o) {
+        o = document.createElement("div");
+        o.id = "order-overlay";
+        o.innerHTML = `<div class="ov-card"><div class="ov-spinner"></div><h3 id="ov-title">Placing your order…</h3><ul id="ov-steps"><li>Checking stock</li><li>Confirming delivery address</li><li>Reserving your items</li></ul></div>`;
+        document.body.appendChild(o);
+      }
+      o.querySelector(".ov-card").classList.remove("ok");
+      o.querySelector(".ov-spinner").textContent = "";
+      document.getElementById("ov-title").textContent = "Placing your order…";
+      const lis = [...o.querySelectorAll("#ov-steps li")];
+      lis.forEach(l => l.className = "");
+      lis[0].className = "active";
+      _ovTimers.forEach(clearTimeout);
+      _ovTimers = [
+        setTimeout(() => { lis[0].className = "done"; lis[1].className = "active"; }, 550),
+        setTimeout(() => { lis[1].className = "done"; lis[2].className = "active"; }, 1100)
+      ];
+      _ovStart = Date.now();
+      o.classList.add("show");
+    }
+    async function finishOrderOverlay() {
+      const wait = 1500 - (Date.now() - _ovStart);
+      if (wait > 0) await sleep(wait);
+      _ovTimers.forEach(clearTimeout);
+      document.querySelectorAll("#ov-steps li").forEach(l => l.className = "done");
+      document.getElementById("ov-title").textContent = "Order confirmed!";
+      const card = document.querySelector("#order-overlay .ov-card");
+      card.classList.add("ok");
+      card.querySelector(".ov-spinner").textContent = "✓";
+      await sleep(700);
+      hideOrderOverlay();
+    }
+    function hideOrderOverlay() {
+      _ovTimers.forEach(clearTimeout);
+      document.getElementById("order-overlay")?.classList.remove("show");
+    }
+    function launchConfetti() {
+      const colors = ["#2d6a4f", "#e9c46a", "#d4a373", "#52b788", "#e76f51"];
+      const wrap = document.createElement("div");
+      wrap.className = "confetti-wrap";
+      for (let i = 0; i < 60; i++) {
+        const p = document.createElement("i");
+        p.style.cssText = `left:${Math.random()*100}%;background:${colors[i%5]};--dx:${(Math.random()-.5)*220}px;--rot:${Math.random()*720}deg;animation-delay:${Math.random()*.4}s;animation-duration:${1.6+Math.random()*1.2}s`;
+        wrap.appendChild(p);
+      }
+      document.body.appendChild(wrap);
+      setTimeout(() => wrap.remove(), 3500);
+    }
 
     async function api(path, options = {}) {
       const headers = {...(options.headers || {})};
@@ -509,7 +889,7 @@
     }
     function notify(message) {
       const el = document.getElementById("toast");
-      el.textContent = message; el.classList.remove("hidden");
+      el.textContent = message; el.classList.remove("hidden"); el.classList.remove("toast-in"); void el.offsetWidth; el.classList.add("toast-in");
       clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.add("hidden"), 3500);
     }
     function money(value) { return new Intl.NumberFormat("en-IN", {style:"currency", currency:"INR", maximumFractionDigits:2}).format(Number(value || 0)); }
@@ -520,9 +900,14 @@
       const adminNav = document.getElementById("nav-admin");
       if (adminNav) adminNav.classList.toggle("hidden", currentUser?.role !== "admin");
       const adminMenu = document.getElementById("admin-menu-wrap");
+      const customerMenu = document.getElementById("customer-menu-wrap");
+      const customerGreeting = document.getElementById("customer-menu-greeting");
       const orderNow = document.getElementById("customer-order-now");
       const isAdmin = currentUser?.role === "admin";
+      const isCustomer = Boolean(currentUser && currentUser.role !== "admin");
       if (adminMenu) adminMenu.classList.toggle("hidden", !isAdmin);
+      if (customerMenu) customerMenu.classList.toggle("hidden", !isCustomer);
+      if (customerGreeting && currentUser) customerGreeting.textContent = `Hello, ${currentUser.name || "Customer"}`;
       if (orderNow) orderNow.classList.toggle("hidden", isAdmin);
     }
     function openAccount() {
@@ -562,7 +947,7 @@
     }
     document.getElementById("account-form").addEventListener("submit", async event => {
       event.preventDefault();
-      const form = new FormData(event.currentTarget);
+      const form = new FormData(event.currentTarget); const sBtn = document.getElementById("account-submit"); sBtn.disabled = true; sBtn.innerHTML = '<span class="mini-spin"></span> Please wait…';
       try {
         if (authMode === "register") {
           await api("/api/auth/register", {method:"POST", body:{
@@ -580,13 +965,68 @@
         if (!result.ok) throw new Error(data.detail || "Login failed");
         token = data.access_token; localStorage.setItem("mfg_access_token", token);
         currentUser = await api("/api/auth/me"); updateAccountButton(); closeAccount();
-        notify(`Welcome, ${currentUser.name}!`);
+        showWelcome(currentUser);
         if (currentUser.role === "admin") { navigate("admin"); return; }
         if (window.pendingCartProduct) { const id = window.pendingCartProduct; window.pendingCartProduct = null; await addToCart(id); }
-      } catch (error) { notify(error.message); }
+      } catch (error) { notify(error.message); shakeEl(document.querySelector("#account-modal > div")); } finally { sBtn.disabled = false; sBtn.textContent = authMode === "login" ? "Login" : "Create account"; }
     });
 
+    function toggleCustomerMenu() {
+      if (!currentUser || currentUser.role === "admin") {
+        notify("Please log in with a customer account to open this menu.");
+        return;
+      }
+      closeAdminMenu();
+      const panel = document.getElementById("customer-menu-panel");
+      const toggle = document.getElementById("customer-menu-toggle");
+      if (!panel || !toggle) return;
+      const willOpen = panel.classList.contains("hidden");
+      panel.classList.toggle("hidden", !willOpen);
+      toggle.setAttribute("aria-expanded", String(willOpen));
+    }
+
+    function closeCustomerMenu() {
+      document.getElementById("customer-menu-panel")?.classList.add("hidden");
+      document.getElementById("customer-menu-toggle")?.setAttribute("aria-expanded", "false");
+    }
+
+    function customerMenuAction(action) {
+      closeCustomerMenu();
+      if (!currentUser || currentUser.role === "admin") {
+        notify("Please log in with a customer account to continue.");
+        openAccount();
+        return;
+      }
+      if (action === "orders") {
+        navigate("orders");
+      } else if (action === "dashboard") {
+        navigate("dashboard");
+      } else if (action === "addresses") {
+        navigate("checkout");
+        notify("Manage your saved addresses in the delivery address section.");
+      } else if (action === "profile") {
+        openAccount();
+      } else if (action === "support") {
+        navigate("contact");
+      } else if (action === "tracking") {
+        navigate("tracking");
+      } else if (action === "payments") {
+        navigate("orders");
+        notify("Payment status is shown with each order. Dedicated payment history will be connected next.");
+      } else {
+        const labels = {
+          payments: "Payment History",
+          tracking: "Order Tracking",
+          addresses: "My Addresses",
+          profile: "My Profile",
+          support: "Help & Support"
+        };
+        notify(`${labels[action] || "This section"} will be connected in the next dashboard steps.`);
+      }
+    }
+
     function toggleAdminMenu() {
+      closeCustomerMenu();
       const panel = document.getElementById("admin-menu-panel");
       const toggle = document.getElementById("admin-menu-toggle");
       if (!panel || !toggle) return;
@@ -608,6 +1048,8 @@
       }
       if (action === "orders") {
         navigate("admin");
+      } else if (action === "deliveries") {
+        navigate("deliveries");
       } else if (action === "inventory") {
         navigate("inventory");
       } else if (action === "inventory-history") {
@@ -622,8 +1064,10 @@
     }
 
     document.addEventListener("click", event => {
-      const wrap = document.getElementById("admin-menu-wrap");
-      if (wrap && !wrap.contains(event.target)) closeAdminMenu();
+      const adminWrap = document.getElementById("admin-menu-wrap");
+      const customerWrap = document.getElementById("customer-menu-wrap");
+      if (adminWrap && !adminWrap.contains(event.target)) closeAdminMenu();
+      if (customerWrap && !customerWrap.contains(event.target)) closeCustomerMenu();
     });
 
     function navigate(viewName) {
@@ -634,13 +1078,17 @@
       if (viewName === "cart") loadCart();
       if (viewName === "checkout") loadCheckout();
       if (viewName === "orders") loadOrders();
-      if (viewName === "admin" || viewName === "inventory" || viewName === "inventory-history") {
+      if (viewName === "tracking") loadTracking();
+      if (viewName === "order-success") renderOrderSuccess();
+      if (viewName === "dashboard") loadCustomerDashboard();
+      if (viewName === "admin" || viewName === "deliveries" || viewName === "inventory" || viewName === "inventory-history") {
         if (!currentUser || currentUser.role !== "admin") {
           notify("Administrator access is required.");
           navigate("home");
           return;
         }
         if (viewName === "admin") loadAdminOrders();
+        if (viewName === "deliveries") loadAdminDeliveries();
         if (viewName === "inventory") loadAdminInventory();
         if (viewName === "inventory-history") loadInventoryHistoryView();
       }
@@ -689,7 +1137,7 @@
 
     async function renderProducts() {
       const grid = document.getElementById("product-grid");
-      grid.innerHTML = '<div class="col-span-full text-center py-10 text-stone-500">Loading products…</div>';
+      grid.innerHTML = skeletonCards(6);
       try {
         const query = document.getElementById("search-input")?.value.trim() || "";
         const params = new URLSearchParams({limit:"100", active_only:"true"});
@@ -697,10 +1145,10 @@
         if (selectedCategory !== "All") params.set("category", selectedCategory);
         products = await api(`/api/products/?${params.toString()}`);
         if (!products.length) { grid.innerHTML = '<div class="col-span-full py-12 text-center text-stone-500">No products found. Try another search or category.</div>'; return; }
-        grid.innerHTML = products.map(p => {
+        grid.innerHTML = products.map((p, i) => {
           const price = currentUser?.customer_type === "wholesale" ? p.wholesale_price : p.retail_price;
           const priceLabel = currentUser?.customer_type === "wholesale" ? "Wholesale price" : "Retail price";
-          return `<article class="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm flex flex-col justify-between hover:border-brand-600 transition">
+          return `<article class="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm flex flex-col justify-between hover:border-brand-600 card-fx fade-up" style="animation-delay:${Math.min(i,11)*50}ms">
             <div><div class="h-44 bg-stone-100 flex items-center justify-center relative overflow-hidden">
               <img src="${esc(getProductImage(p))}" alt="${esc(p.name)}" class="w-full h-full object-cover ${getProductImage(p) ? "" : "hidden"}" onerror="this.classList.add('hidden')">
               <span class="absolute top-2 left-2 bg-brand-700 text-white text-[11px] font-bold px-2 py-1 rounded">${esc(p.category)}</span>
@@ -712,14 +1160,14 @@
               ${Number(p.min_wholesale_quantity)>0 ? `<p class="text-xs text-stone-400 mt-1">Wholesale threshold: ${p.min_wholesale_quantity} ${esc(p.unit)}</p>` : ""}
             </div></div>
             <div class="p-4 pt-0 flex items-center justify-between border-t border-stone-100 mt-2"><span class="text-lg font-bold text-brand-800">${money(price)}</span>
-            <button onclick="addToCart(${p.id})" ${p.stock_quantity<=0 ? "disabled" : ""} class="bg-brand-50 hover:bg-brand-100 disabled:opacity-40 text-brand-700 border border-brand-600 font-medium text-xs px-3 py-2 rounded-md">${p.stock_quantity<=0 ? "Out of stock" : "+ Add to cart"}</button></div></article>`;
+            <button onclick="addToCart(${p.id}, this)" ${p.stock_quantity<=0 ? "disabled" : ""} class="bg-brand-50 hover:bg-brand-100 disabled:opacity-40 text-brand-700 border border-brand-600 font-medium text-xs px-3 py-2 rounded-md">${p.stock_quantity<=0 ? "Out of stock" : "+ Add to cart"}</button></div></article>`;
         }).join("");
         if (window.lucide) lucide.createIcons();
       } catch (error) { grid.innerHTML = `<div class="col-span-full p-6 bg-red-50 text-red-700 rounded-xl">Could not load products: ${esc(error.message)}. Check that the FastAPI server and database are running.</div>`; }
     }
-    async function addToCart(productId) {
+    async function addToCart(productId, btn) {
       if (!token || !currentUser) { window.pendingCartProduct = productId; openAccount(); notify("Please log in to add items to your cart."); return; }
-      try { cart = await api("/api/cart/items", {method:"POST", body:{product_id:productId, quantity:1}}); updateCartBadge(); notify("Added to your cart."); }
+      const done = btn ? setBtnBusy(btn, "Adding…") : null; try { try { cart = await api("/api/cart/items", {method:"POST", body:{product_id:productId, quantity:1}}); updateCartBadge(); bumpCartBadge(); if (btn) flyToCart(btn); if (done) done(true); showAddedPop(productId); } catch (e) { if (done) done(false); throw e; } }
       catch (error) { notify(error.message); }
     }
     function updateCartBadge() {
@@ -735,13 +1183,13 @@
       const container = document.getElementById("cart-container");
       updateCartBadge();
       if (!cart.items?.length) { container.innerHTML = `<div class="text-center py-16 bg-white border border-stone-200 rounded-xl"><i data-lucide="shopping-cart" class="w-12 h-12 text-stone-300 mx-auto mb-3"></i><h3 class="text-lg font-bold">Your cart is empty</h3><p class="text-stone-400 text-sm mb-6">Explore the store and add products.</p><button onclick="navigate('products')" class="bg-brand-700 text-white px-6 py-2 rounded-lg">Browse Store</button></div>`; if(window.lucide)lucide.createIcons(); return; }
-      container.innerHTML = `<div class="bg-white rounded-xl border border-stone-200 p-6 shadow-sm"><div class="divide-y">${cart.items.map(item=>`<div class="py-4 flex flex-wrap gap-3 items-center justify-between"><div class="flex min-w-0 items-center gap-3"><img src="${esc(getProductImage({name:item.product_name, image_url:item.image_url}))}" alt="${esc(item.product_name)}" class="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover border border-stone-200 bg-stone-50 flex-shrink-0" onerror="this.classList.add('hidden')"><div class="min-w-0"><h4 class="font-bold text-sm">${esc(item.product_name)}</h4><p class="text-xs text-stone-500">${money(item.unit_price)} each · Item #${item.id}</p></div></div><div class="flex items-center gap-3"><div class="flex items-center border rounded-lg"><button onclick="changeQty(${item.id},${Number(item.quantity)-1})" class="px-3 py-1 hover:bg-stone-100">−</button><span class="px-2 text-sm">${item.quantity}</span><button onclick="changeQty(${item.id},${Number(item.quantity)+1})" class="px-3 py-1 hover:bg-stone-100">+</button></div><b class="w-24 text-right">${money(item.subtotal)}</b><button onclick="removeCartItem(${item.id})" class="text-red-600 text-sm">Remove</button></div></div>`).join("")}</div><div class="border-t mt-4 pt-4 flex justify-between font-bold text-lg"><span>Total</span><span>${money(cart.total)}</span></div><div class="mt-5 flex flex-wrap gap-3"><button onclick="clearCart()" class="border rounded-lg px-4 py-3 text-sm">Clear cart</button><button onclick="navigate('checkout')" class="flex-1 bg-brand-accent text-brand-800 font-bold py-3 rounded-lg">Proceed to checkout</button></div></div>`;
+      container.innerHTML = `<div class="bg-white rounded-xl border border-stone-200 p-6 shadow-sm"><div class="divide-y">${cart.items.map(item=>`<div id="cart-row-${item.id}" class="cart-row py-4 flex flex-wrap gap-3 items-center justify-between"><div class="flex min-w-0 items-center gap-3"><img src="${esc(getProductImage({name:item.product_name, image_url:item.image_url}))}" alt="${esc(item.product_name)}" class="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover border border-stone-200 bg-stone-50 flex-shrink-0" onerror="this.classList.add('hidden')"><div class="min-w-0"><h4 class="font-bold text-sm">${esc(item.product_name)}</h4><p class="text-xs text-stone-500">${money(item.unit_price)} each · Item #${item.id}</p></div></div><div class="flex items-center gap-3"><div class="flex items-center border rounded-lg"><button onclick="changeQty(${item.id},${Number(item.quantity)-1})" class="px-3 py-1 hover:bg-stone-100">−</button><span class="px-2 text-sm">${item.quantity}</span><button onclick="changeQty(${item.id},${Number(item.quantity)+1})" class="px-3 py-1 hover:bg-stone-100">+</button></div><b class="w-24 text-right">${money(item.subtotal)}</b><button onclick="removeCartItem(${item.id})" class="text-red-600 text-sm">Remove</button></div></div>`).join("")}</div><div class="border-t mt-4 pt-4 flex justify-between font-bold text-lg"><span>Total</span><span>${money(cart.total)}</span></div><div class="mt-5 flex flex-wrap gap-3"><button onclick="clearCart()" class="border rounded-lg px-4 py-3 text-sm">Clear cart</button><button onclick="navigate('checkout')" class="flex-1 bg-brand-accent text-brand-800 font-bold py-3 rounded-lg">Proceed to checkout</button></div></div>`;
     }
     async function changeQty(itemId, quantity) {
-      try { if (quantity < 1) await removeCartItem(itemId); else { cart=await api(`/api/cart/items/${itemId}`,{method:"PATCH",body:{quantity}}); renderCart(); } }
+      try { if (quantity < 1) await removeCartItem(itemId); else { cart=await api(`/api/cart/items/${itemId}`,{method:"PATCH",body:{quantity}}); renderCart(); flashRow(itemId); } }
       catch(error) { notify(error.message); }
     }
-    async function removeCartItem(itemId) { try { await api(`/api/cart/items/${itemId}`,{method:"DELETE"}); await loadCart(); notify("Item removed."); } catch(error){notify(error.message);} }
+    async function removeCartItem(itemId) { try { const row = document.getElementById("cart-row-" + itemId); if (row) { row.classList.add("row-out"); await sleep(320); } await api(`/api/cart/items/${itemId}`,{method:"DELETE"}); await loadCart(); notify("Item removed."); } catch(error){notify(error.message);} }
     async function clearCart() { try { await api("/api/cart",{method:"DELETE"}); await loadCart(); notify("Cart cleared."); } catch(error){notify(error.message);} }
     async function loadCheckout() {
       if (!token) { notify("Please log in before checkout."); openAccount(); navigate("cart"); return; }
@@ -757,7 +1205,7 @@
     function renderAddresses() {
       const el=document.getElementById("address-list");
       if(!addresses.length) { el.innerHTML='<p class="text-sm text-amber-700 bg-amber-50 p-3 rounded-lg">Add a delivery address below to continue.</p>'; return; }
-      el.innerHTML=addresses.map(a=>`<label class="block border rounded-xl p-3 cursor-pointer ${selectedAddressId===a.id?'border-brand-600 bg-brand-50':''}"><div class="flex gap-2"><input type="radio" name="selected-address" value="${a.id}" ${selectedAddressId===a.id?'checked':''} onchange="selectedAddressId=${a.id}"><div class="text-sm"><b>${esc(a.recipient_name)} ${a.is_default?'<span class="text-xs text-brand-700">(Default)</span>':''}</b><p>${esc(a.phone)}</p><p>${esc(a.address_line1)} ${esc(a.address_line2||'')}</p><p>${esc(a.city)}, ${esc(a.state)} ${esc(a.postal_code)}, ${esc(a.country)}</p></div></div></label>`).join("");
+      el.innerHTML=addresses.map(a=>`<label class="addr-card block border rounded-xl p-3 cursor-pointer ${selectedAddressId===a.id?'border-brand-600 bg-brand-50':''}"><div class="flex gap-2"><input type="radio" name="selected-address" value="${a.id}" ${selectedAddressId===a.id?'checked':''} onchange="selectAddress(${a.id})"><div class="text-sm"><b>${esc(a.recipient_name)} ${a.is_default?'<span class="text-xs text-brand-700">(Default)</span>':''}</b><p>${esc(a.phone)}</p><p>${esc(a.address_line1)} ${esc(a.address_line2||'')}</p><p>${esc(a.city)}, ${esc(a.state)} ${esc(a.postal_code)}, ${esc(a.country)}</p></div></div></label>`).join("");
     }
     document.getElementById("address-form").addEventListener("submit", async event=>{
       event.preventDefault(); const f=new FormData(event.currentTarget);
@@ -766,28 +1214,256 @@
       catch(error){notify(error.message);}
     });
     async function placeOrder() {
-      if(!selectedAddressId){notify("Please add or select a delivery address.");return;}
+      if (!token || !currentUser) {
+        notify("Please log in before placing an order.");
+        openAccount();
+        return;
+      }
+      if (!selectedAddressId) { notify("Please add or select a delivery address."); return; }
+      const button = document.querySelector('#view-checkout button[onclick="placeOrder()"]');
+      if (button) { button.disabled = true; button.textContent = "Placing order…"; }
+      showOrderOverlay();
       try {
-        const order=await api("/api/orders/",{method:"POST",body:{address_id:selectedAddressId,payment_method:document.getElementById("payment-method").value}});
-        if(order.payment_method==="online") {
-          try { await api("/api/payments/",{method:"POST",body:{order_id:order.id,payment_method:"online"}}); }
-          catch(error) { notify(`Order #${order.id} created, but payment record failed: ${error.message}`); navigate("orders"); return; }
+        const order = await api("/api/orders/", {
+          method: "POST",
+          body: {
+            address_id: selectedAddressId,
+            payment_method: document.getElementById("payment-method").value
+          }
+        });
+        lastPlacedOrder = order;
+        lastOrderMessage = "";
+
+        if (order.payment_method === "online") {
+          try {
+            await api("/api/payments/", {
+              method: "POST",
+              body: {order_id: order.id, payment_method: "online"}
+            });
+          } catch (error) {
+            // The order exists even if its separate payment transaction record failed.
+            lastOrderMessage = `Your order was created, but the payment transaction record could not be saved: ${error.message}`;
+          }
         }
+
+        await finishOrderOverlay();
+        renderOrderSuccess();
+        navigate("order-success");
+        launchConfetti();
         notify(`Order #${order.id} placed successfully.`);
-        navigate("orders");
-      } catch(error) { notify(error.message); }
+      } catch (error) {
+        notify(error.message);
+      } finally {
+        hideOrderOverlay();
+        if (button) { button.disabled = false; button.textContent = "Place order"; }
+      }
     }
+
+    function renderOrderSuccess() {
+      const order = lastPlacedOrder;
+      if (!order) {
+        document.getElementById("order-success-id").textContent = "No recent order";
+        document.getElementById("order-success-total").textContent = money(0);
+        document.getElementById("order-success-status").textContent = "Unavailable";
+        document.getElementById("order-success-method").textContent = "—";
+        document.getElementById("order-success-payment").textContent = "—";
+        return;
+      }
+
+      const status = String(order.status || "pending").toLowerCase();
+      const paymentStatus = String(order.payment_status || (order.payment_method === "cash_on_delivery" ? "pending" : "pending")).toLowerCase();
+      document.getElementById("order-success-id").textContent = `Order #${order.id}`;
+      document.getElementById("order-success-total").textContent = money(order.total_amount);
+      document.getElementById("order-success-status").outerHTML = `<span id="order-success-status" class="inline-flex rounded-full px-3 py-1.5 text-sm font-bold ${status === "delivered" ? "bg-green-100 text-green-800" : status === "cancelled" ? "bg-red-100 text-red-800" : status === "shipped" ? "bg-violet-100 text-violet-800" : status === "processing" ? "bg-blue-100 text-blue-800" : "bg-amber-100 text-amber-800"}">${esc(status.replaceAll("_", " "))}</span>`;
+      document.getElementById("order-success-method").textContent = String(order.payment_method || "—").replaceAll("_", " ");
+      document.getElementById("order-success-payment").innerHTML = adminBadge(paymentStatus);
+
+      const message = document.getElementById("order-success-message");
+      if (lastOrderMessage) {
+        message.textContent = lastOrderMessage;
+        message.className = "text-sm rounded-lg p-3 mb-5 border border-amber-200 bg-amber-50 text-amber-800";
+      } else if (order.payment_method === "online") {
+        message.textContent = "Online payment is not connected to a payment gateway yet. A transaction record may be pending; no online payment has been collected by this demo.";
+        message.className = "text-sm rounded-lg p-3 mb-5 border border-amber-200 bg-amber-50 text-amber-800";
+      } else {
+        message.textContent = "Please pay the order amount to the delivery partner when your order arrives.";
+        message.className = "text-sm rounded-lg p-3 mb-5 border border-green-200 bg-green-50 text-green-800";
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    async function loadCustomerDashboard() {
+      const recent = document.getElementById("dashboard-recent-orders");
+      if (!currentUser || currentUser.role === "admin" || !token) {
+        recent.innerHTML = `<div class="py-8 text-center"><p class="text-sm text-stone-600 mb-3">Please log in with your customer account to view your dashboard.</p><button onclick="openAccount()" class="bg-brand-700 text-white rounded-lg px-4 py-2 text-sm font-semibold">Login</button></div>`;
+        ["dashboard-total-orders", "dashboard-active-orders", "dashboard-total-spend", "dashboard-address-count"].forEach(id => { const el=document.getElementById(id); if(el) el.textContent="—"; });
+        return;
+      }
+      document.getElementById("dashboard-customer-name").textContent = currentUser.name || "Customer";
+      recent.innerHTML = '<p class="text-sm text-stone-500">Loading your orders…</p>';
+      try {
+        const orders = await api("/api/orders/");
+        const safeOrders = Array.isArray(orders) ? orders : [];
+        const active = safeOrders.filter(o => ["pending", "processing", "shipped"].includes(String(o.status || "").toLowerCase()));
+        const totalSpend = safeOrders.filter(o => String(o.status || "").toLowerCase() !== "cancelled").reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
+        countTo(document.getElementById("dashboard-total-orders"), safeOrders.length);
+        countTo(document.getElementById("dashboard-active-orders"), active.length);
+        countTo(document.getElementById("dashboard-total-spend"), totalSpend, money);
+        try {
+          const savedAddresses = await api("/api/addresses/");
+          document.getElementById("dashboard-address-count").textContent = Array.isArray(savedAddresses) ? savedAddresses.length : 0;
+        } catch { document.getElementById("dashboard-address-count").textContent = "—"; }
+        if (!safeOrders.length) {
+          recent.innerHTML = `<div class="py-8 text-center"><div class="w-12 h-12 rounded-full bg-brand-50 text-brand-700 flex items-center justify-center mx-auto mb-3"><i data-lucide="package-open" class="w-6 h-6"></i></div><p class="font-semibold text-stone-700">No orders yet</p><p class="text-sm text-stone-500 mt-1 mb-4">Your first farm-fresh order is just a few clicks away.</p><button onclick="navigate('products')" class="bg-brand-700 text-white rounded-lg px-4 py-2 text-sm font-semibold">Browse products</button></div>`;
+        } else {
+          recent.innerHTML = safeOrders.slice(0, 4).map(o => {
+            const status = String(o.status || "pending").toLowerCase();
+            const date = o.created_at ? new Date(o.created_at).toLocaleDateString("en-IN", {day:"numeric", month:"short", year:"numeric"}) : "Date unavailable";
+            return `<button onclick="navigate('orders')" class="w-full flex flex-wrap items-center justify-between gap-3 border border-stone-200 rounded-xl p-4 text-left hover:border-brand-600 transition"><div class="flex items-center gap-3"><span class="w-10 h-10 rounded-lg bg-brand-50 text-brand-700 flex items-center justify-center"><i data-lucide="package" class="w-5 h-5"></i></span><div><p class="font-semibold text-sm">Order #${esc(o.id)}</p><p class="text-xs text-stone-500 mt-1">${esc(date)} · ${Array.isArray(o.items) ? o.items.length : 0} item type(s)</p></div></div><div class="text-right"><p class="font-bold text-brand-800">${money(o.total_amount)}</p><span class="inline-block mt-1">${adminBadge(status)}</span></div></button>`;
+          }).join("");
+        }
+        if (window.lucide) lucide.createIcons();
+      } catch (error) {
+        recent.innerHTML = `<p class="text-sm text-red-700">Could not load dashboard data: ${esc(error.message)}</p><button onclick="loadCustomerDashboard()" class="mt-3 text-sm text-brand-700 underline">Try again</button>`;
+      }
+    }
+
+    function shipmentStatusSteps(status) {
+      const steps = ["pending", "packed", "shipped", "out_for_delivery", "delivered"];
+      const normalized = String(status || "pending").toLowerCase().replaceAll(" ", "_").replaceAll("-", "_");
+      return {steps, normalized, index: steps.indexOf(normalized)};
+    }
+    function renderShipmentTracking(order, delivery) {
+      const status = String(delivery?.status || order.delivery_status || order.status || "pending").toLowerCase().replaceAll(" ", "_").replaceAll("-", "_");
+      const {steps, normalized, index} = shipmentStatusSteps(status);
+      const cancelled = String(order.status || "").toLowerCase() === "cancelled";
+      const delivered = normalized === "delivered" || String(order.status || "").toLowerCase() === "delivered";
+      const labels = {pending:"Order received", packed:"Packed", shipped:"Shipped", out_for_delivery:"Out for delivery", delivered:"Delivered"};
+      const current = cancelled ? "cancelled" : normalized;
+      const currentLabel = labels[current] || current.replaceAll("_", " ").replace(/^./, c => c.toUpperCase());
+      const eta = delivery?.estimated_delivery_date || order.estimated_delivery_date || order.estimated_delivery;
+      const etaText = eta ? new Date(String(eta).slice(0,10) + "T12:00:00").toLocaleDateString("en-IN", {day:"numeric", month:"long", year:"numeric"}) : "Not updated yet";
+      const tracking = delivery?.tracking_number || order.tracking_number || "Not assigned yet";
+      const partner = delivery?.delivery_partner || order.delivery_partner || "Not assigned yet";
+      const progress = cancelled ? -1 : delivered ? 4 : index;
+      return `<section class="mt-4 border border-stone-200 rounded-xl p-4 sm:p-5 bg-stone-50">
+        <div class="flex flex-wrap justify-between items-start gap-3"><div><h4 class="font-bold text-brand-800 flex items-center gap-2"><i data-lucide="truck" class="w-5 h-5"></i> Order tracking</h4><p class="text-xs text-stone-500 mt-1">Live shipment information provided by the seller</p></div><span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold ${cancelled?'bg-red-100 text-red-700':delivered?'bg-emerald-100 text-emerald-700':'bg-blue-100 text-blue-700'}">${esc(cancelled?'Cancelled':currentLabel)}</span></div>
+        <div class="grid sm:grid-cols-3 gap-3 mt-4"><div class="rounded-lg bg-white border border-stone-200 p-3"><p class="text-xs text-stone-500 mb-1">Estimated delivery</p><p class="font-semibold text-sm">${esc(delivered?'Delivered':etaText)}</p></div><div class="rounded-lg bg-white border border-stone-200 p-3"><p class="text-xs text-stone-500 mb-1">Tracking number</p><p class="font-semibold text-sm break-all">${esc(tracking)}</p></div><div class="rounded-lg bg-white border border-stone-200 p-3"><p class="text-xs text-stone-500 mb-1">Delivery partner</p><p class="font-semibold text-sm">${esc(partner)}</p></div></div>
+        ${cancelled ? '<p class="mt-4 text-sm text-red-700">This order has been cancelled.</p>' : `<div class="mt-5"><p class="text-xs font-semibold text-stone-500 mb-4">SHIPMENT PROGRESS</p><div class="flex items-start w-full">${steps.map((step,i)=>{const complete=progress>=i;const active=progress===i;return `<div class="relative flex-1 min-w-0 flex flex-col items-center text-center"><div class="flex items-center w-full h-9"><span class="absolute left-0 right-0 top-4 h-1 ${i===0?'hidden':''} ${progress>=i?'bg-brand-700':'bg-stone-200'}" style="z-index:0"></span><span class="relative z-10 mx-auto flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${complete?'bg-brand-700 text-white':active?'bg-brand-700 text-white':'bg-white border border-stone-300 text-stone-400'}">${complete?'✓':i+1}</span></div><span class="mt-2 px-1 text-xs leading-4 ${active?'font-bold text-brand-800':complete?'text-stone-700':'text-stone-400'}">${labels[step]}</span></div>`}).join('')}</div></div>`}
+        <p class="text-xs text-stone-500 mt-4">${delivered?'Your order has been delivered.':eta?'Expected to arrive by '+esc(etaText)+'.':'The estimated delivery date will appear here once the shipment is scheduled.'}</p>
+      </section>`;
+    }
+    function ordersLoginPrompt() {
+      return `<div class="bg-white border rounded-xl p-8 text-center">Please log in to view your orders. <button onclick="openAccount()" class="text-brand-700 underline">Login</button></div>`;
+    }
+    function ordersEmptyPrompt(message) {
+      return `<div class="bg-white border rounded-xl p-8 text-center text-stone-500">${esc(message)} <button onclick="navigate('products')" class="text-brand-700 underline">Browse products</button></div>`;
+    }
+    function orderHeaderHtml(o) {
+      return `<div class="flex flex-wrap justify-between gap-3"><div><h3 class="font-bold text-lg">Order #${esc(o.id)}</h3><p class="text-xs text-stone-500">${o.created_at ? esc(new Date(o.created_at).toLocaleString()) : "Date unavailable"}</p></div><div class="text-left sm:text-right"><div class="flex flex-wrap sm:justify-end gap-2"><span class="text-xs text-stone-500 self-center">Order</span>${adminBadge(String(o.status || "pending").toLowerCase())}<span class="text-xs text-stone-500 self-center ml-1">Payment</span>${adminBadge(String(o.payment_status || "pending").toLowerCase())}</div></div></div>`;
+    }
+    // Order History: order details only (items, address, total, payment, cancel).
     async function loadOrders() {
       const el=document.getElementById("orders-container");
-      if(!token){el.innerHTML='<div class="bg-white border rounded-xl p-8 text-center">Please log in to view your orders. <button onclick="openAccount()" class="text-brand-700 underline">Login</button></div>';return;}
+      if(!token){el.innerHTML=ordersLoginPrompt();return;}
       el.innerHTML='<p class="text-stone-500">Loading your orders…</p>';
       try {
         const orders=await api("/api/orders/");
-        if(!orders.length){el.innerHTML='<div class="bg-white border rounded-xl p-8 text-center text-stone-500">No orders yet. <button onclick="navigate(\'products\')" class="text-brand-700 underline">Browse products</button></div>';return;}
-        el.innerHTML=orders.map(o=>`<article class="bg-white border border-stone-200 rounded-xl p-5"><div class="flex flex-wrap justify-between gap-3"><div><h3 class="font-bold text-lg">Order #${o.id}</h3><p class="text-xs text-stone-500">${new Date(o.created_at).toLocaleString()}</p></div><div class="text-right"><p class="font-bold text-brand-800">${money(o.total_amount)}</p><p class="text-xs capitalize">Order: <b>${esc(o.status)}</b> · Payment: <b>${esc(o.payment_status)}</b></p></div></div><div class="border-t mt-4 pt-3 space-y-3 text-sm">${o.items.map(i=>`<div class="flex items-center justify-between gap-3"><div class="flex min-w-0 items-center gap-3"><img src="${esc(getProductImage({name:i.product_name, image_url:i.image_url}))}" alt="${esc(i.product_name)}" class="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover border border-stone-200 bg-stone-50 flex-shrink-0" onerror="this.classList.add('hidden')"><span class="min-w-0">${esc(i.product_name)} × ${i.quantity} ${esc(i.unit)}</span></div><span class="font-medium whitespace-nowrap">${money(i.subtotal)}</span></div>`).join("")}</div><div class="border-t mt-4 pt-3 text-xs text-stone-500">Deliver to: ${esc(o.recipient_name)}, ${esc(o.address_line1)}, ${esc(o.city)}, ${esc(o.state)} ${esc(o.postal_code)} · ${esc(o.payment_method.replaceAll("_"," "))}</div>${o.status==="pending"?`<button onclick="cancelOrder(${o.id})" class="mt-4 text-sm border border-red-300 text-red-700 rounded-lg px-3 py-2">Cancel order</button>`:""}</article>`).join("");
+        if(!orders.length){el.innerHTML=ordersEmptyPrompt("No orders yet.");return;}
+        el.innerHTML=orders.map((o,idx)=>{
+          const items=Array.isArray(o.items) ? o.items : [];
+          const canCancel=String(o.status || "").toLowerCase()==="pending";
+          return `<article class="bg-white border border-stone-200 rounded-xl p-5 fade-up" style="animation-delay:${Math.min(idx,8)*70}ms">${orderHeaderHtml(o)}<div class="border-t mt-4 pt-3 space-y-3 text-sm">${items.map(i=>`<div class="flex items-center justify-between gap-3"><div class="flex items-center gap-3 min-w-0"><img src="${esc(getProductImage({name:i.product_name, image_url:i.image_url}))}" alt="${esc(i.product_name)}" class="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover border border-stone-200 bg-stone-50 flex-shrink-0" onerror="this.classList.add('hidden')"><span class="min-w-0">${esc(i.product_name)} × ${esc(i.quantity)} ${esc(i.unit)}</span></div><span class="text-stone-600 flex-shrink-0">${money(i.subtotal)}</span></div>`).join("")}</div><div class="border-t mt-4 pt-3 flex flex-wrap items-start justify-between gap-3"><div class="text-xs text-stone-500">Deliver to: ${esc(o.recipient_name)}, ${esc(o.address_line1)}, ${esc(o.city)}, ${esc(o.state)} ${esc(o.postal_code)} · ${esc(String(o.payment_method || "").replaceAll("_"," "))}</div><div class="text-right"><p class="text-xs text-stone-500">Order total</p><p class="font-bold text-brand-800">${money(o.total_amount)}</p></div></div><div class="mt-4 flex flex-wrap gap-2">${canCancel?`<button onclick="cancelOrder(${Number(o.id)})" class="text-sm border border-red-300 text-red-700 rounded-lg px-3 py-2 hover:bg-red-50">Cancel order</button>`:""}<button onclick="navigate('tracking')" class="text-sm border border-stone-300 text-stone-700 rounded-lg px-3 py-2 hover:bg-stone-50">Track shipment</button></div></article>`;
+        }).join("");
+        if (window.lucide) lucide.createIcons();
+      } catch(error){el.innerHTML=`<p class="text-red-700">${esc(error.message)}</p>`;}
+    }
+    // Order Tracking: shipment progress only (delivery partner, tracking number, ETA, progress).
+    async function loadTracking() {
+      const el=document.getElementById("tracking-container");
+      if(!token){el.innerHTML=ordersLoginPrompt();return;}
+      el.innerHTML='<p class="text-stone-500">Loading your shipments…</p>';
+      try {
+        const orders=await api("/api/orders/");
+        if(!orders.length){el.innerHTML=ordersEmptyPrompt("No orders to track yet.");return;}
+        el.innerHTML=orders.map((o,idx)=>{
+          const items=Array.isArray(o.items) ? o.items : [];
+          const summary=items.map(i=>`${esc(i.product_name)} × ${esc(i.quantity)} ${esc(i.unit)}`).join(", ");
+          return `<article class="bg-white border border-stone-200 rounded-xl p-5 fade-up" style="animation-delay:${Math.min(idx,8)*70}ms"><div class="flex flex-wrap justify-between gap-3"><div><h3 class="font-bold text-lg">Order #${esc(o.id)}</h3><p class="text-xs text-stone-500">${o.created_at ? esc(new Date(o.created_at).toLocaleString()) : "Date unavailable"}</p></div><button onclick="navigate('orders')" class="text-sm text-brand-700 underline self-start">View order details</button></div><p class="text-sm text-stone-600 mt-3">${summary || "No items"}</p>${renderShipmentTracking(o,o.delivery || null)}</article>`;
+        }).join("");
+        if (window.lucide) lucide.createIcons();
       } catch(error){el.innerHTML=`<p class="text-red-700">${esc(error.message)}</p>`;}
     }
     async function cancelOrder(id) { if(!confirm(`Cancel order #${id}?`))return; try{await api(`/api/orders/${id}/cancel`,{method:"POST"});notify("Order cancelled and eligible stock restored.");loadOrders();}catch(error){notify(error.message);} }
+    async function reorderOrder(orderId) {
+      if (!token || !currentUser) {
+        notify("Please log in to reorder items.");
+        openAccount();
+        return;
+      }
+
+      try {
+        const orders = await api("/api/orders/");
+        const order = orders.find(item => Number(item.id) === Number(orderId));
+        if (!order) {
+          notify("Could not find that order. Refresh your order history and try again.");
+          return;
+        }
+
+        const items = Array.isArray(order.items) ? order.items : [];
+        if (!items.length) {
+          notify("This order has no items available to reorder.");
+          return;
+        }
+
+        // Resolve product IDs from the order item first, then from already-loaded products by name.
+        let productCatalog = Array.isArray(products) ? products : [];
+        if (!productCatalog.length) {
+          try {
+            const loaded = await api("/api/products/");
+            productCatalog = Array.isArray(loaded) ? loaded : (loaded?.items || loaded?.products || []);
+            products = productCatalog;
+          } catch (_) {
+            // The order item's product_id can still be used without loading the catalog.
+          }
+        }
+
+        const resolvedItems = items.map(item => {
+          const name = item.product_name || item.name || "";
+          const matchedProduct = productCatalog.find(product =>
+            String(product.name || product.product_name || "").trim().toLowerCase() === String(name).trim().toLowerCase()
+          );
+          return {
+            productId: Number(item.product_id ?? item.product?.id ?? matchedProduct?.id),
+            quantity: Math.max(1, Number(item.quantity) || 1),
+            name
+          };
+        });
+
+        const unresolved = resolvedItems.filter(item => !Number.isFinite(item.productId) || item.productId <= 0);
+        if (unresolved.length) {
+          notify("Some order items do not include product IDs, so they could not be added. Please add those products from the catalog.");
+          return;
+        }
+
+        let addedCount = 0;
+        for (const item of resolvedItems) {
+          await api("/api/cart/items", {
+            method: "POST",
+            body: { product_id: item.productId, quantity: item.quantity }
+          });
+          addedCount++;
+        }
+
+        cart = await api("/api/cart");
+        updateCartBadge();
+        notify(`Re-order added ${addedCount} item${addedCount === 1 ? "" : "s"} to your cart.`);
+        navigate("cart");
+      } catch (error) {
+        notify(`Could not complete re-order: ${error.message}`);
+        try { cart = await api("/api/cart"); updateCartBadge(); } catch (_) {}
+      }
+    }
     function adminStatusOptions(current) {
       const options = {
         pending: ["processing", "cancelled"],
@@ -823,10 +1499,95 @@
       container.innerHTML = '<p class="text-stone-500">Loading orders...</p>';
       try {
         // This endpoint is added to app/api/routes/admin.py.
-        adminOrders = await api("/api/admin/orders");
+        const results = await Promise.all([
+          api("/api/admin/orders"),
+          api("/api/admin/deliveries").catch(() => [])
+        ]);
+        adminOrders = Array.isArray(results[0]) ? results[0] : []; _lastMaxOrder = Math.max(0, ...adminOrders.map(o => o.id));
+        adminDeliveries = Array.isArray(results[1]) ? results[1] : [];
         renderAdminOrders();
       } catch (error) {
         container.innerHTML = `<div class="bg-red-50 text-red-700 rounded-xl p-5"><b>Could not load orders.</b><p class="mt-1">${esc(error.message)}</p><p class="text-sm mt-2">Confirm the updated admin.py is installed and the server has restarted.</p></div>`;
+      }
+    }
+
+    // Inline shipment controls inside each order card make fulfilment manageable from one screen.
+    function renderOrderShipmentPanel(order) {
+      const delivery = (adminDeliveries || []).find(d => Number(d.order_id) === Number(order.id));
+      const deliveryId = delivery ? Number(delivery.id) : 0;
+      const currentStatus = String(delivery?.status || "pending").toLowerCase();
+      const nextStatuses = DELIVERY_TRANSITIONS[currentStatus] || [];
+      const statusOptions = nextStatuses.map(s =>
+        `<option value="${s}">${s.replaceAll("_", " ")}</option>`
+      ).join("");
+      const estimatedDate = delivery?.estimated_delivery_date ? String(delivery.estimated_delivery_date).slice(0, 10) : "";
+      const tracking = delivery?.tracking_number || `MFG-ORD-${Number(order.id)}`;
+      const isCancelled = String(order.status || "").toLowerCase() === "cancelled";
+      return `
+        <div class="border-t mt-4 pt-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div><p class="text-xs font-semibold text-stone-500 mb-1">SHIPMENT & TRACKING</p>
+              <p class="text-sm text-stone-500">${delivery ? `Delivery #${deliveryId} · ` : "No shipment assigned · "}${delivery ? "Update tracking and delivery progress here." : "Create a shipment directly from this order."}</p>
+            </div>
+            ${delivery ? deliveryStatusBadge(currentStatus) : '<span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold bg-stone-100 text-stone-600">Not assigned</span>'}
+          </div>
+          ${isCancelled ? '<p class="text-sm text-red-700 bg-red-50 rounded-lg p-3">This order is cancelled. Shipment details cannot be created from this order.</p>' : `
+          <form class="grid sm:grid-cols-2 xl:grid-cols-4 gap-3" onsubmit="saveOrderShipment(event, ${Number(order.id)}, ${deliveryId})">
+            <div><label class="block text-xs font-semibold text-stone-600 mb-1" for="order-shipment-tracking-${Number(order.id)}">Tracking number</label>
+              <input id="order-shipment-tracking-${Number(order.id)}" maxlength="100" value="${esc(tracking)}" class="w-full border rounded-lg p-2.5 text-sm" placeholder="Auto-generated from order ID"></div>
+            <div><label class="block text-xs font-semibold text-stone-600 mb-1" for="order-shipment-partner-${Number(order.id)}">Delivery partner</label>
+              <input id="order-shipment-partner-${Number(order.id)}" maxlength="150" value="${esc(delivery?.delivery_partner || "")}" class="w-full border rounded-lg p-2.5 text-sm" placeholder="e.g. Delivery partner"></div>
+            <div><label class="block text-xs font-semibold text-stone-600 mb-1" for="order-shipment-date-${Number(order.id)}">Estimated delivery</label>
+              <input id="order-shipment-date-${Number(order.id)}" type="date" value="${esc(estimatedDate)}" class="w-full border rounded-lg p-2.5 text-sm"></div>
+            <div><label class="block text-xs font-semibold text-stone-600 mb-1" for="order-shipment-status-${Number(order.id)}">Delivery progress</label>
+              <select id="order-shipment-status-${Number(order.id)}" class="w-full border rounded-lg p-2.5 text-sm">
+                <option value="">Keep current (${esc(String(currentStatus).replaceAll("_", " "))})</option>
+                ${statusOptions}
+                ${!delivery ? '<option value="pending">pending</option>' : ''}
+              </select></div>
+            <div class="sm:col-span-2 xl:col-span-4 flex flex-wrap items-center justify-between gap-3">
+              <p class="text-xs text-stone-500">Shipment progress is separate from order and payment status.</p>
+              <button type="submit" class="inline-flex items-center gap-2 bg-brand-700 hover:bg-brand-800 text-white rounded-lg px-4 py-2.5 text-sm font-semibold">
+                <i data-lucide="truck" class="w-4 h-4"></i> ${delivery ? "Save shipment update" : "Create shipment"}
+              </button>
+            </div>
+          </form>`}
+        </div>`;
+    }
+
+    async function saveOrderShipment(event, orderId, deliveryId) {
+      event.preventDefault();
+      if (!currentUser || currentUser.role !== "admin") {
+        notify("Administrator access is required.");
+        return;
+      }
+      const tracking = document.getElementById(`order-shipment-tracking-${orderId}`).value.trim();
+      const partner = document.getElementById(`order-shipment-partner-${orderId}`).value.trim();
+      const estimatedDate = document.getElementById(`order-shipment-date-${orderId}`).value;
+      const status = document.getElementById(`order-shipment-status-${orderId}`).value;
+      const payload = {
+        order_id: Number(orderId),
+        tracking_number: tracking || null,
+        delivery_partner: partner || null,
+        estimated_delivery_date: estimatedDate || null
+      };
+      if (status) payload.status = status;
+      const button = event.currentTarget.querySelector('button[type="submit"]');
+      if (button) { button.disabled = true; button.textContent = deliveryId ? "Saving…" : "Creating…"; }
+      try {
+        if (deliveryId) {
+          delete payload.order_id;
+          await api(`/api/admin/deliveries/${deliveryId}`, {method: "PATCH", body: payload});
+          notify(`Shipment for order #${orderId} updated.`);
+        } else {
+          await api("/api/admin/deliveries", {method: "POST", body: payload});
+          notify(`Shipment created for order #${orderId}.`);
+        }
+        await loadAdminOrders();
+      } catch (error) {
+        notify(`Could not save shipment for order #${orderId}: ${error.message}`);
+      } finally {
+        if (button) { button.disabled = false; }
       }
     }
 
@@ -842,9 +1603,9 @@
         ["Processing", adminOrders.filter(o => o.status === "processing").length],
         ["Shipped", adminOrders.filter(o => o.status === "shipped").length]
       ];
-      document.getElementById("admin-summary").innerHTML = counts.map(([label,value]) => `<div class="bg-white border border-stone-200 rounded-xl p-4"><p class="text-xs text-stone-500">${label}</p><p class="text-2xl font-bold text-brand-800 mt-1">${value}</p></div>`).join("");
+      document.getElementById("admin-summary").innerHTML = counts.map(([label,value]) => `<div class="card-fx bg-white border border-stone-200 rounded-xl p-4"><p class="text-xs text-stone-500">${label}</p><p class="text-2xl font-bold text-brand-800 mt-1" data-count="${value}">${value}</p></div>`).join("");
 
-      const search = (document.getElementById("admin-order-search")?.value || "").trim().toLowerCase();
+      animateCounts(); const search = (document.getElementById("admin-order-search")?.value || "").trim().toLowerCase();
       const status = document.getElementById("admin-status-filter")?.value || "";
       const todayOnly = document.getElementById("admin-today-only")?.checked || false;
       const filtered = adminOrders.filter(o => {
@@ -861,7 +1622,7 @@
       container.innerHTML = filtered.map(o => {
         const allowed = adminStatusOptions(o.status);
         const statusControl = allowed.length
-          ? `<div class="flex flex-wrap gap-2"><select id="admin-status-${o.id}" class="border rounded-lg p-2 text-sm">${allowed.map(s=>`<option value="${s}">${s.replaceAll("_"," ")}</option>`).join("")}</select><button onclick="updateAdminOrderStatus(${o.id})" class="bg-brand-700 text-white rounded-lg px-3 py-2 text-sm">Update order</button></div>`
+          ? `<div class="flex flex-wrap gap-2"><select id="admin-status-${o.id}" class="border rounded-lg p-2 text-sm">${allowed.map(s=>`<option value="${s}">${s.replaceAll("_"," ")}</option>`).join("")}</select><button onclick="updateAdminOrderStatus(${o.id}, this)" class="bg-brand-700 text-white rounded-lg px-3 py-2 text-sm">Update order</button></div>`
           : `<span class="text-xs text-stone-500">No further order status changes allowed</span>`;
         const paymentOptions = {
           pending: ["paid","failed"],
@@ -871,7 +1632,7 @@
           refunded: []
         }[o.payment_status] || [];
         const paymentControl = paymentOptions.length
-          ? `<div class="flex flex-wrap gap-2"><select id="admin-payment-${o.id}" class="border rounded-lg p-2 text-sm">${paymentOptions.map(s=>`<option value="${s}">${s.replaceAll("_"," ")}</option>`).join("")}</select><button onclick="updateAdminPaymentStatus(${o.id})" class="border border-brand-600 text-brand-700 rounded-lg px-3 py-2 text-sm">Update payment</button></div>`
+          ? `<div class="flex flex-wrap gap-2"><select id="admin-payment-${o.id}" class="border rounded-lg p-2 text-sm">${paymentOptions.map(s=>`<option value="${s}">${s.replaceAll("_"," ")}</option>`).join("")}</select><button onclick="updateAdminPaymentStatus(${o.id}, this)" class="border border-brand-600 text-brand-700 rounded-lg px-3 py-2 text-sm">Update payment</button></div>`
           : `<span class="text-xs text-stone-500">No further payment status changes allowed</span>`;
         const items = (o.items || []).map(i=>`<div class="flex items-center justify-between gap-3 py-2 text-sm">
           <div class="flex min-w-0 items-center gap-3">
@@ -880,7 +1641,7 @@
           </div>
           <b class="whitespace-nowrap">${money(i.subtotal)}</b>
         </div>`).join("");
-        return `<article class="bg-white border border-stone-200 rounded-xl p-5 shadow-sm">
+        return `<article class="bg-white border border-stone-200 border-l-4 rounded-xl p-5 shadow-sm hover:shadow-md transition fade-up" style="border-left-color:${ORDER_COLORS[o.status]||'#d6d3d1'}">
           <div class="flex flex-wrap justify-between gap-4">
             <div><h3 class="font-bold text-lg">Order #${o.id}</h3><p class="text-xs text-stone-500 mt-1">${o.created_at ? new Date(o.created_at).toLocaleString() : "Date unavailable"}</p><p class="text-sm mt-2">Customer ID: ${esc(o.customer_id ?? "—")} · ${esc(o.recipient_name || "Customer")}</p><p class="text-sm text-stone-500">${esc(o.phone || "")}</p></div>
             <div class="text-right"><p class="font-bold text-xl text-brand-800">${money(o.total_amount)}</p><div class="flex flex-wrap gap-2 justify-end mt-2">Order ${adminBadge(o.status)} Payment ${adminBadge(o.payment_status)}</div></div>
@@ -890,28 +1651,208 @@
             <div><h4 class="font-semibold mb-2">Delivery details</h4><p class="text-sm">${esc(o.recipient_name || "")}</p><p class="text-sm">${esc(o.address_line1 || "")} ${esc(o.address_line2 || "")}</p><p class="text-sm">${esc(o.city || "")}, ${esc(o.state || "")} ${esc(o.postal_code || "")}</p><p class="text-sm text-stone-500 mt-1">Payment method: ${esc(String(o.payment_method || "").replaceAll("_"," "))}</p></div>
           </div>
           <div class="border-t mt-4 pt-4 grid md:grid-cols-2 gap-4"><div><p class="text-xs font-semibold text-stone-500 mb-2">ORDER STATUS</p>${statusControl}</div><div><p class="text-xs font-semibold text-stone-500 mb-2">PAYMENT STATUS</p>${paymentControl}</div></div>
+          ${renderOrderShipmentPanel(o)}
         </article>`;
       }).join("");
     }
 
-    async function updateAdminOrderStatus(orderId) {
+    async function updateAdminOrderStatus(orderId, btn) {
       const select = document.getElementById(`admin-status-${orderId}`);
       if (!select) return;
       try {
-        await api(`/api/admin/orders/${orderId}/status`, {method:"PATCH", body:{status:select.value}});
-        notify(`Order #${orderId} status updated.`);
+        await withBusy(btn, "Updating…", () => api(`/api/admin/orders/${orderId}/status`, {method:"PATCH", body:{status:select.value}}));
+        showPop({title:`Order #${orderId} updated`, sub:`Status is now ${select.value.replaceAll("_"," ")}`});
         await loadAdminOrders();
       } catch(error) { notify(error.message); }
     }
 
-    async function updateAdminPaymentStatus(orderId) {
+    async function updateAdminPaymentStatus(orderId, btn) {
       const select = document.getElementById(`admin-payment-${orderId}`);
       if (!select) return;
       try {
-        await api(`/api/admin/orders/${orderId}/payment-status`, {method:"PATCH", body:{payment_status:select.value}});
-        notify(`Order #${orderId} payment status updated.`);
+        await withBusy(btn, "Updating…", () => api(`/api/admin/orders/${orderId}/payment-status`, {method:"PATCH", body:{payment_status:select.value}}));
+        showPop({title:`Order #${orderId} payment updated`, sub:`Payment is now ${select.value.replaceAll("_"," ")}`});
         await loadAdminOrders();
       } catch(error) { notify(error.message); }
+    }
+
+    // Delivery and shipment management (Step 11.2)
+    const DELIVERY_STATUSES = ["pending", "packed", "shipped", "out_for_delivery", "delivered", "failed", "returned"];
+    const DELIVERY_TRANSITIONS = {
+      pending: ["packed", "failed"],
+      packed: ["shipped", "failed"],
+      shipped: ["out_for_delivery", "failed", "returned"],
+      out_for_delivery: ["delivered", "failed"],
+      delivered: [],
+      failed: ["pending", "packed", "returned"],
+      returned: []
+    };
+    let adminDeliveries = [];
+    let eligibleDeliveryOrders = [];
+
+    function deliveryStatusBadge(status) {
+      const colors = {
+        pending: "bg-amber-100 text-amber-800",
+        packed: "bg-blue-100 text-blue-800",
+        shipped: "bg-violet-100 text-violet-800",
+        out_for_delivery: "bg-indigo-100 text-indigo-800",
+        delivered: "bg-green-100 text-green-800",
+        failed: "bg-red-100 text-red-800",
+        returned: "bg-stone-200 text-stone-700"
+      };
+      const label = String(status || "pending").replaceAll("_", " ");
+      return `<span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${colors[status] || "bg-stone-100 text-stone-700"}">${esc(label)}</span>`;
+    }
+
+    async function loadAdminDeliveries() {
+      const container = document.getElementById("admin-deliveries-container");
+      if (!currentUser || currentUser.role !== "admin") {
+        container.innerHTML = '<div class="bg-red-50 text-red-700 rounded-xl p-5">Administrator access is required.</div>';
+        return;
+      }
+      container.innerHTML = '<p class="text-sm text-stone-500">Loading delivery records…</p>';
+      try {
+        const results = await Promise.all([
+          api("/api/admin/deliveries"),
+          api("/api/admin/orders")
+        ]);
+        adminDeliveries = Array.isArray(results[0]) ? results[0] : [];
+        const orders = Array.isArray(results[1]) ? results[1] : [];
+        const deliveryOrderIds = new Set(adminDeliveries.map(d => Number(d.order_id)));
+        eligibleDeliveryOrders = orders.filter(o =>
+          String(o.status || "").toLowerCase() !== "cancelled" &&
+          !deliveryOrderIds.has(Number(o.id))
+        );
+        renderDeliveryOrderOptions();
+        renderAdminDeliveries();
+      } catch (error) {
+        container.innerHTML = `<div class="bg-red-50 text-red-700 rounded-xl p-5"><b>Could not load shipment data.</b><p class="mt-1">${esc(error.message)}</p><p class="text-xs mt-2">Confirm the three delivery endpoints are installed in admin.py and restart FastAPI.</p></div>`;
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function renderDeliveryOrderOptions() {
+      const select = document.getElementById("delivery-order-id");
+      const previous = select.value;
+      if (!eligibleDeliveryOrders.length) {
+        select.innerHTML = '<option value="">No eligible orders available</option>';
+        return;
+      }
+      select.innerHTML = '<option value="">Select an order</option>' + eligibleDeliveryOrders.map(o =>
+        `<option value="${Number(o.id)}">Order #${Number(o.id)} · ${esc(o.recipient_name || "Customer")} · ${money(o.total_amount)}</option>`
+      ).join("");
+      if (previous && eligibleDeliveryOrders.some(o => String(o.id) === previous)) select.value = previous;
+    }
+
+    function renderAdminDeliveries() {
+      const container = document.getElementById("admin-deliveries-container");
+      if (!container) return;
+      const counts = [
+        ["All shipments", adminDeliveries.length],
+        ["Pending", adminDeliveries.filter(d => d.status === "pending").length],
+        ["In transit", adminDeliveries.filter(d => ["shipped", "out_for_delivery"].includes(d.status)).length],
+        ["Delivered", adminDeliveries.filter(d => d.status === "delivered").length]
+      ];
+      document.getElementById("delivery-summary").innerHTML = counts.map(([label, value]) =>
+        `<div class="card-fx bg-white border border-stone-200 rounded-xl p-4"><p class="text-xs text-stone-500">${label}</p><p class="text-2xl font-bold text-brand-800 mt-1" data-count="${value}">${value}</p></div>`
+      ).join("");
+
+      animateCounts(); const search = (document.getElementById("delivery-search")?.value || "").trim().toLowerCase();
+      const filtered = adminDeliveries.filter(d =>
+        [d.id, d.order_id, d.tracking_number, d.delivery_partner, d.status].join(" ").toLowerCase().includes(search)
+      ).sort((a, b) => Number(b.id) - Number(a.id));
+
+      if (!filtered.length) {
+        container.innerHTML = `<div class="text-center py-10 border border-dashed border-stone-300 rounded-xl"><div class="w-12 h-12 rounded-full bg-brand-50 text-brand-700 flex items-center justify-center mx-auto mb-3"><i data-lucide="truck" class="w-6 h-6"></i></div><p class="font-semibold text-stone-700">${search ? "No matching shipments" : "No delivery records yet"}</p><p class="text-sm text-stone-500 mt-1">${search ? "Try another search term." : "Use the form to assign a delivery to an eligible order."}</p></div>`;
+        if (window.lucide) lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = filtered.map(d => {
+        const nextStatuses = DELIVERY_TRANSITIONS[d.status] || [];
+        const options = nextStatuses.length
+          ? nextStatuses.map(s => `<option value="${s}">${s.replaceAll("_", " ")}</option>`).join("")
+          : "";
+        const dateValue = d.estimated_delivery_date ? String(d.estimated_delivery_date).slice(0, 10) : "";
+        return `<article class="border border-stone-200 rounded-xl p-4 sm:p-5">
+          <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+            <div><p class="text-xs text-stone-500">Delivery #${Number(d.id)}</p><h3 class="text-lg font-bold text-brand-800">Order #${Number(d.order_id)}</h3><div class="mt-2">${deliveryStatusBadge(d.status)}</div></div>
+            <div class="text-right text-xs text-stone-500">${d.created_at ? `Created ${esc(new Date(d.created_at).toLocaleDateString("en-IN"))}` : ""}</div>
+          </div>
+          <form class="delivery-update-form grid sm:grid-cols-2 gap-3" onsubmit="saveDeliveryUpdate(event, ${Number(d.id)})">
+            <div><label class="block text-xs font-semibold text-stone-600 mb-1" for="delivery-edit-tracking-${Number(d.id)}">Tracking number</label><input id="delivery-edit-tracking-${Number(d.id)}" maxlength="100" value="${esc(d.tracking_number || "")}" class="w-full border rounded-lg p-2.5 text-sm" placeholder="Tracking number"></div>
+            <div><label class="block text-xs font-semibold text-stone-600 mb-1" for="delivery-edit-partner-${Number(d.id)}">Delivery partner</label><input id="delivery-edit-partner-${Number(d.id)}" maxlength="150" value="${esc(d.delivery_partner || "")}" class="w-full border rounded-lg p-2.5 text-sm" placeholder="Courier company"></div>
+            <div><label class="block text-xs font-semibold text-stone-600 mb-1" for="delivery-edit-date-${Number(d.id)}">Estimated delivery date</label><input id="delivery-edit-date-${Number(d.id)}" type="date" value="${esc(dateValue)}" class="w-full border rounded-lg p-2.5 text-sm"></div>
+            <div><label class="block text-xs font-semibold text-stone-600 mb-1" for="delivery-edit-status-${Number(d.id)}">Update delivery status</label><select id="delivery-edit-status-${Number(d.id)}" class="w-full border rounded-lg p-2.5 text-sm"><option value="">Keep current status (${esc(String(d.status).replaceAll("_", " "))})</option>${options}</select></div>
+            <div class="sm:col-span-2 flex flex-wrap items-center justify-between gap-3 pt-2">
+              <p class="text-xs text-stone-500">Order and payment statuses remain unchanged.</p>
+              <button type="submit" class="bg-brand-700 hover:bg-brand-800 text-white rounded-lg px-4 py-2.5 text-sm font-semibold"><i data-lucide="save" class="w-4 h-4 inline mr-1"></i> Save shipment</button>
+            </div>
+          </form>
+        </article>`;
+      }).join("");
+      if (window.lucide) lucide.createIcons();
+    }
+
+    document.getElementById("delivery-create-form")?.addEventListener("submit", async event => {
+      event.preventDefault();
+      if (!currentUser || currentUser.role !== "admin") {
+        notify("Administrator access is required.");
+        return;
+      }
+      const orderId = Number(document.getElementById("delivery-order-id").value);
+      if (!orderId) {
+        notify("Please select an order.");
+        return;
+      }
+      const tracking = document.getElementById("delivery-tracking").value.trim();
+      const partner = document.getElementById("delivery-partner").value.trim();
+      const estimatedDate = document.getElementById("delivery-estimated-date").value;
+      const payload = {
+        order_id: orderId,
+        tracking_number: tracking || null,
+        delivery_partner: partner || null,
+        estimated_delivery_date: estimatedDate || null
+      };
+      const button = document.getElementById("delivery-create-submit");
+      button.disabled = true;
+      button.textContent = "Creating…";
+      try {
+        const created = await api("/api/admin/deliveries", {method: "POST", body: payload});
+        event.currentTarget.reset();
+        notify(`Delivery #${created.id} created for order #${created.order_id}.`);
+        await loadAdminDeliveries();
+      } catch (error) {
+        notify(`Could not create delivery: ${error.message}`);
+      } finally {
+        button.disabled = false;
+        button.textContent = "Create delivery";
+      }
+    });
+
+    async function saveDeliveryUpdate(event, deliveryId) {
+      event.preventDefault();
+      if (!currentUser || currentUser.role !== "admin") {
+        notify("Administrator access is required.");
+        return;
+      }
+      const tracking = document.getElementById(`delivery-edit-tracking-${deliveryId}`).value.trim();
+      const partner = document.getElementById(`delivery-edit-partner-${deliveryId}`).value.trim();
+      const estimatedDate = document.getElementById(`delivery-edit-date-${deliveryId}`).value;
+      const status = document.getElementById(`delivery-edit-status-${deliveryId}`).value;
+      const payload = {
+        tracking_number: tracking || null,
+        delivery_partner: partner || null,
+        estimated_delivery_date: estimatedDate || null
+      };
+      if (status) payload.status = status;
+      try {
+        await api(`/api/admin/deliveries/${deliveryId}`, {method: "PATCH", body: payload});
+        notify(`Delivery #${deliveryId} updated successfully.`);
+        await loadAdminDeliveries();
+      } catch (error) {
+        notify(`Could not update delivery: ${error.message}`);
+      }
     }
 
     async function loadAdminInventory() {
@@ -983,6 +1924,128 @@
         await loadAdminInventory();
       } catch(error) { notify(`Stock update failed: ${error.message}`); }
     });
+
+
+    // ---- Interaction layer: pops, scroll, hover, click, counters, live admin alerts ----
+    const ORDER_COLORS = {pending:"#f59e0b", processing:"#3b82f6", shipped:"#8b5cf6", delivered:"#22c55e", cancelled:"#ef4444"};
+    let _lastMaxOrder = null;
+    const _cnt = {};
+    function showPop({img, title, sub, icon, logo, action, ms = 3400}) {
+      let st = document.getElementById("pop-stack");
+      if (!st) { st = document.createElement("div"); st.id = "pop-stack"; document.body.appendChild(st); }
+      const el = document.createElement("div");
+      el.className = "pop";
+      const lead = logo ? '<svg class="w-11 h-11 flex-shrink-0 logo-float"><use href="#mfg-logo"/></svg>'
+        : img ? `<img src="${esc(img)}" alt="" onerror="this.remove()">` : `<span class="pop-ic">${icon || "✓"}</span>`;
+      el.innerHTML = `${lead}<div class="min-w-0 flex-1"><p class="font-bold text-sm truncate">${esc(title)}</p><p class="text-xs text-stone-500 truncate">${esc(sub || "")}</p></div>${action ? `<button class="pop-act" onclick="${action.fn}; this.closest('.pop').remove()">${esc(action.label)}</button>` : ""}<i class="pop-bar" style="animation-duration:${ms}ms"></i>`;
+      st.prepend(el);
+      while (st.children.length > 4) st.lastChild.remove();
+      setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 300); }, ms);
+    }
+    function showAddedPop(productId) {
+      const p = (products || []).find(x => Number(x.id) === Number(productId));
+      const line = (cart.items || []).find(i => Number(i.product_id) === Number(productId));
+      showPop({img: p ? getProductImage(p) : "", title: p?.name || line?.product_name || "Item", sub: `Added to cart${line ? " · " + line.quantity + " in cart" : ""}`, action: {label: "View cart", fn: "navigate('cart')"}});
+    }
+    function showWelcome(u) {
+      const admin = u.role === "admin";
+      showPop({logo: true, title: `Welcome${admin ? "" : " back"}, ${u.name}`, sub: admin ? "Your dashboard is ready" : "Fresh stock is waiting for you", ms: 3000});
+    }
+    function shakeEl(el) { if (!el) return; el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake"); }
+    async function withBusy(btn, label, fn) {
+      if (!btn) return fn();
+      const h = btn.innerHTML; btn.disabled = true; btn.innerHTML = `<span class="mini-spin"></span> ${label}`;
+      try { return await fn(); } finally { btn.disabled = false; btn.innerHTML = h; }
+    }
+    function countTo(el, to, fmt = v => Math.round(v), from = 0) {
+      if (!el) return;
+      to = Number(to) || 0;
+      if (from === to || matchMedia("(prefers-reduced-motion: reduce)").matches) { el.textContent = fmt(to); return; }
+      const t0 = performance.now();
+      (function f(t) { const k = Math.min(1, (t - t0) / 700), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(from + (to - from) * e); if (k < 1) requestAnimationFrame(f); })(t0);
+    }
+    function animateCounts() {
+      document.querySelectorAll("[data-count]").forEach(el => {
+        const key = (el.closest("[id]")?.id || "") + (el.previousElementSibling?.textContent || "");
+        const to = Number(el.dataset.count);
+        countTo(el, to, undefined, _cnt[key] ?? 0); _cnt[key] = to; el.removeAttribute("data-count");
+      });
+    }
+    function setActiveNav(v) { document.querySelectorAll("header nav button").forEach(b => b.classList.toggle("nav-active", b.id === "nav-" + v)); }
+    const _origNavigate = navigate;
+    window.navigate = function (v) { _origNavigate(v); setActiveNav(v); };
+    setActiveNav("home");
+
+    (function initInteractions() {
+      // Splash with logo
+      const splash = document.createElement("div");
+      splash.id = "splash";
+      splash.innerHTML = '<svg class="logo-float" width="84" height="84"><use href="#mfg-logo"/></svg><span>My Farm Grows</span>';
+      document.body.appendChild(splash);
+      addEventListener("load", () => setTimeout(() => { splash.classList.add("out"); setTimeout(() => splash.remove(), 600); }, 700));
+      // Scroll progress, sticky header, back-to-top, hero parallax
+      const bar = document.createElement("div"); bar.id = "scroll-bar"; document.body.appendChild(bar);
+      const up = document.createElement("button"); up.id = "to-top"; up.setAttribute("aria-label", "Back to top"); up.textContent = "↑";
+      up.onclick = () => scrollTo({top: 0, behavior: "smooth"}); document.body.appendChild(up);
+      const hdr = document.querySelector("header"); let tick = false;
+      addEventListener("scroll", () => {
+        if (tick) return; tick = true;
+        requestAnimationFrame(() => {
+          const y = scrollY, h = document.documentElement.scrollHeight - innerHeight;
+          bar.style.width = (h > 0 ? y / h * 100 : 0) + "%";
+          hdr.classList.toggle("scrolled", y > 30); up.classList.toggle("show", y > 500);
+          const hero = document.querySelector("#view-home > div:first-child");
+          if (hero && y < 900) hero.style.backgroundPosition = `center ${y * 0.35}px`;
+          tick = false;
+        });
+      }, {passive: true});
+      // Scroll reveal for home sections and footer
+      const io = new IntersectionObserver(es => es.forEach(e => {
+        if (!e.isIntersecting) return;
+        e.target.classList.add("in"); io.unobserve(e.target);
+        setTimeout(() => { e.target.removeAttribute("data-reveal"); e.target.classList.remove("in"); e.target.style.transitionDelay = ""; }, 1100);
+      }), {threshold: .12});
+      document.querySelectorAll("#view-home .grid > div, #view-home h2, footer .grid > div").forEach((el, i) => {
+        el.setAttribute("data-reveal", ""); el.style.transitionDelay = ((i % 6) * 90) + "ms"; io.observe(el);
+      });
+      document.querySelectorAll("#view-home .grid > div").forEach(el => el.classList.add("card-fx"));
+      // Cursor: card tilt + hero spotlight
+      const fine = !matchMedia("(hover: none)").matches;
+      document.addEventListener("mousemove", e => {
+        if (!fine) return;
+        const c = e.target.closest?.(".card-fx");
+        if (c && !c.hasAttribute("data-reveal")) {
+          const r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+          const s = r.width > 500 ? 0 : 6;
+          c.style.transform = `perspective(700px) rotateY(${x * s}deg) rotateX(${-y * s}deg) translateY(-3px)`;
+        }
+        const hero = e.target.closest?.("#view-home > div:first-child");
+        if (hero) { const r = hero.getBoundingClientRect(); hero.style.setProperty("--hx", (e.clientX - r.left) + "px"); hero.style.setProperty("--hy", (e.clientY - r.top) + "px"); }
+      });
+      document.addEventListener("mouseout", e => { const c = e.target.closest?.(".card-fx"); if (c && !c.contains(e.relatedTarget)) c.style.transform = ""; });
+      // Click ripple on every button
+      document.addEventListener("click", e => {
+        const b = e.target.closest("button");
+        if (!b || b.disabled || b.id === "to-top" || b.querySelector("#cart-badge")) return;
+        const r = b.getBoundingClientRect(), d = Math.max(r.width, r.height), s = document.createElement("span");
+        s.className = "ripple"; s.style.cssText = `width:${d}px;height:${d}px;left:${e.clientX - r.left - d / 2}px;top:${e.clientY - r.top - d / 2}px`;
+        if (getComputedStyle(b).position === "static") b.style.position = "relative";
+        b.style.overflow = "hidden"; b.appendChild(s); setTimeout(() => s.remove(), 650);
+      });
+      // Live alert for admins when a new order arrives
+      setInterval(async () => {
+        if (!currentUser || currentUser.role !== "admin" || document.hidden) return;
+        try {
+          const os = await api("/api/admin/orders"); const m = Math.max(0, ...os.map(o => o.id));
+          if (_lastMaxOrder !== null && m > _lastMaxOrder) {
+            const n = os.find(o => o.id === m);
+            showPop({icon: "🛒", title: `New order #${m}`, sub: `${n.recipient_name} · ${money(n.total_amount)}`, action: {label: "Review", fn: "navigate('admin')"}, ms: 7000});
+            if (!document.getElementById("view-admin").classList.contains("hidden")) { adminOrders = os; renderAdminOrders(); }
+          }
+          _lastMaxOrder = m;
+        } catch {}
+      }, 20000);
+    })();
 
     async function loadPaymentHistory() { try { return await api("/api/payments/history"); } catch(error) { notify(error.message); return []; } }
     window.addEventListener("DOMContentLoaded", async ()=>{

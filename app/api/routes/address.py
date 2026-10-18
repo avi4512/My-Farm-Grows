@@ -1,5 +1,5 @@
-
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -227,6 +227,16 @@ def delete_address(
 
         db.commit()
 
+    except IntegrityError as exc:
+        db.rollback()
+        # orders.address_id uses ON DELETE RESTRICT.
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "This address is used by existing orders and cannot "
+                "be deleted. You can edit it instead."
+            ),
+        ) from exc
     except Exception:
         db.rollback()
         raise

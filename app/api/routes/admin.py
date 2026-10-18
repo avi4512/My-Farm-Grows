@@ -1,6 +1,6 @@
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.exc import IntegrityError
 
 from app.core.permissions import require_admin
 from app.db.session import get_db
@@ -16,6 +16,12 @@ from app.schemas.order import (
 from app.models import InventoryMovement
 from app.schemas.inventory import InventoryAdjustmentCreate, InventoryMovementResponse
 from app.services.inventory import record_inventory_movement
+from app.models import Delivery
+from app.schemas.delivery import (
+    DeliveryCreate,
+    DeliveryUpdate,
+    DeliveryResponse,
+)
 
 router = APIRouter(
     prefix="/api/admin",
@@ -45,7 +51,7 @@ def list_all_orders(
     """Return all orders for the admin dashboard, newest first."""
     return (
         db.query(Order)
-        .options(selectinload(Order.items))
+        .options(selectinload(Order.items), selectinload(Order.delivery))
         .order_by(Order.created_at.desc())
         .all()
     )
@@ -64,7 +70,7 @@ def update_order_status(
     # Lock the order to prevent concurrent status changes.
     order = (
         db.query(Order)
-        .options(selectinload(Order.items))
+        .options(selectinload(Order.items), selectinload(Order.delivery))
         .filter(Order.id == order_id)
         .with_for_update()
         .first()
@@ -161,7 +167,7 @@ def update_order_status(
 
         return (
             db.query(Order)
-            .options(selectinload(Order.items))
+            .options(selectinload(Order.items), selectinload(Order.delivery))
             .filter(Order.id == order_id)
             .first()
         )
@@ -182,7 +188,7 @@ def get_payment_status(
 ):
     order = (
         db.query(Order)
-        .options(selectinload(Order.items))
+        .options(selectinload(Order.items), selectinload(Order.delivery))
         .filter(Order.id == order_id)
         .first()
     )
@@ -208,7 +214,7 @@ def update_payment_status(
 ):
     order = (
         db.query(Order)
-        .options(selectinload(Order.items))
+        .options(selectinload(Order.items), selectinload(Order.delivery))
         .filter(Order.id == order_id)
         .with_for_update()
         .first()
@@ -252,7 +258,7 @@ def update_payment_status(
 
         return (
             db.query(Order)
-            .options(selectinload(Order.items))
+            .options(selectinload(Order.items), selectinload(Order.delivery))
             .filter(Order.id == order_id)
             .first()
         )
@@ -346,6 +352,192 @@ def adjust_product_inventory(
         db.commit()
         db.refresh(movement)
         return movement
+    except Exception:
+        db.rollback()
+        raise
+
+
+@router.get(
+    "/deliveries",
+    response_model=list[DeliveryResponse],
+)
+def list_deliveries(
+    db: Session = Depends(get_db),
+    current_admin: Customer = Depends(require_admin),
+):
+    """List all deliveries, newest first."""
+    return (
+        db.query(Delivery)
+        .order_by(Delivery.created_at.desc(), Delivery.id.desc())
+        .all()
+    )
+
+
+@router.post(
+    "/deliveries",
+    response_model=DeliveryResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_delivery(
+    payload: DeliveryCreate,
+    db: Session = Depends(get_db),
+    current_admin: Customer = Depends(require_admin),
+):
+    """Assign delivery details to an existing order."""
+
+    order = (
+        db.query(Order)
+        .filter(Order.id == payload.order_id)
+        .with_for_update()
+        .first()
+    )
+
+    if order is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found",
+        )
+
+    if order.status == "cancelled":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot create a delivery for a cancelled order",
+        )
+
+    existing_delivery = (
+        db.query(Delivery)
+        .filter(Delivery.order_id == payload.order_id)
+        .first()
+    )
+
+    if existing_delivery is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="A delivery already exists for this order",
+        )
+
+    # Generate a stable tracking number from the order ID.
+    # The Delivery model allows only one delivery per order.
+    tracking_number = f"MFG-ORD-{order.id}"
+
+    existing_tracking = (
+        db.query(Delivery)
+        .filter(Delivery.tracking_number == tracking_number)
+        .first()
+    )
+    if existing_tracking is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"Tracking number {tracking_number} already exists. "
+                "Please contact support."
+            ),
+        )
+
+    delivery = Delivery(
+        order_id=payload.order_id,
+        tracking_number=tracking_number,
+        delivery_partner=payload.delivery_partner,
+        estimated_delivery_date=payload.estimated_delivery_date,
+        status="pending",
+    )
+
+    try:
+        db.add(delivery)
+        db.commit()
+        db.refresh(delivery)
+        return delivery
+    except IntegrityError as exc:
+        db.rollback()
+        # Convert database uniqueness races into a readable API response.
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"A delivery or tracking number already exists for order "
+                f"{payload.order_id}. Please refresh and try again."
+            ),
+        ) from exc
+    except Exception:
+        db.rollback()
+        raise
+
+
+@router.patch(
+    "/deliveries/{delivery_id}",
+    response_model=DeliveryResponse,
+)
+def update_delivery(
+    delivery_id: int,
+    payload: DeliveryUpdate,
+    db: Session = Depends(get_db),
+    current_admin: Customer = Depends(require_admin),
+):
+    """Update shipment details and delivery progress."""
+
+    delivery = (
+        db.query(Delivery)
+        .filter(Delivery.id == delivery_id)
+        .with_for_update()
+        .first()
+    )
+
+    if delivery is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Delivery not found",
+        )
+
+    changes = payload.model_dump(exclude_unset=True)
+
+    # Explicit null values are allowed for optional tracking details,
+    # but a supplied status cannot be null.
+    if "status" in changes and changes["status"] is None:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Status cannot be null",
+        )
+
+    new_status = changes.get("status")
+
+    # Forward progress may skip intermediate steps (for example, local
+    # farm deliveries can go from packed straight to delivered).
+    # Delivered and returned are final; failed can be retried.
+    allowed_transitions = {
+        "pending": {
+            "packed", "shipped", "out_for_delivery", "delivered", "failed",
+        },
+        "packed": {
+            "shipped", "out_for_delivery", "delivered", "failed",
+        },
+        "shipped": {
+            "out_for_delivery", "delivered", "failed", "returned",
+        },
+        "out_for_delivery": {"delivered", "failed", "returned"},
+        "delivered": set(),
+        "failed": {"pending", "packed", "returned"},
+        "returned": set(),
+    }
+
+    if new_status is not None and new_status != delivery.status:
+        if new_status not in allowed_transitions.get(
+            delivery.status, set()
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"Cannot change delivery status from "
+                    f"'{delivery.status}' to '{new_status}'"
+                ),
+            )
+
+    try:
+        for field, value in changes.items():
+            setattr(delivery, field, value)
+
+        db.commit()
+        db.refresh(delivery)
+        return delivery
+
     except Exception:
         db.rollback()
         raise
