@@ -36,7 +36,7 @@ def get_order_or_404(
     """Return an order belonging to the specified customer."""
     order = (
         db.query(Order)
-        .options(selectinload(Order.items))
+        .options(selectinload(Order.items), selectinload(Order.delivery))
         .filter(
             Order.id == order_id,
             Order.customer_id == customer_id,
@@ -258,7 +258,7 @@ def get_my_orders(
     """Return the logged-in customer's orders."""
     return (
         db.query(Order)
-        .options(selectinload(Order.items))
+        .options(selectinload(Order.items), selectinload(Order.delivery))
         .filter(Order.customer_id == customer.id)
         .order_by(Order.created_at.desc(), Order.id.desc())
         .all()
@@ -294,7 +294,7 @@ def cancel_order(
         # cancellation requests from restoring stock twice.
         order = (
             db.query(Order)
-            .options(selectinload(Order.items))
+            .options(selectinload(Order.items), selectinload(Order.delivery))
             .filter(
                 Order.id == order_id,
                 Order.customer_id == customer.id,

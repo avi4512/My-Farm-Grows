@@ -1,5 +1,5 @@
 
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -37,6 +37,17 @@ class OrderItemResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class DeliverySummaryResponse(BaseModel):
+    id: int
+    order_id: int
+    tracking_number: str | None = None
+    delivery_partner: str | None = None
+    estimated_delivery_date: date | None = None
+    status: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class OrderResponse(BaseModel):
     id: int
     customer_id: int
@@ -59,6 +70,7 @@ class OrderResponse(BaseModel):
     created_at: datetime
 
     items: list[OrderItemResponse]
+    delivery: DeliverySummaryResponse | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

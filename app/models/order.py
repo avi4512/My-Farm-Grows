@@ -1,4 +1,4 @@
-
+from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 
@@ -14,6 +14,12 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
+
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.delivery import Delivery
 
 
 class Order(Base):
@@ -96,6 +102,12 @@ class Order(Base):
         back_populates="order",
         cascade="all, delete-orphan",
     )
+
+    # A delivery record is created separately by the admin and is optional.
+    delivery: Mapped[Delivery | None] = relationship(
+    "Delivery",
+    uselist=False,
+)
 
 
 class OrderItem(Base):
