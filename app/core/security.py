@@ -1,14 +1,12 @@
-import os
 from datetime import datetime, timedelta, timezone
 
 import jwt
-from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
-import jwt
 from jwt.exceptions import InvalidTokenError
+from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.db.session import get_db
 from app.models.customer import Customer
 
@@ -16,16 +14,9 @@ oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="/api/auth/login"
 )
 
-load_dotenv()
-
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
-JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(
-    os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
-)
-
-if not JWT_SECRET_KEY:
-    raise RuntimeError("JWT_SECRET_KEY is missing from .env")
+JWT_SECRET_KEY = settings.jwt_secret_key
+JWT_ALGORITHM = settings.jwt_algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
 
 def create_access_token(customer_id: int) -> str:
@@ -60,7 +51,6 @@ def get_current_customer(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
 ) -> Customer:
-    # Replace this section with your existing JWT decoder.
     payload = decode_access_token(token)
 
     if not payload or not payload.get("sub"):

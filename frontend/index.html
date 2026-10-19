@@ -70,6 +70,7 @@
     #tracking-container .flex.items-start.w-full>div:nth-child(3){animation-delay:.3s}
     #tracking-container .flex.items-start.w-full>div:nth-child(4){animation-delay:.45s}
     #tracking-container .flex.items-start.w-full>div:nth-child(5){animation-delay:.6s}
+    #tracking-container.no-anim *{animation:none!important}
     #order-overlay{position:fixed;inset:0;z-index:150;display:none;align-items:center;justify-content:center;background:rgba(20,54,38,.72);backdrop-filter:blur(4px)}
     #order-overlay.show{display:flex;animation:fadeIn .25s}
     .ov-card{background:#fff;border-radius:20px;padding:28px 32px;width:min(92vw,360px);text-align:center;animation:popIn .35s cubic-bezier(.2,.8,.3,1)}
@@ -144,6 +145,13 @@
     .pop-act{font-size:12px;font-weight:600;color:#1b4332;background:#e9c46a;border-radius:8px;padding:6px 10px;flex-shrink:0}
     .pop-bar{position:absolute;left:0;bottom:0;height:3px;width:100%;background:#e9c46a;transform-origin:left;animation:shrink linear forwards}
   </style>
+
+  <style>
+    @keyframes cartWig{20%{transform:rotate(-14deg)}50%{transform:rotate(12deg)}80%{transform:rotate(-6deg)}}
+    @keyframes lpPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.55)}100%{box-shadow:0 0 0 9px rgba(34,197,94,0)}}
+    .cart-ico{transform-origin:50% 90%}
+    header button:hover .cart-ico,.cart-ico.cart-wig{animation:cartWig .6s}
+  </style>
 </head>
 <body class="bg-[#faf8f5] text-stone-800 font-sans flex flex-col min-h-screen"><svg style="position:absolute;width:0;height:0" aria-hidden="true"><symbol id="mfg-logo" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#e9c46a"/><path d="M24 38V22" stroke="#1b4332" stroke-width="3" stroke-linecap="round"/><path d="M24 24c0-7 5-11 12-11 0 7-5 11-12 11z" fill="#2d6a4f"/><path d="M24 29c0-6-4-9-10-9 0 6 4 9 10 9z" fill="#1b4332"/><path d="M15 38h18" stroke="#1b4332" stroke-width="3" stroke-linecap="round"/></symbol></svg>
 
@@ -212,7 +220,7 @@
           </div>
         </div>
         <button onclick="navigate('cart')" class="relative p-2 text-stone-200 hover:text-white transition">
-          <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+          <svg class="cart-ico w-7 h-7" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 13c0-5 3-8 7-8s7 3 7 8"/><path d="M4 13h24l-2.5 12.5a2 2 0 0 1-2 1.5h-15a2 2 0 0 1-2-1.5z"/><path d="M11 13l1 14M16 13v14M21 13l-1 14" opacity=".55"/><path d="M16 5c0-2 2-3 4-3 0 2-2 3-4 3z" fill="currentColor"/></svg>
           <span id="cart-badge" class="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">0</span>
         </button>
       </div>
@@ -225,7 +233,7 @@
     <!-- VIEW: HOME PAGE -->
     <section id="view-home" class="view-panel">
       <!-- Hero Section -->
-      <div class="relative bg-brand-800 text-white py-20 px-6 sm:px-12 overflow-hidden bg-cover bg-center" style="background-image: linear-gradient(rgba(20, 54, 38, 0.85), rgba(20, 54, 38, 0.9)), url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1600&q=80');">
+      <div class="relative bg-brand-800 text-white py-20 px-6 sm:px-12 overflow-hidden bg-cover bg-center" style="background-image: linear-gradient(rgba(20, 54, 38, 0.68), rgba(20, 54, 38, 0.82)), url('https://www.tradologie.com/docs/Images/kaushalya-logistics-banner.webp');">
         <div class="max-w-4xl mx-auto text-center space-y-6">
           <span class="inline-block bg-brand-700/80 border border-brand-600 text-brand-accent px-4 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
             Andhra Pradesh's Farm-Fresh Store
@@ -552,8 +560,37 @@
     </section>
     <!-- Customer order tracking -->
     <section id="view-tracking" class="view-panel hidden py-10 max-w-5xl mx-auto px-4 sm:px-6">
-      <div class="flex items-center justify-between mb-6"><div><h1 class="text-3xl font-serif font-bold text-brand-800">Order Tracking</h1><p class="text-sm text-stone-500">Follow the shipment progress, delivery partner and estimated delivery date of your orders.</p></div><button onclick="loadTracking()" class="border rounded-lg px-4 py-2 text-sm">Refresh</button></div>
+      <div class="flex items-center justify-between mb-6"><div><h1 class="text-3xl font-serif font-bold text-brand-800">Order Tracking</h1><p class="text-sm text-stone-500">Follow the shipment progress, delivery partner and estimated delivery date of your orders.</p><p id="tracking-updated" class="text-xs text-stone-400 mt-1"></p></div><button onclick="loadTracking()" class="border rounded-lg px-4 py-2 text-sm">Refresh</button></div>
       <div id="tracking-container" class="space-y-4"></div>
+    </section>
+    <!-- Customer payment history -->
+    <section id="view-payments" class="view-panel hidden py-10 max-w-5xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between mb-6"><div><h1 class="text-3xl font-serif font-bold text-brand-800">Payment History</h1><p class="text-sm text-stone-500">Payment records and payment status for your orders.</p></div><button onclick="loadPaymentHistoryView()" class="border rounded-lg px-4 py-2 text-sm">Refresh</button></div>
+      <div id="payments-container" class="space-y-4"></div>
+    </section>
+    <!-- Customer saved addresses -->
+    <section id="view-addresses" class="view-panel hidden py-10 max-w-5xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between mb-6"><div><h1 class="text-3xl font-serif font-bold text-brand-800">My Addresses</h1><p class="text-sm text-stone-500">Add, edit or remove your saved delivery addresses.</p></div><button onclick="resetMyAddressForm(); document.querySelector('#my-address-form input[name=recipient_name]').focus()" class="border rounded-lg px-4 py-2 text-sm">Add new address</button></div>
+      <div class="grid md:grid-cols-2 gap-6 items-start">
+        <div id="my-address-list" class="space-y-3"></div>
+        <div class="bg-white rounded-xl border border-stone-200 p-6">
+          <h2 id="my-address-form-title" class="font-bold text-lg mb-4">Add a new address</h2>
+          <form id="my-address-form" onsubmit="saveMyAddress(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input name="recipient_name" required minlength="2" maxlength="100" placeholder="Recipient name" class="border rounded-lg p-2 text-sm">
+            <input name="phone" required minlength="10" maxlength="15" placeholder="Phone number" class="border rounded-lg p-2 text-sm">
+            <input name="address_line1" required minlength="3" maxlength="255" placeholder="Address line 1" class="border rounded-lg p-2 text-sm sm:col-span-2">
+            <input name="address_line2" maxlength="255" placeholder="Address line 2 (optional)" class="border rounded-lg p-2 text-sm sm:col-span-2">
+            <input name="landmark" maxlength="150" placeholder="Landmark (optional)" class="border rounded-lg p-2 text-sm sm:col-span-2">
+            <input name="city" required minlength="2" maxlength="100" placeholder="City" class="border rounded-lg p-2 text-sm">
+            <input name="state" required minlength="2" maxlength="100" placeholder="State" class="border rounded-lg p-2 text-sm">
+            <input name="postal_code" required minlength="4" maxlength="10" placeholder="Postal code" class="border rounded-lg p-2 text-sm">
+            <input name="country" value="India" required maxlength="100" placeholder="Country" class="border rounded-lg p-2 text-sm">
+            <label class="text-sm flex items-center gap-2 sm:col-span-2"><input type="checkbox" name="is_default"> Set as default address</label>
+            <button id="my-address-submit" class="sm:col-span-2 bg-brand-700 text-white rounded-lg p-3 font-semibold hover:bg-brand-800">Save address</button>
+            <button type="button" id="my-address-cancel" onclick="resetMyAddressForm()" class="hidden sm:col-span-2 border rounded-lg p-3 text-sm">Cancel editing</button>
+          </form>
+        </div>
+      </div>
     </section>
     <!-- ADMIN DASHBOARD: visible only to authenticated administrators -->
     <section id="view-admin" class="view-panel hidden py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -784,7 +821,7 @@
         setTimeout(() => { btn.innerHTML = html; btn.disabled = false; btn.classList.remove("btn-done"); }, 1000);
       };
     }
-    function bumpCartBadge() {
+    function bumpCartBadge() { const ic = document.querySelector(".cart-ico"); if (ic) { ic.classList.remove("cart-wig"); void ic.getBoundingClientRect(); ic.classList.add("cart-wig"); }
       const b = document.getElementById("cart-badge");
       b.classList.remove("badge-bump"); void b.offsetWidth; b.classList.add("badge-bump");
     }
@@ -1002,8 +1039,7 @@
       } else if (action === "dashboard") {
         navigate("dashboard");
       } else if (action === "addresses") {
-        navigate("checkout");
-        notify("Manage your saved addresses in the delivery address section.");
+        navigate("addresses");
       } else if (action === "profile") {
         openAccount();
       } else if (action === "support") {
@@ -1011,8 +1047,7 @@
       } else if (action === "tracking") {
         navigate("tracking");
       } else if (action === "payments") {
-        navigate("orders");
-        notify("Payment status is shown with each order. Dedicated payment history will be connected next.");
+        navigate("payments");
       } else {
         const labels = {
           payments: "Payment History",
@@ -1078,7 +1113,10 @@
       if (viewName === "cart") loadCart();
       if (viewName === "checkout") loadCheckout();
       if (viewName === "orders") loadOrders();
+      if (viewName !== "tracking") stopTrackingRefresh();
       if (viewName === "tracking") loadTracking();
+      if (viewName === "payments") loadPaymentHistoryView();
+      if (viewName === "addresses") loadMyAddresses();
       if (viewName === "order-success") renderOrderSuccess();
       if (viewName === "dashboard") loadCustomerDashboard();
       if (viewName === "admin" || viewName === "deliveries" || viewName === "inventory" || viewName === "inventory-history") {
@@ -1379,21 +1417,171 @@
       } catch(error){el.innerHTML=`<p class="text-red-700">${esc(error.message)}</p>`;}
     }
     // Order Tracking: shipment progress only (delivery partner, tracking number, ETA, progress).
-    async function loadTracking() {
+    // While the page is open and any order is still in transit it refreshes itself every 30 seconds.
+    var trackingTimer = null;
+    var trackingSignature = "";
+    var TRACKING_REFRESH_MS = 30000;
+    function stopTrackingRefresh() {
+      if (trackingTimer) { clearInterval(trackingTimer); trackingTimer = null; }
+    }
+    function startTrackingRefresh() {
+      if (trackingTimer) return;
+      trackingTimer = setInterval(() => {
+        const view = document.getElementById("view-tracking");
+        if (!view || view.classList.contains("hidden")) { stopTrackingRefresh(); return; }
+        if (document.hidden) return;
+        loadTracking({silent: true});
+      }, TRACKING_REFRESH_MS);
+    }
+    function orderIsInTransit(o) {
+      const orderStatus = String(o.status || "").toLowerCase();
+      const deliveryStatus = String(o.delivery?.status || "").toLowerCase();
+      if (orderStatus === "cancelled" || orderStatus === "delivered") return false;
+      return !["delivered", "returned"].includes(deliveryStatus);
+    }
+    document.addEventListener("visibilitychange", () => {
+      const view = document.getElementById("view-tracking");
+      if (!document.hidden && view && !view.classList.contains("hidden") && token) loadTracking({silent: true});
+    });
+    async function loadTracking(options = {}) {
+      const silent = options && options.silent === true;
       const el=document.getElementById("tracking-container");
-      if(!token){el.innerHTML=ordersLoginPrompt();return;}
-      el.innerHTML='<p class="text-stone-500">Loading your shipments…</p>';
+      if(!token){stopTrackingRefresh();el.innerHTML=ordersLoginPrompt();return;}
+      if(!silent) el.innerHTML='<p class="text-stone-500">Loading your shipments…</p>';
       try {
         const orders=await api("/api/orders/");
-        if(!orders.length){el.innerHTML=ordersEmptyPrompt("No orders to track yet.");return;}
+        if(!orders.length){stopTrackingRefresh();el.innerHTML=ordersEmptyPrompt("No orders to track yet.");return;}
+        // A background refresh with unchanged data leaves the screen (and its animations) alone.
+        const signature=JSON.stringify(orders);
+        if (silent && signature===trackingSignature) {
+          const unchanged=document.getElementById("tracking-updated");
+          if (unchanged) unchanged.textContent=`Last updated ${new Date().toLocaleTimeString()}`;
+          if (orders.some(orderIsInTransit)) startTrackingRefresh(); else stopTrackingRefresh();
+          return;
+        }
+        trackingSignature=signature;
+        const animate=!silent;   // entrance animations only for a user-initiated load
+        el.classList.toggle("no-anim", !animate);
         el.innerHTML=orders.map((o,idx)=>{
           const items=Array.isArray(o.items) ? o.items : [];
           const summary=items.map(i=>`${esc(i.product_name)} × ${esc(i.quantity)} ${esc(i.unit)}`).join(", ");
-          return `<article class="bg-white border border-stone-200 rounded-xl p-5 fade-up" style="animation-delay:${Math.min(idx,8)*70}ms"><div class="flex flex-wrap justify-between gap-3"><div><h3 class="font-bold text-lg">Order #${esc(o.id)}</h3><p class="text-xs text-stone-500">${o.created_at ? esc(new Date(o.created_at).toLocaleString()) : "Date unavailable"}</p></div><button onclick="navigate('orders')" class="text-sm text-brand-700 underline self-start">View order details</button></div><p class="text-sm text-stone-600 mt-3">${summary || "No items"}</p>${renderShipmentTracking(o,o.delivery || null)}</article>`;
+          return `<article class="bg-white border border-stone-200 rounded-xl p-5${animate ? " fade-up" : ""}"${animate ? ` style="animation-delay:${Math.min(idx,8)*70}ms"` : ""}><div class="flex flex-wrap justify-between gap-3"><div><h3 class="font-bold text-lg">Order #${esc(o.id)}</h3><p class="text-xs text-stone-500">${o.created_at ? esc(new Date(o.created_at).toLocaleString()) : "Date unavailable"}</p></div><button onclick="navigate('orders')" class="text-sm text-brand-700 underline self-start">View order details</button></div><p class="text-sm text-stone-600 mt-3">${summary || "No items"}</p>${renderShipmentTracking(o,o.delivery || null)}</article>`;
         }).join("");
         if (window.lucide) lucide.createIcons();
+        const updated=document.getElementById("tracking-updated");
+        if (updated) updated.textContent=`Last updated ${new Date().toLocaleTimeString()}`;
+        if (orders.some(orderIsInTransit)) startTrackingRefresh(); else stopTrackingRefresh();
+      } catch(error){
+        // A failed background refresh keeps the current content on screen.
+        if(!silent) el.innerHTML=`<p class="text-red-700">${esc(error.message)}</p>`;
+      }
+    }
+    function loginPromptHtml(what) {
+      return `<div class="bg-white border rounded-xl p-8 text-center">Please log in to view ${esc(what)}. <button onclick="openAccount()" class="text-brand-700 underline">Login</button></div>`;
+    }
+
+    // ---------- Payment History ----------
+    async function loadPaymentHistoryView() {
+      const el=document.getElementById("payments-container");
+      if(!token){el.innerHTML=loginPromptHtml("your payment history");return;}
+      el.innerHTML='<p class="text-stone-500">Loading your payments…</p>';
+      try {
+        const [payments, orders]=await Promise.all([api("/api/payments/history"), api("/api/orders/")]);
+        const paidOrderIds=new Set(payments.map(p=>Number(p.order_id)));
+        // Cash-on-delivery orders have no payment transaction, so show the payment status stored on the order.
+        const orderRows=orders.filter(o=>!paidOrderIds.has(Number(o.id))).map(o=>({
+          key:`order-${o.id}`, payment_id:null, order_id:o.id,
+          method:o.payment_method, amount:o.total_amount,
+          status:String(o.payment_status||"pending").toLowerCase(),
+          reference:null, failure_reason:null, created_at:o.created_at
+        }));
+        const paymentRows=payments.map(p=>({
+          key:`payment-${p.id}`, payment_id:p.id, order_id:p.order_id,
+          method:p.payment_method, amount:p.amount,
+          status:String(p.status||"pending").toLowerCase(),
+          reference:p.transaction_reference, failure_reason:p.failure_reason, created_at:p.created_at
+        }));
+        const rows=[...paymentRows,...orderRows].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+        if(!rows.length){el.innerHTML='<div class="bg-white border rounded-xl p-8 text-center text-stone-500">No payments yet. Your payments will appear here after you place an order.</div>';return;}
+        const totalPaid=rows.filter(r=>r.status==="paid").reduce((sum,r)=>sum+Number(r.amount||0),0);
+        const pending=rows.filter(r=>r.status==="pending").length;
+        el.innerHTML=`<div class="grid sm:grid-cols-2 gap-4 fade-up"><div class="bg-white border border-stone-200 rounded-xl p-5"><p class="text-xs text-stone-500">Total paid</p><p class="text-2xl font-bold text-brand-800 mt-1">${money(totalPaid)}</p></div><div class="bg-white border border-stone-200 rounded-xl p-5"><p class="text-xs text-stone-500">Pending payments</p><p class="text-2xl font-bold text-brand-800 mt-1">${pending}</p></div></div>
+          <div class="bg-white border border-stone-200 rounded-xl overflow-x-auto fade-up" style="animation-delay:120ms"><table class="min-w-full text-sm"><thead><tr class="text-left border-b text-xs uppercase tracking-wide text-stone-500"><th class="py-3 px-4">Date</th><th class="py-3 px-4">Order</th><th class="py-3 px-4">Method</th><th class="py-3 px-4">Amount</th><th class="py-3 px-4">Status</th><th class="py-3 px-4">Reference</th></tr></thead><tbody>${rows.map(r=>`<tr class="border-b last:border-0 align-top"><td class="py-3 px-4 whitespace-nowrap">${r.created_at?esc(new Date(r.created_at).toLocaleString()):"—"}</td><td class="py-3 px-4"><button onclick="navigate('orders')" class="text-brand-700 underline">#${esc(r.order_id)}</button></td><td class="py-3 px-4">${esc(String(r.method||"").replaceAll("_"," "))}</td><td class="py-3 px-4 font-semibold">${money(r.amount)}</td><td class="py-3 px-4">${adminBadge(r.status)}${r.failure_reason?`<p class="text-xs text-red-700 mt-1">${esc(r.failure_reason)}</p>`:""}</td><td class="py-3 px-4 break-all text-stone-600">${r.reference?esc(r.reference):"—"}</td></tr>`).join("")}</tbody></table></div>
+          <p class="text-xs text-stone-500">Cash-on-delivery orders show the payment status recorded on the order.</p>`;
       } catch(error){el.innerHTML=`<p class="text-red-700">${esc(error.message)}</p>`;}
     }
+
+    // ---------- My Addresses ----------
+    let myAddresses=[];
+    let editingAddressId=null;
+    async function loadMyAddresses() {
+      const el=document.getElementById("my-address-list");
+      resetMyAddressForm();
+      if(!token){el.innerHTML=loginPromptHtml("your saved addresses");return;}
+      el.innerHTML='<p class="text-stone-500">Loading your addresses…</p>';
+      try { myAddresses=await api("/api/addresses/"); renderMyAddresses(); }
+      catch(error){el.innerHTML=`<p class="text-red-700">${esc(error.message)}</p>`;}
+    }
+    function renderMyAddresses() {
+      const el=document.getElementById("my-address-list");
+      if(!myAddresses.length){el.innerHTML='<div class="bg-white border rounded-xl p-6 text-center text-stone-500 text-sm">No saved addresses yet. Add your first address using the form.</div>';return;}
+      el.innerHTML=myAddresses.map((a,idx)=>`<article class="bg-white border ${a.is_default?'border-brand-600':'border-stone-200'} rounded-xl p-4 fade-up" style="animation-delay:${Math.min(idx,8)*70}ms"><div class="flex items-start justify-between gap-3"><div class="text-sm min-w-0"><p class="font-semibold">${esc(a.recipient_name)} ${a.is_default?'<span class="ml-1 text-xs font-semibold bg-brand-50 text-brand-700 rounded-full px-2 py-0.5">Default</span>':''}</p><p class="text-stone-600">${esc(a.phone)}</p><p class="mt-1">${esc(a.address_line1)}${a.address_line2?', '+esc(a.address_line2):''}</p>${a.landmark?`<p class="text-stone-500">Landmark: ${esc(a.landmark)}</p>`:''}<p>${esc(a.city)}, ${esc(a.state)} ${esc(a.postal_code)}, ${esc(a.country)}</p></div></div><div class="mt-3 flex flex-wrap gap-2"><button onclick="editMyAddress(${Number(a.id)})" class="text-sm border border-stone-300 rounded-lg px-3 py-1.5 hover:bg-stone-50">Edit</button>${a.is_default?'':`<button onclick="makeDefaultAddress(${Number(a.id)})" class="text-sm border border-stone-300 rounded-lg px-3 py-1.5 hover:bg-stone-50">Set as default</button>`}<button onclick="deleteMyAddress(${Number(a.id)})" class="text-sm border border-red-300 text-red-700 rounded-lg px-3 py-1.5 hover:bg-red-50">Delete</button></div></article>`).join("");
+    }
+    function resetMyAddressForm() {
+      const form=document.getElementById("my-address-form");
+      if(!form) return;
+      editingAddressId=null;
+      form.reset();
+      form.elements.country.value="India";
+      form.elements.is_default.disabled=false;
+      document.getElementById("my-address-form-title").textContent="Add a new address";
+      document.getElementById("my-address-submit").textContent="Save address";
+      document.getElementById("my-address-cancel").classList.add("hidden");
+    }
+    function editMyAddress(id) {
+      const a=myAddresses.find(x=>Number(x.id)===Number(id));
+      if(!a) return;
+      const form=document.getElementById("my-address-form");
+      editingAddressId=a.id;
+      for (const name of ["recipient_name","phone","address_line1","address_line2","landmark","city","state","postal_code","country"]) form.elements[name].value=a[name]||"";
+      form.elements.is_default.checked=!!a.is_default;
+      form.elements.is_default.disabled=!!a.is_default; // a default address stays default until another one is chosen
+      document.getElementById("my-address-form-title").textContent=`Edit address #${a.id}`;
+      document.getElementById("my-address-submit").textContent="Update address";
+      document.getElementById("my-address-cancel").classList.remove("hidden");
+      form.scrollIntoView({behavior:"smooth", block:"center"});
+    }
+    async function saveMyAddress(event) {
+      event.preventDefault();
+      const form=event.currentTarget;
+      const f=new FormData(form);
+      const payload={recipient_name:f.get("recipient_name").trim(),phone:f.get("phone").trim(),address_line1:f.get("address_line1").trim(),address_line2:(f.get("address_line2")||"").trim()||null,landmark:(f.get("landmark")||"").trim()||null,city:f.get("city").trim(),state:f.get("state").trim(),postal_code:f.get("postal_code").trim(),country:f.get("country").trim()};
+      const button=document.getElementById("my-address-submit");
+      button.disabled=true;
+      try {
+        if(editingAddressId){
+          if(form.elements.is_default.checked && !form.elements.is_default.disabled) payload.is_default=true;
+          await api(`/api/addresses/${editingAddressId}`,{method:"PUT",body:payload});
+          notify("Address updated.");
+        } else {
+          payload.is_default=f.get("is_default")==="on";
+          await api("/api/addresses/",{method:"POST",body:payload});
+          notify("Address saved.");
+        }
+        await loadMyAddresses();
+      } catch(error){ notify(error.message); }
+      finally { button.disabled=false; }
+    }
+    async function makeDefaultAddress(id) {
+      try { await api(`/api/addresses/${id}`,{method:"PUT",body:{is_default:true}}); notify("Default address updated."); await loadMyAddresses(); }
+      catch(error){ notify(error.message); }
+    }
+    async function deleteMyAddress(id) {
+      if(!confirm("Delete this address?")) return;
+      try { await api(`/api/addresses/${id}`,{method:"DELETE"}); notify("Address deleted."); await loadMyAddresses(); }
+      catch(error){ notify(error.message); }
+    }
+
     async function cancelOrder(id) { if(!confirm(`Cancel order #${id}?`))return; try{await api(`/api/orders/${id}/cancel`,{method:"POST"});notify("Order cancelled and eligible stock restored.");loadOrders();}catch(error){notify(error.message);} }
     async function reorderOrder(orderId) {
       if (!token || !currentUser) {
@@ -1580,7 +1768,11 @@
           await api(`/api/admin/deliveries/${deliveryId}`, {method: "PATCH", body: payload});
           notify(`Shipment for order #${orderId} updated.`);
         } else {
-          await api("/api/admin/deliveries", {method: "POST", body: payload});
+          const created = await api("/api/admin/deliveries", {method: "POST", body: payload});
+          // The create endpoint always starts at "pending"; apply the chosen progress afterwards.
+          if (status && status !== "pending" && created && created.id) {
+            await api(`/api/admin/deliveries/${created.id}`, {method: "PATCH", body: {status}});
+          }
           notify(`Shipment created for order #${orderId}.`);
         }
         await loadAdminOrders();
@@ -1678,11 +1870,12 @@
 
     // Delivery and shipment management (Step 11.2)
     const DELIVERY_STATUSES = ["pending", "packed", "shipped", "out_for_delivery", "delivered", "failed", "returned"];
+    // Must match allowed_transitions in app/api/routes/admin.py.
     const DELIVERY_TRANSITIONS = {
-      pending: ["packed", "failed"],
-      packed: ["shipped", "failed"],
-      shipped: ["out_for_delivery", "failed", "returned"],
-      out_for_delivery: ["delivered", "failed"],
+      pending: ["packed", "shipped", "out_for_delivery", "delivered", "failed"],
+      packed: ["shipped", "out_for_delivery", "delivered", "failed"],
+      shipped: ["out_for_delivery", "delivered", "failed", "returned"],
+      out_for_delivery: ["delivered", "failed", "returned"],
       delivered: [],
       failed: ["pending", "packed", "returned"],
       returned: []
@@ -2046,6 +2239,7 @@
         } catch {}
       }, 20000);
     })();
+
 
     async function loadPaymentHistory() { try { return await api("/api/payments/history"); } catch(error) { notify(error.message); return []; } }
     window.addEventListener("DOMContentLoaded", async ()=>{
