@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -10,9 +10,7 @@ from app.core.config import settings
 from app.db.session import get_db
 from app.models.customer import Customer
 
-oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="/api/auth/login"
-)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 JWT_SECRET_KEY = settings.jwt_secret_key
 JWT_ALGORITHM = settings.jwt_algorithm
@@ -20,9 +18,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
 
 def create_access_token(customer_id: int) -> str:
-    expires_at = datetime.now(timezone.utc) + timedelta(
-        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
-    )
+    expires_at = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
     payload = {
         "sub": str(customer_id),
@@ -35,6 +31,7 @@ def create_access_token(customer_id: int) -> str:
         algorithm=JWT_ALGORITHM,
     )
 
+
 def decode_access_token(token: str) -> dict:
     try:
         payload = jwt.decode(
@@ -46,6 +43,7 @@ def decode_access_token(token: str) -> dict:
 
     except InvalidTokenError:
         return {}
+
 
 def get_current_customer(
     token: str = Depends(oauth2_scheme),
@@ -62,16 +60,14 @@ def get_current_customer(
 
     try:
         customer_id = int(payload["sub"])
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token subject",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    customer = db.query(Customer).filter(
-        Customer.id == customer_id
-    ).first()
+    customer = db.query(Customer).filter(Customer.id == customer_id).first()
 
     if customer is None:
         raise HTTPException(

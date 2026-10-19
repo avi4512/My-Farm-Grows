@@ -1,28 +1,25 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session, selectinload
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session, selectinload
 
 from app.core.permissions import require_admin
 from app.db.session import get_db
+from app.models import Delivery, InventoryMovement, Product
 from app.models.customer import Customer
 from app.models.order import Order
-from app.models import Product
-from app.schemas.order import OrderResponse, OrderStatusUpdate
+from app.schemas.delivery import (
+    DeliveryCreate,
+    DeliveryResponse,
+    DeliveryUpdate,
+)
+from app.schemas.inventory import InventoryAdjustmentCreate, InventoryMovementResponse
 from app.schemas.order import (
     OrderResponse,
     OrderStatusUpdate,
     PaymentStatusUpdate,
 )
-from app.models import InventoryMovement
-from app.schemas.inventory import InventoryAdjustmentCreate, InventoryMovementResponse
 from app.services.delivery_sync import sync_order_status_from_delivery
 from app.services.inventory import record_inventory_movement
-from app.models import Delivery
-from app.schemas.delivery import (
-    DeliveryCreate,
-    DeliveryUpdate,
-    DeliveryResponse,
-)
 
 router = APIRouter(
     prefix="/api/admin",
@@ -103,8 +100,7 @@ def update_order_status(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
-                f"Cannot change order status from "
-                f"'{current_status}' to '{new_status}'"
+                f"Cannot change order status from '{current_status}' to '{new_status}'"
             ),
         )
 
@@ -116,8 +112,7 @@ def update_order_status(
 
             for item in order.items:
                 quantities_by_product[item.product_id] = (
-                    quantities_by_product.get(item.product_id, 0)
-                    + item.quantity
+                    quantities_by_product.get(item.product_id, 0) + item.quantity
                 )
 
             product_ids = sorted(quantities_by_product)
@@ -130,9 +125,7 @@ def update_order_status(
                 .all()
             )
 
-            products_by_id = {
-                product.id: product for product in products
-            }
+            products_by_id = {product.id: product for product in products}
 
             for product_id, quantity in quantities_by_product.items():
                 product = products_by_id.get(product_id)
@@ -242,9 +235,7 @@ def update_payment_status(
     if current_status == new_status:
         return order
 
-    if new_status not in allowed_transitions.get(
-        current_status, set()
-    ):
+    if new_status not in allowed_transitions.get(current_status, set()):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
@@ -318,10 +309,7 @@ def adjust_product_inventory(
 
     try:
         product = (
-            db.query(Product)
-            .filter(Product.id == product_id)
-            .with_for_update()
-            .first()
+            db.query(Product).filter(Product.id == product_id).with_for_update().first()
         )
         if product is None:
             raise HTTPException(
@@ -341,9 +329,7 @@ def adjust_product_inventory(
         movement = record_inventory_movement(
             db,
             product=product,
-            movement_type=(
-                "stock_in" if payload.quantity_change > 0 else "stock_out"
-            ),
+            movement_type=("stock_in" if payload.quantity_change > 0 else "stock_out"),
             quantity_change=payload.quantity_change,
             previous_stock=previous_stock,
             new_stock=new_stock,
@@ -387,10 +373,7 @@ def create_delivery(
     """Assign delivery details to an existing order."""
 
     order = (
-        db.query(Order)
-        .filter(Order.id == payload.order_id)
-        .with_for_update()
-        .first()
+        db.query(Order).filter(Order.id == payload.order_id).with_for_update().first()
     )
 
     if order is None:
@@ -406,9 +389,7 @@ def create_delivery(
         )
 
     existing_delivery = (
-        db.query(Delivery)
-        .filter(Delivery.order_id == payload.order_id)
-        .first()
+        db.query(Delivery).filter(Delivery.order_id == payload.order_id).first()
     )
 
     if existing_delivery is not None:
@@ -422,9 +403,7 @@ def create_delivery(
     tracking_number = f"MFG-ORD-{order.id}"
 
     existing_tracking = (
-        db.query(Delivery)
-        .filter(Delivery.tracking_number == tracking_number)
-        .first()
+        db.query(Delivery).filter(Delivery.tracking_number == tracking_number).first()
     )
     if existing_tracking is not None:
         raise HTTPException(
@@ -480,11 +459,7 @@ def update_delivery(
     delivered -> delivered) in the same transaction.
     """
 
-    probe = (
-        db.query(Delivery.order_id)
-        .filter(Delivery.id == delivery_id)
-        .first()
-    )
+    probe = db.query(Delivery.order_id).filter(Delivery.id == delivery_id).first()
 
     if probe is None:
         raise HTTPException(
@@ -494,18 +469,10 @@ def update_delivery(
 
     # Lock the parent order first, then the delivery, so concurrent order
     # and delivery updates always take locks in the same order.
-    order = (
-        db.query(Order)
-        .filter(Order.id == probe.order_id)
-        .with_for_update()
-        .first()
-    )
+    order = db.query(Order).filter(Order.id == probe.order_id).with_for_update().first()
 
     delivery = (
-        db.query(Delivery)
-        .filter(Delivery.id == delivery_id)
-        .with_for_update()
-        .first()
+        db.query(Delivery).filter(Delivery.id == delivery_id).with_for_update().first()
     )
 
     if delivery is None or order is None:
@@ -531,13 +498,23 @@ def update_delivery(
     # Delivered and returned are final; failed can be retried.
     allowed_transitions = {
         "pending": {
-            "packed", "shipped", "out_for_delivery", "delivered", "failed",
+            "packed",
+            "shipped",
+            "out_for_delivery",
+            "delivered",
+            "failed",
         },
         "packed": {
-            "shipped", "out_for_delivery", "delivered", "failed",
+            "shipped",
+            "out_for_delivery",
+            "delivered",
+            "failed",
         },
         "shipped": {
-            "out_for_delivery", "delivered", "failed", "returned",
+            "out_for_delivery",
+            "delivered",
+            "failed",
+            "returned",
         },
         "out_for_delivery": {"delivered", "failed", "returned"},
         "delivered": set(),
@@ -546,9 +523,7 @@ def update_delivery(
     }
 
     if new_status is not None and new_status != delivery.status:
-        if new_status not in allowed_transitions.get(
-            delivery.status, set()
-        ):
+        if new_status not in allowed_transitions.get(delivery.status, set()):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=(

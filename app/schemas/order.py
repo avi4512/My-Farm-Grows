@@ -1,11 +1,8 @@
-
 from datetime import date, datetime
 from decimal import Decimal
-
-from pydantic import BaseModel, ConfigDict, Field
 from typing import Literal
 
-
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class OrderStatusUpdate(BaseModel):
@@ -16,6 +13,7 @@ class OrderStatusUpdate(BaseModel):
         "delivered",
         "cancelled",
     ]
+
 
 class OrderCreate(BaseModel):
     address_id: int = Field(gt=0)

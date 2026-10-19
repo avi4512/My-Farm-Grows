@@ -1,14 +1,11 @@
-
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.core.permissions import require_admin
 from app.db.session import SessionLocal
 from app.models import Product
-from app.schemas.product import ProductCreate, ProductResponse,ProductUpdate
-
-from typing import Optional
-from app.core.permissions import require_admin
 from app.models.customer import Customer
+from app.schemas.product import ProductCreate, ProductResponse, ProductUpdate
 from app.services.inventory import record_inventory_movement
 
 router = APIRouter(prefix="/api/products", tags=["Products"])
@@ -20,7 +17,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
 
 
 @router.post("/", response_model=ProductResponse, status_code=201)
@@ -61,9 +57,9 @@ def create_product(
 
 @router.get("/", response_model=list[ProductResponse])
 def get_products(
-    search: Optional[str] = Query(default=None, min_length=1),
-    category: Optional[str] = Query(default=None),
-    max_price: Optional[float] = Query(default=None, gt=0),
+    search: str | None = Query(default=None, min_length=1),
+    category: str | None = Query(default=None),
+    max_price: float | None = Query(default=None, gt=0),
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=10, ge=1, le=100),
     active_only: bool = Query(default=True),
@@ -72,38 +68,30 @@ def get_products(
     query = db.query(Product)
 
     if search:
-        query = query.filter(
-            Product.name.ilike(f"%{search.strip()}%")
-        )
+        query = query.filter(Product.name.ilike(f"%{search.strip()}%"))
 
     if category:
-        query = query.filter(
-            Product.category.ilike(category.strip())
-        )
+        query = query.filter(Product.category.ilike(category.strip()))
 
     if max_price is not None:
-        query = query.filter(
-            Product.retail_price <= max_price
-        )
+        query = query.filter(Product.retail_price <= max_price)
 
     if active_only:
         query = query.filter(Product.is_active.is_(True))
 
-    return (
-        query.order_by(Product.id)
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
-
+    return query.order_by(Product.id).offset(skip).limit(limit).all()
 
 
 @router.get("/{product_id}", response_model=ProductResponse)
 def get_product(product_id: int, db: Session = Depends(get_db)):
-    product = db.query(Product).filter(
-        Product.id == product_id,
-        Product.is_active.is_(True),
-    ).first()
+    product = (
+        db.query(Product)
+        .filter(
+            Product.id == product_id,
+            Product.is_active.is_(True),
+        )
+        .first()
+    )
 
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -119,10 +107,7 @@ def update_product(
     current_admin: Customer = Depends(require_admin),
 ):
     product = (
-        db.query(Product)
-        .filter(Product.id == product_id)
-        .with_for_update()
-        .first()
+        db.query(Product).filter(Product.id == product_id).with_for_update().first()
     )
 
     if product is None:
@@ -132,10 +117,7 @@ def update_product(
         )
 
     update_data = product_data.model_dump(exclude_unset=True)
-    if (
-        "stock_quantity" in update_data
-        and update_data["stock_quantity"] < 0
-    ):
+    if "stock_quantity" in update_data and update_data["stock_quantity"] < 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Stock quantity cannot be negative",
@@ -160,10 +142,7 @@ def update_product(
                 quantity_change=stock_delta,
                 previous_stock=previous_stock,
                 new_stock=new_stock,
-                reason=(
-                    f"Administrator updated stock for product "
-                    f"'{old_name}'"
-                ),
+                reason=(f"Administrator updated stock for product '{old_name}'"),
                 changed_by_customer_id=current_admin.id,
             )
 
@@ -175,18 +154,13 @@ def update_product(
         raise
 
 
-
 @router.delete("/{product_id}", status_code=204)
 def delete_product(
     product_id: int,
     db: Session = Depends(get_db),
     current_admin: Customer = Depends(require_admin),
 ):
-    product = (
-        db.query(Product)
-        .filter(Product.id == product_id)
-        .first()
-    )
+    product = db.query(Product).filter(Product.id == product_id).first()
 
     if product is None:
         raise HTTPException(
@@ -196,6 +170,3 @@ def delete_product(
 
     db.delete(product)
     db.commit()
-
-    return None
-

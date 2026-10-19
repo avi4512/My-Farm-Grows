@@ -10,7 +10,6 @@ from app.models.order import Order
 from app.models.payment import Payment
 from app.schemas.payment import PaymentCreate, PaymentResponse, PaymentStatusUpdate
 
-
 router = APIRouter(
     prefix="/api/payments",
     tags=["Payments"],
@@ -103,9 +102,7 @@ def get_all_payment_history(
     current_admin: Customer = Depends(require_admin),
 ):
     payments = (
-        db.query(Payment)
-        .order_by(Payment.created_at.desc(), Payment.id.desc())
-        .all()
+        db.query(Payment).order_by(Payment.created_at.desc(), Payment.id.desc()).all()
     )
     return payments
 
@@ -211,11 +208,7 @@ def get_payment_admin(
     db: Session = Depends(get_db),
     current_admin: Customer = Depends(require_admin),
 ):
-    payment = (
-        db.query(Payment)
-        .filter(Payment.id == payment_id)
-        .first()
-    )
+    payment = db.query(Payment).filter(Payment.id == payment_id).first()
 
     if payment is None:
         raise HTTPException(
@@ -237,10 +230,7 @@ def update_payment_transaction_status(
     current_admin: Customer = Depends(require_admin),
 ):
     payment = (
-        db.query(Payment)
-        .filter(Payment.id == payment_id)
-        .with_for_update()
-        .first()
+        db.query(Payment).filter(Payment.id == payment_id).with_for_update().first()
     )
 
     if payment is None:
@@ -262,10 +252,7 @@ def update_payment_transaction_status(
         )
 
     order = (
-        db.query(Order)
-        .filter(Order.id == payment.order_id)
-        .with_for_update()
-        .first()
+        db.query(Order).filter(Order.id == payment.order_id).with_for_update().first()
     )
 
     if order is None:

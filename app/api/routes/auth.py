@@ -1,19 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.security import create_access_token, get_current_customer
 from app.db.session import get_db
 from app.models.customer import Customer
-from app.schemas.customer import CustomerRegister, CustomerResponse,CustomerLogin
-from app.services.auth import hash_password
-from fastapi.security import OAuth2PasswordRequestForm
-
-from app.core.security import create_access_token
-from app.schemas.customer import TokenResponse
-from app.services.auth import verify_password
-from app.core.security import get_current_customer
-from fastapi.security import OAuth2PasswordRequestForm
-
+from app.schemas.customer import (
+    CustomerRegister,
+    CustomerResponse,
+    TokenResponse,
+)
+from app.services.auth import hash_password, verify_password
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -29,9 +27,7 @@ def register_customer(
 ):
     email = str(customer_data.email).lower()
 
-    existing_customer = db.scalar(
-        select(Customer).where(Customer.email == email)
-    )
+    existing_customer = db.scalar(select(Customer).where(Customer.email == email))
 
     if existing_customer:
         raise HTTPException(
@@ -40,13 +36,13 @@ def register_customer(
         )
 
     customer = Customer(
-    name=customer_data.name,
-    email=email,
-    hashed_password=hash_password(customer_data.password),
-    customer_type=customer_data.customer_type,
-    role="customer",
-    is_active=True,
-)
+        name=customer_data.name,
+        email=email,
+        hashed_password=hash_password(customer_data.password),
+        customer_type=customer_data.customer_type,
+        role="customer",
+        is_active=True,
+    )
 
     db.add(customer)
 
@@ -59,6 +55,7 @@ def register_customer(
 
     return customer
 
+
 @router.post("/login", response_model=TokenResponse)
 def login_customer(
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -66,16 +63,11 @@ def login_customer(
 ):
     email = form_data.username.lower()
 
-    customer = db.scalar(
-        select(Customer).where(Customer.email == email)
-    )
+    customer = db.scalar(select(Customer).where(Customer.email == email))
 
-    if (
-        customer is None
-        or not verify_password(
-            form_data.password,
-            customer.hashed_password,
-        )
+    if customer is None or not verify_password(
+        form_data.password,
+        customer.hashed_password,
     ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -89,9 +81,8 @@ def login_customer(
             detail="This account is inactive",
         )
 
-    return TokenResponse(
-        access_token=create_access_token(customer.id)
-    )
+    return TokenResponse(access_token=create_access_token(customer.id))
+
 
 @router.get("/me", response_model=CustomerResponse)
 def get_my_profile(

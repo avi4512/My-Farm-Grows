@@ -1,11 +1,9 @@
-
 from pydantic import BaseModel, ConfigDict, Field
-from typing import Optional
 
 
 class ProductCreate(BaseModel):
     name: str = Field(min_length=2, max_length=150)
-    description: Optional[str] = None
+    description: str | None = None
     category: str
     unit: str = "kg"
     retail_price: float = Field(gt=0)
@@ -15,22 +13,22 @@ class ProductCreate(BaseModel):
 
 
 class ProductUpdate(BaseModel):
-    name: Optional[str] = Field(default=None, min_length=2, max_length=150)
-    description: Optional[str] = None
-    category: Optional[str] = None
-    unit: Optional[str] = None
-    retail_price: Optional[float] = Field(default=None, gt=0)
-    wholesale_price: Optional[float] = Field(default=None, gt=0)
-    min_wholesale_quantity: Optional[int] = Field(default=None, gt=0)
-    stock_quantity: Optional[int] = Field(default=None, ge=0)
-    is_active: Optional[bool] = None
+    name: str | None = Field(default=None, min_length=2, max_length=150)
+    description: str | None = None
+    category: str | None = None
+    unit: str | None = None
+    retail_price: float | None = Field(default=None, gt=0)
+    wholesale_price: float | None = Field(default=None, gt=0)
+    min_wholesale_quantity: int | None = Field(default=None, gt=0)
+    stock_quantity: int | None = Field(default=None, ge=0)
+    is_active: bool | None = None
 
 
 class ProductResponse(BaseModel):
     id: int
     name: str
     category: str
-    description: Optional[str] = None
+    description: str | None = None
     unit: str
     retail_price: float
     wholesale_price: float

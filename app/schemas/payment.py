@@ -1,4 +1,3 @@
-
 from datetime import datetime
 from decimal import Decimal
 from typing import Literal
@@ -23,7 +22,8 @@ class PaymentResponse(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
-    
+
+
 class PaymentStatusUpdate(BaseModel):
     status: Literal["paid", "failed"]
     failure_reason: str | None = None

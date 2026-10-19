@@ -1,4 +1,3 @@
-
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -204,8 +203,8 @@ def clear_cart(
     db: Session = Depends(get_db),
     customer: Customer = Depends(get_current_customer),
 ):
-    db.query(CartItem).filter(
-        CartItem.customer_id == customer.id
-    ).delete(synchronize_session=False)
+    db.query(CartItem).filter(CartItem.customer_id == customer.id).delete(
+        synchronize_session=False
+    )
 
     db.commit()
