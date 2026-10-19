@@ -15,6 +15,7 @@ from app.schemas.order import (
 )
 from app.models import InventoryMovement
 from app.schemas.inventory import InventoryAdjustmentCreate, InventoryMovementResponse
+from app.services.delivery_sync import sync_order_status_from_delivery
 from app.services.inventory import record_inventory_movement
 from app.models import Delivery
 from app.schemas.delivery import (
@@ -472,7 +473,33 @@ def update_delivery(
     db: Session = Depends(get_db),
     current_admin: Customer = Depends(require_admin),
 ):
-    """Update shipment details and delivery progress."""
+    """Update shipment details and delivery progress.
+
+    When the delivery progress changes, the order status is moved forward
+    to match (packed -> processing, shipped / out for delivery -> shipped,
+    delivered -> delivered) in the same transaction.
+    """
+
+    probe = (
+        db.query(Delivery.order_id)
+        .filter(Delivery.id == delivery_id)
+        .first()
+    )
+
+    if probe is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Delivery not found",
+        )
+
+    # Lock the parent order first, then the delivery, so concurrent order
+    # and delivery updates always take locks in the same order.
+    order = (
+        db.query(Order)
+        .filter(Order.id == probe.order_id)
+        .with_for_update()
+        .first()
+    )
 
     delivery = (
         db.query(Delivery)
@@ -481,7 +508,7 @@ def update_delivery(
         .first()
     )
 
-    if delivery is None:
+    if delivery is None or order is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Delivery not found",
@@ -533,6 +560,9 @@ def update_delivery(
     try:
         for field, value in changes.items():
             setattr(delivery, field, value)
+
+        if new_status is not None:
+            sync_order_status_from_delivery(order, delivery.status)
 
         db.commit()
         db.refresh(delivery)
