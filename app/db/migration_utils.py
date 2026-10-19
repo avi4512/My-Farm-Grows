@@ -8,8 +8,9 @@ In offline (--sql) mode no database is inspected, so every object is
 treated as missing and the full DDL is emitted.
 """
 
-from alembic import context, op
 import sqlalchemy as sa
+
+from alembic import context, op
 
 
 def _inspector():
@@ -26,8 +27,7 @@ def has_index(table_name: str, index_name: str) -> bool:
     if context.is_offline_mode() or not has_table(table_name):
         return False
     return any(
-        index["name"] == index_name
-        for index in _inspector().get_indexes(table_name)
+        index["name"] == index_name for index in _inspector().get_indexes(table_name)
     )
 
 

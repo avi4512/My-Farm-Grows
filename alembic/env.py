@@ -1,11 +1,11 @@
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+import app.models  # noqa: F401  (registers every model for autogenerate)
+from alembic import context
 from app.core.config import settings
 from app.db.session import Base
-import app.models  # noqa: F401  (registers every model for autogenerate)
 
 # Alembic configuration
 config = context.config

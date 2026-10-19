@@ -1,4 +1,3 @@
-
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -13,7 +12,6 @@ from app.models.customer import Customer
 from app.models.order import Order, OrderItem
 from app.schemas.order import OrderCreate, OrderResponse
 from app.services.inventory import record_inventory_movement
-
 
 router = APIRouter(prefix="/api/orders", tags=["Orders"])
 
@@ -101,9 +99,7 @@ def create_order(
 
         # 3. Collect unique product IDs and lock products in a
         # consistent order to reduce the risk of deadlocks.
-        product_ids = sorted(
-            {item.product_id for item in cart_items}
-        )
+        product_ids = sorted({item.product_id for item in cart_items})
 
         products = (
             db.query(Product)
@@ -113,9 +109,7 @@ def create_order(
             .all()
         )
 
-        products_by_id = {
-            product.id: product for product in products
-        }
+        products_by_id = {product.id: product for product in products}
 
         # 4. Validate every product and available stock before
         # creating the order or deducting any stock.
@@ -128,18 +122,13 @@ def create_order(
             if product is None or not product.is_active:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=(
-                        f"Product ID {cart_item.product_id} "
-                        "is unavailable"
-                    ),
+                    detail=(f"Product ID {cart_item.product_id} is unavailable"),
                 )
 
             if cart_item.quantity <= 0:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=(
-                        f"Invalid quantity for product {product.name}"
-                    ),
+                    detail=(f"Invalid quantity for product {product.name}"),
                 )
 
             if cart_item.quantity > product.stock_quantity:
@@ -156,9 +145,7 @@ def create_order(
                 cart_item.quantity,
             )
 
-            subtotal = (
-                unit_price * cart_item.quantity
-            ).quantize(Decimal("0.01"))
+            subtotal = (unit_price * cart_item.quantity).quantize(Decimal("0.01"))
 
             total_amount += subtotal
 
@@ -228,9 +215,9 @@ def create_order(
             )
 
         # 7. Clear the cart only after all order items are prepared.
-        db.query(CartItem).filter(
-            CartItem.customer_id == customer.id
-        ).delete(synchronize_session=False)
+        db.query(CartItem).filter(CartItem.customer_id == customer.id).delete(
+            synchronize_session=False
+        )
 
         # 8. Commit order creation, stock deduction, and cart clearing
         # together. Any failure before commit rolls back the transaction.
@@ -324,8 +311,7 @@ def cancel_order(
 
         for item in order.items:
             quantities_by_product[item.product_id] = (
-                quantities_by_product.get(item.product_id, 0)
-                + item.quantity
+                quantities_by_product.get(item.product_id, 0) + item.quantity
             )
 
         # 3. Lock products in ascending ID order.
@@ -339,9 +325,7 @@ def cancel_order(
             .all()
         )
 
-        products_by_id = {
-            product.id: product for product in products
-        }
+        products_by_id = {product.id: product for product in products}
 
         # 4. Restore the reserved stock.
         for product_id, quantity in quantities_by_product.items():

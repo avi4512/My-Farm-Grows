@@ -2,14 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.db.session import get_db
 from app.core.security import get_current_customer
-from app.models.customer import Customer
+from app.db.session import get_db
 from app.models.address import Address
+from app.models.customer import Customer
 from app.schemas.address import (
     AddressCreate,
-    AddressUpdate,
     AddressResponse,
+    AddressUpdate,
 )
 
 router = APIRouter(
@@ -47,11 +47,7 @@ def set_default_address(
     address_id: int | None = None,
 ) -> None:
     """Ensure at most one address is marked as default."""
-    addresses = (
-        db.query(Address)
-        .filter(Address.customer_id == customer_id)
-        .all()
-    )
+    addresses = db.query(Address).filter(Address.customer_id == customer_id).all()
 
     for address in addresses:
         address.is_default = address.id == address_id
@@ -69,15 +65,11 @@ def create_address(
 ):
     try:
         existing_addresses = (
-            db.query(Address)
-            .filter(Address.customer_id == current_customer.id)
-            .all()
+            db.query(Address).filter(Address.customer_id == current_customer.id).all()
         )
 
         # Make the first address the default automatically.
-        make_default = (
-            address_data.is_default or not existing_addresses
-        )
+        make_default = address_data.is_default or not existing_addresses
 
         if make_default:
             set_default_address(
@@ -240,5 +232,3 @@ def delete_address(
     except Exception:
         db.rollback()
         raise
-
-    return None

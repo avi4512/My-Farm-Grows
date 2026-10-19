@@ -1,4 +1,3 @@
-
 """create products table
 
 Revision ID: cd866049a0d0
@@ -6,9 +5,10 @@ Revises:
 Create Date: 2026-10-16
 """
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy import inspect
+
+from alembic import op
 
 revision = "cd866049a0d0"
 down_revision = None
@@ -45,4 +45,3 @@ def downgrade() -> None:
     """Remove the products table."""
     # Intentionally do not drop the table automatically.
     # It may contain production or development data.
-    pass

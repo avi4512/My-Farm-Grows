@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-import app.models  # noqa: F401  (registers every model with SQLAlchemy)
+import app.models
 from app.api.routes import admin
 from app.api.routes.address import router as addresses_router
 from app.api.routes.auth import router as auth_router
