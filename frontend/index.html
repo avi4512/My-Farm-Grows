@@ -136,13 +136,12 @@
     input:focus,select:focus,textarea:focus{outline:none;border-color:#3f7d20;box-shadow:0 0 0 3px rgba(63,125,32,.18);transition:box-shadow .2s,border-color .2s}
     #account-form>:nth-child(2){animation-delay:.07s}#account-form>:nth-child(3){animation-delay:.14s}#account-form>:nth-child(4){animation-delay:.21s}#account-form>:nth-child(5){animation-delay:.28s}#account-form>:nth-child(6){animation-delay:.35s}
     #account-form>div:not(.hidden),#account-form>button,#account-form>p{animation:fadeUp .4s backwards}
-    #account-modal .shake{animation:none!important}
     /* Reserve scrollbar space so the page/modal never jumps left-right when a scrollbar appears or disappears */
     html{scrollbar-gutter:stable;overflow-x:hidden}
     html.modal-open{overflow:hidden}
     #account-modal{scrollbar-gutter:stable;overscroll-behavior:contain}
     #account-modal button:not(:disabled):active{transform:none}
-    #google-signin-button{min-height:40px;overflow:hidden}
+    #google-signin-button{min-height:44px;overflow:hidden}
     #google-signin-button iframe{max-width:100%}
     #admin-menu-panel:not(.hidden)>button,#customer-menu-panel:not(.hidden)>button{animation:fadeUp .3s backwards}
     #admin-menu-panel>button:nth-child(3),#customer-menu-panel>button:nth-child(3){animation-delay:.06s}
@@ -175,10 +174,10 @@
   <header class="bg-white text-stone-800 sticky top-0 z-50 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-[1fr_auto_1fr] items-center gap-2 py-3">
       <div class="flex items-center min-w-0">
-        <button id="mobile-nav-toggle" type="button" onclick="toggleMobileNav()" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-nav" class="xl:hidden inline-flex items-center justify-center w-10 h-10 -ml-2 rounded-lg text-stone-700 hover:bg-stone-100 transition">
+        <button id="mobile-nav-toggle" type="button" onclick="toggleMobileNav()" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-nav" class="lg:hidden inline-flex items-center justify-center w-10 h-10 -ml-2 rounded-lg text-stone-700 hover:bg-stone-100 transition">
           <i data-lucide="menu" class="w-6 h-6"></i>
         </button>
-        <nav class="hidden xl:flex gap-5 text-stone-800 font-medium text-sm whitespace-nowrap">
+        <nav class="hidden lg:flex gap-3 xl:gap-5 text-stone-800 font-medium text-sm whitespace-nowrap">
           <button onclick="navigate('home')" id="nav-home" class="hover:text-brand-700 transition pb-1">Home</button>
           <button onclick="navigate('products')" id="nav-products" class="hover:text-brand-700 transition pb-1">Products</button>
           <button onclick="navigate('about')" id="nav-about" class="hover:text-brand-700 transition pb-1">About</button>
@@ -196,8 +195,8 @@
 
       <!-- Account / Cart -->
       <div class="flex items-center justify-end gap-2 xl:gap-3">
-        <div class="hidden xl:flex items-center gap-3">
-          <button type="button" onclick="openSearch()" class="search-pill"><i data-lucide="search" class="w-4 h-4"></i> Search</button>
+        <div class="hidden lg:flex items-center gap-2 xl:gap-3">
+          <button type="button" onclick="openSearch()" aria-label="Search products" class="search-pill"><i data-lucide="search" class="w-4 h-4"></i><span class="hidden xl:inline">Search</span></button>
           <button onclick="openAccount()" id="account-button" class="border border-stone-300 text-stone-800 font-medium px-4 py-2 rounded-full text-sm hover:bg-stone-100 transition">Login / Register</button>
         </div>
         <!-- Customer-only hamburger menu -->
@@ -245,7 +244,7 @@
         </button>
       </div>
     </div>
-    <div id="mobile-nav" class="hidden xl:hidden border-t border-stone-200 bg-white px-4 sm:px-6 py-1">
+    <div id="mobile-nav" class="hidden lg:hidden border-t border-stone-200 bg-white px-4 sm:px-6 py-1">
       <button onclick="mobileNavGo('home')">Home</button>
       <button onclick="mobileNavGo('products')">Products</button>
       <button onclick="openSearch(); closeMobileNav()">Search</button>
@@ -264,7 +263,6 @@
     <section id="view-home" class="view-panel">
       <!-- Hero Section -->
       <div class="hero">
-        <svg class="absolute w-48 h-48 -left-14 -top-12 text-[#b9d98f] opacity-40 pointer-events-none" viewBox="0 0 120 120" fill="currentColor" aria-hidden="true"><path d="M8 112C4 58 34 14 112 8c2 66-36 106-104 104z"/></svg>
         <div class="hero-grid">
           <div>
             <span class="hero-eyebrow"><i data-lucide="sprout"></i> Andhra Pradesh's farm-fresh store</span>
@@ -281,7 +279,6 @@
             </ul>
           </div>
           <div class="hero-visual" id="hero-visual">
-            <img class="hero-blob" src="/static/images/hero-farm.jpg" alt="Young green crops growing in rows on a farm">
           </div>
         </div>
         <svg class="wave" viewBox="0 0 1440 64" preserveAspectRatio="none" fill="currentColor" aria-hidden="true"><path d="M0 40c180 30 360 30 540 8s360-44 540-30 270 30 360 22v24H0z"/></svg>
@@ -720,28 +717,83 @@
     </section>
 
     <!-- Account modal -->
-    <div id="account-modal" class="hidden fixed inset-0 z-[100] bg-black/50 p-4 overflow-y-auto">
-      <div class="max-w-md mx-auto mt-10 bg-white rounded-2xl p-6 shadow-xl"><div class="flex justify-center -mt-1 mb-2"><svg class="w-14 h-14 logo-float"><use href="#mfg-logo"/></svg></div>
-        <div class="flex justify-between items-center mb-4"><h2 id="account-title" class="text-2xl font-serif font-bold text-brand-800">Login</h2><button onclick="closeAccount()" class="text-2xl" aria-label="Close">&times;</button></div>
-        <div class="flex gap-2 mb-5"><button onclick="setAuthMode('login')" id="login-tab" class="flex-1 rounded-lg p-2 bg-brand-700 text-white">Login</button><button onclick="setAuthMode('register')" id="register-tab" class="flex-1 rounded-lg p-2 bg-stone-100">Register</button></div>
-        <form id="account-form" class="space-y-3">
-          <div id="name-field" class="hidden"><label class="text-sm font-medium">Full name</label><input name="name" class="w-full border rounded-lg p-3" placeholder="Your name"></div>
-          <div id="email-field"><label class="text-sm font-medium">Email</label><input name="email" type="email" required class="w-full border rounded-lg p-3" placeholder="you@example.com"></div>
-          <div id="otp-field" class="hidden"><label class="text-sm font-medium">Six-digit email code</label><input name="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" class="w-full border rounded-lg p-3" placeholder="Enter OTP"></div>
-          <div id="password-field"><label class="text-sm font-medium">Password</label><input name="password" type="password" minlength="8" class="w-full border rounded-lg p-3" placeholder="At least 8 characters"></div>
-          <div id="confirm-password-field" class="hidden"><label class="text-sm font-medium">Confirm password</label><input name="confirm_password" type="password" minlength="8" class="w-full border rounded-lg p-3" placeholder="Re-enter password"></div>
-          <div id="customer-type-field" class="hidden"><label class="text-sm font-medium">Account type</label><select name="customer_type" class="w-full border rounded-lg p-3"><option value="retail">Retail customer</option><option value="wholesale">Wholesale customer</option></select></div>
-          <p id="otp-help" class="hidden text-xs text-stone-500" aria-live="polite"></p>
-          <button type="button" id="resend-otp" onclick="resendAuthOTP()" class="hidden w-full border border-brand-600 text-brand-700 rounded-lg p-2 text-sm">Resend code</button>
-          <button id="account-submit" class="w-full bg-brand-700 text-white rounded-lg p-3 font-semibold">Login</button>
-          <button type="button" id="forgot-password" onclick="startForgotPassword()" class="text-sm text-brand-700 hover:underline">Forgot password?</button>
-          <p id="auth-message" class="text-xs text-stone-500" aria-live="polite">Registration creates a customer account. Admin access is never available through public registration.</p>
-        </form>
-        <div id="google-auth-area" class="mt-4">
-          <div class="flex items-center gap-3 text-xs text-stone-400 my-3"><span class="h-px bg-stone-200 flex-1"></span>OR<span class="h-px bg-stone-200 flex-1"></span></div>
-          <div id="google-signin-button" class="flex justify-center"></div>
+    <div id="account-modal" class="hidden" onmousedown="handleAccountBackdrop(event)">
+      <div class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="account-title">
+        <aside class="auth-aside" aria-hidden="true">
+          <div class="auth-brand"><svg class="w-10 h-10"><use href="#mfg-logo"/></svg><span>My Farm Grow</span></div>
+          <div>
+            <p class="auth-aside-title">Good harvest, <em>good life.</em></p>
+            <ul class="auth-aside-list">
+              <li><i data-lucide="circle-check"></i> No middlemen</li>
+              <li><i data-lucide="circle-check"></i> Delivered fresh daily</li>
+              <li><i data-lucide="circle-check"></i> Quality assured</li>
+            </ul>
+          </div>
+        </aside>
+        <div class="auth-main">
+          <button type="button" onclick="closeAccount()" class="auth-close" aria-label="Close"><i data-lucide="x"></i></button>
+          <div class="auth-brand auth-brand-small"><svg class="w-9 h-9"><use href="#mfg-logo"/></svg><span>My Farm Grow</span></div>
+          <button type="button" id="auth-back" onclick="setAuthMode('login')" class="auth-back hidden"><i data-lucide="arrow-left"></i> Back to login</button>
+          <h2 id="account-title" class="auth-title">Welcome back</h2>
+          <p id="auth-message" class="auth-message" aria-live="polite"></p>
+          <div id="auth-tabs" class="auth-tabs" role="tablist" aria-label="Login or register">
+            <button type="button" onclick="setAuthMode('login')" id="login-tab" role="tab" class="auth-tab" aria-selected="true">Login</button>
+            <button type="button" onclick="setAuthMode('register')" id="register-tab" role="tab" class="auth-tab" aria-selected="false">Register</button>
+          </div>
+          <div id="auth-progress" class="auth-progress hidden" aria-live="polite"></div>
+          <p id="auth-error" class="auth-error hidden" role="alert"></p>
+          <form id="account-form" class="space-y-3">
+            <div id="name-field" class="hidden">
+              <label class="auth-label" for="auth-name">Full name</label>
+              <div class="auth-input"><i data-lucide="user-round"></i><input id="auth-name" name="name" autocomplete="name" placeholder="Your name"></div>
+            </div>
+            <div id="email-field">
+              <label class="auth-label" for="auth-email">Email</label>
+              <div class="auth-input"><i data-lucide="mail"></i><input id="auth-email" name="email" type="email" required autocomplete="email" placeholder="you@example.com"></div>
+            </div>
+            <div id="otp-field" class="hidden">
+              <label class="auth-label" for="auth-otp">Six-digit email code</label>
+              <input id="auth-otp" name="otp" class="auth-otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="000000" oninput="handleOtpInput(this)">
+            </div>
+            <div id="password-field">
+              <div class="auth-label-row">
+                <label id="auth-password-label" class="auth-label" for="auth-password">Password</label>
+                <button type="button" id="forgot-password" onclick="startForgotPassword()" class="auth-link">Forgot password?</button>
+              </div>
+              <div class="auth-input"><i data-lucide="lock-keyhole"></i><input id="auth-password" name="password" type="password" minlength="8" autocomplete="current-password" placeholder="At least 8 characters"><button type="button" class="auth-show" onclick="togglePasswordVisibility(this)" aria-label="Show password" aria-pressed="false">Show</button></div>
+            </div>
+            <div id="confirm-password-field" class="hidden">
+              <label class="auth-label" for="auth-confirm">Confirm password</label>
+              <div class="auth-input"><i data-lucide="lock-keyhole"></i><input id="auth-confirm" name="confirm_password" type="password" minlength="8" autocomplete="new-password" placeholder="Re-enter password"><button type="button" class="auth-show" onclick="togglePasswordVisibility(this)" aria-label="Show password" aria-pressed="false">Show</button></div>
+            </div>
+            <fieldset id="customer-type-field" class="hidden">
+              <legend class="auth-label">Account type</legend>
+              <div class="auth-types">
+                <label class="auth-type"><input type="radio" name="customer_type" value="retail" checked><span><i data-lucide="shopping-basket"></i><b>Retail</b><small>For my home</small></span></label>
+                <label class="auth-type"><input type="radio" name="customer_type" value="wholesale"><span><i data-lucide="store"></i><b>Wholesale</b><small>For my business</small></span></label>
+              </div>
+            </fieldset>
+            <p id="otp-help" class="hidden auth-help" aria-live="polite"></p>
+            <button id="account-submit" class="auth-submit">Login</button>
+            <button type="button" id="resend-otp" onclick="resendAuthOTP()" class="hidden auth-resend">Resend code</button>
+          </form>
+          <div id="google-auth-area">
+            <div class="auth-divider"><span></span>or<span></span></div>
+            <div id="google-signin-button" class="flex justify-center"></div>
+          </div>
+          <div id="account-summary" class="auth-summary hidden">
+            <div class="auth-person">
+              <span id="summary-initial" class="auth-avatar"></span>
+              <div class="min-w-0">
+                <p id="summary-name" class="auth-person-name"></p>
+                <p id="summary-email" class="auth-person-email"></p>
+                <p id="summary-type" class="auth-person-type"></p>
+              </div>
+            </div>
+            <button type="button" id="summary-orders" onclick="closeAccount(); navigate('orders')" class="auth-submit">My orders</button>
+            <button type="button" id="logout-button" onclick="logout()" class="auth-logout">Logout</button>
+          </div>
         </div>
-        <button id="logout-button" onclick="logout()" class="hidden w-full mt-3 border border-red-200 text-red-700 rounded-lg p-3">Logout</button>
       </div>
     </div>
     <div id="toast" class="hidden fixed bottom-5 right-5 z-[120] max-w-md bg-stone-900 text-white px-5 py-3 rounded-xl shadow-lg text-sm"></div>
@@ -978,19 +1030,6 @@
       navigate("products");
       document.getElementById("search-input").focus({preventScroll: true});
     }
-    function openAccount() {
-      document.getElementById("account-modal").classList.remove("hidden"); document.documentElement.classList.add("modal-open");
-      if (currentUser) {
-        document.getElementById("account-title").textContent = "Your account";
-        document.getElementById("account-form").classList.add("hidden");
-        document.getElementById("logout-button").classList.remove("hidden");
-      } else {
-        document.getElementById("account-form").classList.remove("hidden");
-        document.getElementById("logout-button").classList.add("hidden");
-        setAuthMode("login");
-      }
-    }
-    function closeAccount() { document.getElementById("account-modal").classList.add("hidden"); document.documentElement.classList.remove("modal-open"); }
     let authStep = "credentials";
     let forgotStep = "request";
     let authOtpTimer = null;
@@ -999,44 +1038,108 @@
     let authOtpPurpose = "registration";
     let authGoogleClientId = null;
 
+    let accountOpener = null;
     function openAccount() {
+      accountOpener = document.activeElement;
       document.getElementById("account-modal").classList.remove("hidden"); document.documentElement.classList.add("modal-open");
-      if (currentUser) {
-        document.getElementById("account-title").textContent = "Your account";
-        document.getElementById("account-form").classList.add("hidden");
-        document.getElementById("google-auth-area").classList.add("hidden");
-        document.getElementById("logout-button").classList.remove("hidden");
-      } else {
-        document.getElementById("account-form").classList.remove("hidden");
-        document.getElementById("google-auth-area").classList.remove("hidden");
-        document.getElementById("logout-button").classList.add("hidden");
-        setAuthMode("login");
+      if (!currentUser) { setAuthMode("login"); return; }
+      ["account-form", "auth-tabs", "google-auth-area", "auth-back", "auth-progress", "auth-error"].forEach(id => showAuthField(id, false));
+      showAuthField("account-summary", true);
+      const admin = currentUser.role === "admin";
+      document.getElementById("account-title").textContent = "Your account";
+      document.getElementById("auth-message").textContent = "You're logged in and ready to shop.";
+      document.getElementById("summary-initial").textContent = String(currentUser.name || "?").trim().charAt(0).toUpperCase();
+      document.getElementById("summary-name").textContent = currentUser.name || "";
+      document.getElementById("summary-email").textContent = currentUser.email || "";
+      document.getElementById("summary-type").textContent = admin ? "Administrator" : currentUser.customer_type === "wholesale" ? "Wholesale customer" : "Retail customer";
+      showAuthField("summary-orders", !admin);
+    }
+    function closeAccount() {
+      document.getElementById("account-modal").classList.add("hidden");
+      document.documentElement.classList.remove("modal-open");
+      if (authOtpTimer) { clearInterval(authOtpTimer); authOtpTimer = null; }
+      if (accountOpener?.isConnected) accountOpener.focus({preventScroll: true});
+      accountOpener = null;
+    }
+    // A stray click outside must not throw away a registration or reset in progress.
+    function handleAccountBackdrop(event) {
+      if (event.target !== event.currentTarget) return;
+      if (authMode === "forgot" || authStep !== "credentials") return;
+      closeAccount();
+    }
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && !document.getElementById("account-modal").classList.contains("hidden")) closeAccount();
+    });
+    function showAuthError(message) {
+      const box = document.getElementById("auth-error");
+      box.textContent = message;
+      box.classList.toggle("hidden", !message);
+    }
+    function togglePasswordVisibility(button) {
+      const input = button.parentElement.querySelector("input");
+      const show = input.type === "password";
+      input.type = show ? "text" : "password";
+      button.textContent = show ? "Hide" : "Show";
+      button.setAttribute("aria-pressed", String(show));
+      button.setAttribute("aria-label", show ? "Hide password" : "Show password");
+    }
+    function hidePasswords() {
+      document.querySelectorAll("#account-form .auth-show").forEach(button => {
+        if (button.parentElement.querySelector("input").type === "text") togglePasswordVisibility(button);
+      });
+    }
+    function handleOtpInput(input) {
+      input.value = input.value.replace(/\D/g, "").slice(0, 6);
+      if (input.value.length === 6 && !document.getElementById("account-submit").disabled) document.getElementById("account-form").requestSubmit();
+    }
+    const AUTH_STEP_LABELS = {register: ["Your details", "Verify email", "Set password"], forgot: ["Your email", "Enter code", "New password"]};
+    // Shows the right chrome and fields for each step of login, registration and password reset.
+    function setAuthFlowStep(step) {
+      const form = document.getElementById("account-form");
+      const inFlow = step > 1 || authMode === "forgot";
+      showAuthField("auth-tabs", !inFlow);
+      showAuthField("auth-back", inFlow);
+      showAuthField("google-auth-area", !inFlow);
+      showAuthField("email-field", step === 1);
+      showAuthError("");
+      hidePasswords();
+      const progress = document.getElementById("auth-progress");
+      const labels = AUTH_STEP_LABELS[authMode];
+      progress.classList.toggle("hidden", !labels);
+      progress.innerHTML = labels ? labels.map((label, i) => `<span class="${i + 1 < step ? "done" : i + 1 === step ? "current" : ""}"${i + 1 === step ? ' aria-current="step"' : ""}>${label}</span>`).join("") : "";
+      form.elements.otp.value = "";
+      form.elements.password.autocomplete = authMode === "login" ? "current-password" : "new-password";
+      form.elements.password.placeholder = authMode === "login" ? "Enter your password" : "At least 8 characters";
+      document.getElementById("auth-password-label").textContent = authMode === "login" ? "Password" : authMode === "forgot" ? "New password" : "Create password";
+      if (matchMedia("(hover: hover)").matches) {
+        setTimeout(() => form.querySelector("#account-form > div:not(.hidden) input")?.focus(), 60);
       }
     }
-    function closeAccount() { document.getElementById("account-modal").classList.add("hidden"); document.documentElement.classList.remove("modal-open"); }
     function showAuthField(id, show) { document.getElementById(id).classList.toggle("hidden", !show); }
     function setAuthMode(mode) {
       authMode = mode; authStep = "credentials";
-      document.getElementById("account-title").textContent = mode === "login" ? "Login" : "Create account";
+      if (authOtpTimer) { clearInterval(authOtpTimer); authOtpTimer = null; }
+      const form = document.getElementById("account-form");
+      showAuthField("account-summary", false);
+      form.classList.remove("hidden");
+      document.getElementById("account-title").textContent = mode === "login" ? "Welcome back" : "Create your account";
       showAuthField("name-field", mode === "register");
       showAuthField("customer-type-field", mode === "register");
       showAuthField("otp-field", false); showAuthField("confirm-password-field", false);
-      showAuthField("password-field", mode === "login"); showAuthField("confirm-password-field", false);
+      showAuthField("password-field", mode === "login");
       showAuthField("forgot-password", mode === "login");
       showAuthField("resend-otp", false); showAuthField("otp-help", false);
-      document.getElementById("account-form").classList.remove("hidden");
-      document.getElementById("google-auth-area").classList.remove("hidden");
-      document.getElementById("email-field").classList.remove("hidden");
-      document.getElementById("account-form").elements.name.required = mode === "register";
-      document.getElementById("account-form").elements.name.disabled = mode !== "register";
-      document.getElementById("account-form").elements.password.required = mode === "login";
-      document.getElementById("account-form").elements.confirm_password.required = false;
-      document.getElementById("account-form").elements.otp.required = false;
-      document.getElementById("account-submit").textContent = mode === "login" ? "Login" : "Send email verification code";
-      document.getElementById("login-tab").className = mode === "login" ? "flex-1 rounded-lg p-2 bg-brand-700 text-white" : "flex-1 rounded-lg p-2 bg-stone-100";
-      document.getElementById("register-tab").className = mode === "register" ? "flex-1 rounded-lg p-2 bg-brand-700 text-white" : "flex-1 rounded-lg p-2 bg-stone-100";
-      document.getElementById("auth-message").textContent = mode === "register" ? "Verify your email before creating your password. Admin access is never available through public registration." : "Sign in with your email and password or Google.";
-      document.getElementById("google-auth-area").classList.toggle("hidden", false);
+      form.elements.name.required = mode === "register";
+      form.elements.name.disabled = mode !== "register";
+      form.elements.password.required = mode === "login";
+      form.elements.confirm_password.required = false;
+      form.elements.otp.required = false;
+      form.elements.password.value = ""; form.elements.confirm_password.value = "";
+      document.getElementById("account-submit").textContent = mode === "login" ? "Login" : "Send verification code";
+      ["login", "register"].forEach(name => document.getElementById(`${name}-tab`).setAttribute("aria-selected", String(mode === name)));
+      const forCart = window.pendingCartProduct ? "Log in to add this item to your cart." : "Log in to order and track your groceries.";
+      document.getElementById("auth-message").textContent = mode === "register" ? "We'll email you a code to confirm it's really you." : forCart;
+      setAuthFlowStep(1);
       if (window.google?.accounts?.id && authGoogleClientId) renderGoogleButton();
     }
     async function loadMe() {
@@ -1072,8 +1175,9 @@
           : {email};
         const result = await api(path, {method:"POST", body});
         startOtpCountdown(result.resend_after_seconds || 60);
+        showAuthError("");
         notify("A new verification code has been sent.");
-      } catch (error) { notify(error.message); }
+      } catch (error) { showAuthError(error.message); }
     }
     async function startForgotPassword() {
       authMode = "forgot"; forgotStep = "request"; authOtpPurpose = "password_reset";
@@ -1087,13 +1191,14 @@
       showAuthField("resend-otp", false); showAuthField("otp-help", false);
       document.getElementById("account-submit").textContent = "Send reset code";
       document.getElementById("auth-message").textContent = "Enter your registered email address to receive a password reset code.";
-      document.getElementById("google-auth-area").classList.add("hidden");
+      setAuthFlowStep(1);
     }
     async function finishLogin(data) {
       token = data.access_token; localStorage.setItem("mfg_access_token", token);
       currentUser = await api("/api/auth/me");
       try { cart = await api("/api/cart"); updateCartBadge(); } catch {}
       updateAccountButton(); closeAccount();
+      document.getElementById("account-form").reset();
       showWelcome(currentUser);
       if (currentUser.role === "admin") { navigate("admin"); return; }
       if (window.pendingCartProduct) { const id = window.pendingCartProduct; window.pendingCartProduct = null; await addToCart(id); }
@@ -1102,6 +1207,8 @@
       event.preventDefault();
       const formEl = event.currentTarget, f = new FormData(formEl);
       const btn = document.getElementById("account-submit");
+      const submitLabel = btn.textContent;
+      showAuthError("");
       btn.disabled = true; btn.innerHTML = '<span class="mini-spin"></span> Please wait…';
       try {
         const email = String(f.get("email") || "").trim().toLowerCase();
@@ -1121,6 +1228,7 @@
           document.getElementById("account-title").textContent = "Verify your email";
           document.getElementById("account-submit").textContent = "Verify email";
           document.getElementById("auth-message").textContent = `We sent a six-digit code to ${email}.`;
+          setAuthFlowStep(2);
           startOtpCountdown(result.resend_after_seconds || 60); return;
         }
         if (authMode === "register" && authStep === "verify") {
@@ -1132,7 +1240,8 @@
           formEl.elements.password.required = true; formEl.elements.confirm_password.required = true;
           document.getElementById("account-title").textContent = "Create password";
           document.getElementById("account-submit").textContent = "Create account";
-          document.getElementById("auth-message").textContent = "Email verified. Create a password to finish registration."; return;
+          document.getElementById("auth-message").textContent = "Email verified. Create a password to finish registration.";
+          setAuthFlowStep(3); return;
         }
         if (authMode === "register" && authStep === "password") {
           if (f.get("password") !== f.get("confirm_password")) throw new Error("Passwords do not match.");
@@ -1146,6 +1255,7 @@
           formEl.elements.otp.required = true;
           document.getElementById("account-submit").textContent = "Verify code";
           document.getElementById("auth-message").textContent = "If the account exists, a reset code has been sent.";
+          setAuthFlowStep(2);
           startOtpCountdown(result.resend_after_seconds || 60); return;
         }
         if (authMode === "forgot" && forgotStep === "verify") {
@@ -1156,14 +1266,18 @@
           showAuthField("password-field", true); showAuthField("confirm-password-field", true);
           formEl.elements.password.required = true; formEl.elements.confirm_password.required = true;
           document.getElementById("account-submit").textContent = "Update password";
-          document.getElementById("auth-message").textContent = "Choose a new password."; return;
+          document.getElementById("auth-message").textContent = "Choose a new password.";
+          setAuthFlowStep(3); return;
         }
         if (authMode === "forgot" && forgotStep === "reset") {
           if (f.get("password") !== f.get("confirm_password")) throw new Error("Passwords do not match.");
           await api("/api/auth/password/forgot/reset", {method:"POST", body:{email:authOtpEmail, reset_token:authResetToken, new_password:f.get("password")}});
           notify("Password updated. Please log in."); setAuthMode("login"); return;
         }
-      } catch (error) { notify(error.message); shakeEl(document.querySelector("#account-modal > div")); }
+      } catch (error) {
+        btn.textContent = submitLabel;
+        showAuthError(error.message);
+      }
       finally { btn.disabled = false; if (authMode === "login") btn.textContent = "Login"; }
     });
 
@@ -1172,7 +1286,7 @@
         const config = await api("/api/auth/config");
         authGoogleClientId = config.google_client_id;
         if (!authGoogleClientId) {
-          document.getElementById("google-auth-area").innerHTML = '<p class="text-xs text-stone-400 text-center">Google sign-in is not configured yet.</p>';
+          document.getElementById("google-auth-area").innerHTML = '<p class="text-xs text-stone-500 text-center mt-4">Google sign-in is not configured yet.</p>';
           return;
         }
         const waitForGoogle = () => {
@@ -1187,13 +1301,13 @@
       if (!target || !window.google?.accounts?.id || !authGoogleClientId) return;
       if (target.childElementCount) return; // already rendered; re-rendering makes the layout jump
       google.accounts.id.initialize({client_id:authGoogleClientId, callback:handleGoogleCredential});
-      google.accounts.id.renderButton(target, {theme:"outline", size:"medium", shape:"rectangular", text:"continue_with", width:260});
+      google.accounts.id.renderButton(target, {theme:"outline", size:"large", shape:"pill", text:"continue_with", width:Math.min(320, innerWidth - 115)});
     }
     async function handleGoogleCredential(response) {
       try {
         const result = await api("/api/auth/google", {method:"POST", body:{credential:response.credential}});
         await finishLogin(result); notify("Signed in with Google.");
-      } catch (error) { notify(error.message); }
+      } catch (error) { showAuthError(error.message); }
     }
     initializeGoogleSignIn();
 
