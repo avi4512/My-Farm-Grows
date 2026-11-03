@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500&family=Nunito+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="stylesheet" href="css/style.css" />
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons CDN -->
@@ -325,21 +325,21 @@
       <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-14">
         <div class="grid md:grid-cols-3 gap-5">
           <div class="promo-card" data-promo="Oils">
-            <img src="/static/images/promo-oils.jpg" alt="" loading="lazy">
+            <img src="images/promo-oils.jpg" alt="" loading="lazy">
             <div class="promo-body">
               <h3>Every dish,<br>the right oil</h3>
               <button onclick="filterCategory('Oils')">Shop oils</button>
             </div>
           </div>
           <div class="promo-card" data-promo="Spices">
-            <img src="/static/images/promo-spices.jpg" alt="" loading="lazy">
+            <img src="images/promo-spices.jpg" alt="" loading="lazy">
             <div class="promo-body">
               <h3>Bold spices,<br>full flavour</h3>
               <button onclick="filterCategory('Spices')">Shop spices</button>
             </div>
           </div>
           <div class="promo-card" data-promo="Rice">
-            <img src="/static/images/promo-rice.jpg" alt="" loading="lazy">
+            <img src="images/promo-rice.jpg" alt="" loading="lazy">
             <div class="promo-body">
               <h3>Daily rice,<br>done right</h3>
               <button onclick="filterCategory('Rice')">Shop rice</button>
@@ -978,6 +978,7 @@
         headers["Content-Type"] = "application/json";
         options.body = JSON.stringify(options.body);
       }
+      if (window.location.protocol === "file:") throw new Error("this page was opened as a file. Start the server and open its address instead.");
       if (token) headers.Authorization = `Bearer ${token}`;
       const response = await fetch(`${API_BASE}${path}`, {...options, headers});
       if (response.status === 204) return null;
@@ -1452,28 +1453,28 @@
     function handleSearch() { clearTimeout(searchTimer); searchTimer = setTimeout(renderProducts, 250); }
     // Product image paths served by FastAPI from frontend/images/.
     // Windows path example: D:\\Project\\frontend\\images\\basmati-rice.jpg
-    // Browser URL for that file: /static/images/basmati-rice.jpg
+    // Browser URL for that file: images/basmati-rice.jpg
     function getProductImage(product) {
       const name = String(product.name || "").toLowerCase();
-      if (name.includes("sona masoori") || name.includes("sonamasuri")) return "/static/images/sona-masoori-rice.jpg";
-      if (name.includes("basmati")) return "/static/images/basmati-rice.jpg";
-      if (name.includes("rice")) return "/static/images/basmati-rice.jpg";
-      if (name.includes("toor dal")) return "/static/images/toor-dal.jpg";
-      if (name.includes("red chilli") || name.includes("red chili") || name.includes("chilli powder") || name.includes("chili powder") || name.includes("mirchi powder")) return "/static/images/red-mirchi.jpg";
-      if (name.includes("masoor dal")) return "/static/images/masoor-dal.jpg";
-      if (name.includes("moong dal")) return "/static/images/moong-dal.jpg";
-      if (name.includes("mirchi") || name.includes("chilli")) return "/static/images/red-mirchi.jpg";
-      if (name.includes("turmeric")) return "/static/images/turmeric.jpg";
-      if (name.includes("ghee")) return "/static/images/desi-ghee.jpg";
-      if (name.includes("sunflower oil")) return "/static/images/sunflower-oil.jpg";
-      if (name.includes("whole green gram") || name.includes("green gram") || name.includes("mung bean")) return "/static/images/whole-green-gram.jpg";
-      if (name.includes("groundnut oil")) return "/static/images/groundnut-oil.jpg";
-      if (name.includes("sesame oil")) return "/static/images/sesame-oil.jpg";
-      if (name.includes("jaggery")) return "/static/images/jaggery.jpg";
-      if (name.includes("sugar")) return "/static/images/sugar.jpg";
-      if (name.includes("wheat flour")) return "/static/images/wheat-flour.jpg";
-      if (name.includes("ragi flour")) return "/static/images/ragi-flour.jpg";
-      if (name.includes("spice")) return "/static/images/spices.jpg";
+      if (name.includes("sona masoori") || name.includes("sonamasuri")) return "images/sona-masoori-rice.jpg";
+      if (name.includes("basmati")) return "images/basmati-rice.jpg";
+      if (name.includes("rice")) return "images/basmati-rice.jpg";
+      if (name.includes("toor dal")) return "images/toor-dal.jpg";
+      if (name.includes("red chilli") || name.includes("red chili") || name.includes("chilli powder") || name.includes("chili powder") || name.includes("mirchi powder")) return "images/red-mirchi.jpg";
+      if (name.includes("masoor dal")) return "images/masoor-dal.jpg";
+      if (name.includes("moong dal")) return "images/moong-dal.jpg";
+      if (name.includes("mirchi") || name.includes("chilli")) return "images/red-mirchi.jpg";
+      if (name.includes("turmeric")) return "images/turmeric.jpg";
+      if (name.includes("ghee")) return "images/desi-ghee.jpg";
+      if (name.includes("sunflower oil")) return "images/sunflower-oil.jpg";
+      if (name.includes("whole green gram") || name.includes("green gram") || name.includes("mung bean")) return "images/whole-green-gram.jpg";
+      if (name.includes("groundnut oil")) return "images/groundnut-oil.jpg";
+      if (name.includes("sesame oil")) return "images/sesame-oil.jpg";
+      if (name.includes("jaggery")) return "images/jaggery.jpg";
+      if (name.includes("sugar")) return "images/sugar.jpg";
+      if (name.includes("wheat flour")) return "images/wheat-flour.jpg";
+      if (name.includes("ragi flour")) return "images/ragi-flour.jpg";
+      if (name.includes("spice")) return "images/spices.jpg";
       return product.image_url || "";
     }
 

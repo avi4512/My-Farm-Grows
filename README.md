@@ -43,6 +43,11 @@ Online grocery ordering platform for retail and wholesale customers
    uv run uvicorn app.main:app --reload
    ```
 
+6. To open the site on a phone on the same Wi-Fi, run the backend with
+   `--host 0.0.0.0` and open `http://<your-computer-ip>:8000/` on the phone
+   (`ipconfig` shows the IP). Opening `frontend/index.html` as a file shows the
+   layout only: products, login, and cart need the server.
+
 ## Browser storefront integration
 
 The storefront is served by FastAPI at `http://127.0.0.1:8000/`. The interactive

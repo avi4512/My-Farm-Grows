@@ -36,7 +36,7 @@ body { background: var(--paper); color: var(--ink); }
 #mobile-nav button.hidden { display: none; }
 
 /* Hero: the farm photo runs edge to edge, with text on a darkened left side */
-.hero { position: relative; overflow: hidden; background: linear-gradient(90deg, rgba(18, 44, 16, .84), rgba(18, 44, 16, .6) 45%, rgba(18, 44, 16, .08) 82%), url('/static/images/hero-farm.jpg') center / cover no-repeat; }
+.hero { position: relative; overflow: hidden; background: linear-gradient(90deg, rgba(18, 44, 16, .84), rgba(18, 44, 16, .6) 45%, rgba(18, 44, 16, .08) 82%), url('../images/hero-farm.jpg') center / cover no-repeat; }
 .hero-grid { position: relative; display: grid; gap: 2rem; align-items: center; max-width: 80rem; margin: 0 auto; padding: 2.5rem 1rem 5.5rem; }
 .hero-eyebrow { display: inline-flex; align-items: center; gap: .4rem; padding: .35rem .8rem; border-radius: 999px; background: rgba(255, 255, 255, .92); color: var(--leaf-700); font-size: .8125rem; font-weight: 700; }
 .hero-eyebrow svg { width: 1rem; height: 1rem; }
@@ -73,7 +73,7 @@ body { background: var(--paper); color: var(--ink); }
   .hero-grid { padding-left: 1.5rem; padding-right: 1.5rem; }
 }
 @media (max-width: 1023px) {
-  .hero { background: linear-gradient(rgba(18, 44, 16, .72), rgba(18, 44, 16, .6)), url('/static/images/hero-farm.jpg') center / cover no-repeat; }
+  .hero { background: linear-gradient(rgba(18, 44, 16, .72), rgba(18, 44, 16, .6)), url('../images/hero-farm.jpg') center / cover no-repeat; }
 }
 
 /* Delivery ribbon */
@@ -161,12 +161,22 @@ body { background: var(--paper); color: var(--ink); }
   .hero-chip img { width: 2.25rem; height: 2.25rem; }
 }
 
+/* Very small phones: the logged-in header has one more button than fits around a centered logo */
+@media (max-width: 359px) {
+  header > div.grid { grid-template-columns: auto 1fr auto; gap: .25rem; }
+  #mobile-nav-toggle { flex: none; }
+  .logo-link { gap: .25rem; min-width: 0; }
+  .logo-link svg { width: 1.75rem; height: 1.75rem; }
+  .logo-link span { font-size: 1rem; }
+  #customer-menu-panel, #admin-menu-panel { position: fixed; top: 3.75rem; left: .5rem; right: .5rem; width: auto; }
+}
+
 /* Login and account dialog */
 #account-modal { position: fixed; inset: 0; z-index: 100; padding: 1rem; overflow-y: auto; background: rgba(23, 45, 20, .62); backdrop-filter: blur(4px); }
 #account-modal:not(.hidden) { display: flex; }
 .auth-dialog { display: flex; width: 100%; max-width: 27rem; margin: auto; overflow: hidden; border-radius: 1.5rem; background: #fff; box-shadow: 0 30px 70px -30px rgba(0, 0, 0, .7); }
 .auth-dialog .hidden { display: none !important; }
-.auth-aside { display: none; flex: 0 0 44%; flex-direction: column; justify-content: space-between; gap: 2rem; padding: 2rem; background: linear-gradient(rgba(18, 44, 16, .35), rgba(18, 44, 16, .86)), url('/static/images/hero-farm.jpg') center / cover no-repeat; color: #fff; }
+.auth-aside { display: none; flex: 0 0 44%; flex-direction: column; justify-content: space-between; gap: 2rem; padding: 2rem; background: linear-gradient(rgba(18, 44, 16, .35), rgba(18, 44, 16, .86)), url('../images/hero-farm.jpg') center / cover no-repeat; color: #fff; }
 .auth-brand { display: flex; align-items: center; gap: .5rem; font-family: var(--display); font-size: 1.25rem; font-weight: 600; }
 .auth-aside-title { font-family: var(--display); font-size: 2.25rem; font-weight: 600; line-height: 1.08; letter-spacing: -.02em; }
 .auth-aside-title em { display: block; color: var(--lime); font-weight: 500; }
