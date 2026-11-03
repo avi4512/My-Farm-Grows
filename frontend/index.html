@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Farm Grows - Farm-Fresh Groceries Delivered</title>
+  <title>My Farm Grow - Farm-Fresh Groceries Delivered</title>
   
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500&family=Nunito+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons CDN -->
@@ -18,14 +22,18 @@
         extend: {
           colors: {
             brand: {
-              50: '#f2f8f4',
-              100: '#e1efe6',
-              600: '#2d6a4f',
-              700: '#1b4332',
-              800: '#143626',
-              gold: '#d4a373',
-              accent: '#e9c46a'
+              50: '#f4f9ea',
+              100: '#e6f3d3',
+              600: '#3f7d20',
+              700: '#2f641b',
+              800: '#1f4420',
+              gold: '#a8763e',
+              accent: '#cfe88a'
             }
+          },
+          fontFamily: {
+            sans: ['Nunito Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            serif: ['Fraunces', 'Georgia', 'serif']
           }
         }
       }
@@ -43,9 +51,9 @@
     @keyframes shimmer{to{background-position:-200% 0}}
     @keyframes spin{to{transform:rotate(360deg)}}
     @keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.55)}100%{transform:scale(1)}}
-    @keyframes flash{from{background:#e1efe6}to{background:transparent}}
+    @keyframes flash{from{background:#e6f3d3}to{background:transparent}}
     @keyframes checkPop{0%{transform:scale(0) rotate(-25deg)}60%{transform:scale(1.18) rotate(6deg)}100%{transform:scale(1)}}
-    @keyframes ring{0%{box-shadow:0 0 0 0 rgba(45,106,79,.45)}100%{box-shadow:0 0 0 18px rgba(45,106,79,0)}}
+    @keyframes ring{0%{box-shadow:0 0 0 0 rgba(63,125,32,.45)}100%{box-shadow:0 0 0 18px rgba(63,125,32,0)}}
     @keyframes fall{0%{transform:translate(0,-8vh) rotate(0);opacity:1}100%{transform:translate(var(--dx),105vh) rotate(var(--rot));opacity:.9}}
     @keyframes stepIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
     .view-panel:not(.hidden){animation:viewIn .3s ease-out}
@@ -57,9 +65,9 @@
     #customer-menu-panel:not(.hidden),#admin-menu-panel:not(.hidden){animation:dropIn .18s ease-out}
     .toast-in{animation:toastIn .35s cubic-bezier(.2,.9,.3,1.2)}
     .skel{background:linear-gradient(90deg,#eceae4 25%,#f7f5f0 40%,#eceae4 60%);background-size:200% 100%;animation:shimmer 1.2s linear infinite}
-    .fly-dot{position:fixed;width:20px;height:20px;border-radius:50%;background:#e9c46a;box-shadow:0 0 0 4px rgba(233,196,106,.35);z-index:300;pointer-events:none;transition:transform .75s cubic-bezier(.5,0,.75,.4),opacity .75s}
+    .fly-dot{position:fixed;width:20px;height:20px;border-radius:50%;background:#cfe88a;box-shadow:0 0 0 4px rgba(207,232,138,.35);z-index:300;pointer-events:none;transition:transform .75s cubic-bezier(.5,0,.75,.4),opacity .75s}
     .mini-spin{display:inline-block;width:11px;height:11px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-1px}
-    .btn-done{background:#2d6a4f!important;color:#fff!important;border-color:#2d6a4f!important}
+    .btn-done{background:#3f7d20!important;color:#fff!important;border-color:#3f7d20!important}
     .badge-bump{animation:bump .45s}
     .cart-row{transition:opacity .3s,transform .3s,max-height .3s;max-height:220px}
     .row-out{opacity:0;transform:translateX(40px);max-height:0;padding-top:0!important;padding-bottom:0!important;overflow:hidden}
@@ -73,19 +81,19 @@
     #tracking-container .flex.items-start.w-full>div:nth-child(4){animation-delay:.45s}
     #tracking-container .flex.items-start.w-full>div:nth-child(5){animation-delay:.6s}
     #tracking-container.no-anim *{animation:none!important}
-    #order-overlay{position:fixed;inset:0;z-index:150;display:none;align-items:center;justify-content:center;background:rgba(20,54,38,.72);backdrop-filter:blur(4px)}
+    #order-overlay{position:fixed;inset:0;z-index:150;display:none;align-items:center;justify-content:center;background:rgba(31,68,32,.72);backdrop-filter:blur(4px)}
     #order-overlay.show{display:flex;animation:fadeIn .25s}
     .ov-card{background:#fff;border-radius:20px;padding:28px 32px;width:min(92vw,360px);text-align:center;animation:popIn .35s cubic-bezier(.2,.8,.3,1)}
-    .ov-spinner{width:54px;height:54px;margin:0 auto 14px;border-radius:50%;border:5px solid #e1efe6;border-top-color:#2d6a4f;animation:spin .9s linear infinite}
-    .ov-card.ok .ov-spinner{animation:checkPop .5s;border-color:#2d6a4f;background:#2d6a4f;text-align:center;color:#fff;font-size:28px;line-height:44px;font-weight:700}
-    .ov-card h3{font:700 20px Georgia,serif;color:#143626;margin-bottom:12px}
+    .ov-spinner{width:54px;height:54px;margin:0 auto 14px;border-radius:50%;border:5px solid #e6f3d3;border-top-color:#3f7d20;animation:spin .9s linear infinite}
+    .ov-card.ok .ov-spinner{animation:checkPop .5s;border-color:#3f7d20;background:#3f7d20;text-align:center;color:#fff;font-size:28px;line-height:44px;font-weight:700}
+    .ov-card h3{font:400 22px Fraunces,Georgia,serif;color:#1f4420;margin-bottom:12px}
     #ov-steps{list-style:none;padding:0;margin:0;text-align:left;font-size:14px;color:#a8a29e}
     #ov-steps li{padding:6px 0 6px 26px;position:relative;transition:color .3s}
     #ov-steps li::before{content:"";position:absolute;left:2px;top:10px;width:12px;height:12px;border-radius:50%;border:2px solid #d6d3d1;transition:.3s}
-    #ov-steps li.active{color:#1b4332;font-weight:600}
-    #ov-steps li.active::before{border-color:#2d6a4f;animation:ring 1s infinite}
-    #ov-steps li.done{color:#2d6a4f}
-    #ov-steps li.done::before{background:#2d6a4f;border-color:#2d6a4f}
+    #ov-steps li.active{color:#2f641b;font-weight:600}
+    #ov-steps li.active::before{border-color:#3f7d20;animation:ring 1s infinite}
+    #ov-steps li.done{color:#3f7d20}
+    #ov-steps li.done::before{background:#3f7d20;border-color:#3f7d20}
     .confetti-wrap{position:fixed;inset:0;z-index:300;pointer-events:none;overflow:hidden}
     .confetti-wrap i{position:absolute;top:0;width:9px;height:14px;border-radius:2px;animation:fall linear forwards}
     @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.confetti-wrap{display:none}}
@@ -103,21 +111,20 @@
     .logo-link:hover svg{animation:sway .7s}
     header{transition:background-color .3s,box-shadow .3s}
     header>div{transition:padding .25s}
-    header.scrolled{background:rgba(27,67,50,.93);backdrop-filter:blur(8px);box-shadow:0 8px 24px -10px rgba(0,0,0,.45)}
-    header.scrolled>div{padding-top:.35rem;padding-bottom:.35rem}
+    header.scrolled{background:rgba(255,255,255,.95);backdrop-filter:blur(8px);box-shadow:0 8px 24px -14px rgba(0,0,0,.35)}
     header nav button{position:relative}
-    header nav button::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:2px;background:#e9c46a;transform:scaleX(0);transform-origin:left;transition:transform .25s}
+    header nav button::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:2px;background:#3f7d20;transform:scaleX(0);transform-origin:left;transition:transform .25s}
     header nav button:hover::after,header nav button.nav-active::after{transform:scaleX(1)}
-    header nav button.nav-active{color:#fff}
-    #scroll-bar{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,#e9c46a,#52b788);z-index:200}
-    #to-top{position:fixed;left:16px;bottom:20px;z-index:90;width:44px;height:44px;border-radius:50%;background:#1b4332;color:#fff;font-size:20px;box-shadow:0 8px 20px -6px rgba(0,0,0,.4);opacity:0;transform:translateY(20px);pointer-events:none;transition:opacity .3s,transform .3s}
+    header nav button.nav-active{color:#2f641b;font-weight:600}
+    #scroll-bar{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,#cfe88a,#72bf4b);z-index:200}
+    #to-top{position:fixed;left:16px;bottom:20px;z-index:90;width:44px;height:44px;border-radius:50%;background:#2f641b;color:#fff;font-size:20px;box-shadow:0 8px 20px -6px rgba(0,0,0,.4);opacity:0;transform:translateY(20px);pointer-events:none;transition:opacity .3s,transform .3s}
     #to-top.show{opacity:1;transform:none;pointer-events:auto}
-    #to-top:hover{background:#2d6a4f}
-    #splash{position:fixed;inset:0;z-index:400;background:#143626;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#fff;font:700 26px Georgia,serif;transition:opacity .5s,visibility .5s}
+    #to-top:hover{background:#3f7d20}
+    #splash{position:fixed;inset:0;z-index:400;background:#1f4420;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#fff;font:400 28px Fraunces,Georgia,serif;transition:opacity .5s,visibility .5s}
     #splash.out{opacity:0;visibility:hidden}
-    #view-home>div:first-child::before{content:"";position:absolute;inset:0;background:radial-gradient(420px circle at var(--hx,50%) var(--hy,40%),rgba(233,196,106,.17),transparent 60%);pointer-events:none}
+    #view-home>div:first-child::before{content:"";position:absolute;inset:0;background:radial-gradient(420px circle at var(--hx,50%) var(--hy,40%),rgba(207,232,138,.17),transparent 60%);pointer-events:none}
     .card-fx{transition:transform .2s ease-out,box-shadow .25s;will-change:transform}
-    .card-fx:hover{box-shadow:0 18px 30px -14px rgba(20,54,38,.35)}
+    .card-fx:hover{box-shadow:0 18px 30px -14px rgba(31,68,32,.35)}
     .card-fx img{transition:transform .5s}
     .card-fx:hover img{transform:scale(1.08)}
     [data-reveal]{opacity:0;transform:translateY(26px);transition-property:opacity,transform;transition-duration:.7s;transition-timing-function:ease-out}
@@ -126,33 +133,32 @@
     button.bg-brand-accent::after{content:"";position:absolute;top:0;left:-70%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-20deg);transition:left .6s}
     button.bg-brand-accent:hover::after{left:130%}
     .ripple{position:absolute;border-radius:50%;background:currentColor;opacity:.22;transform:scale(0);animation:ripple .6s ease-out forwards;pointer-events:none}
-    input:focus,select:focus,textarea:focus{outline:none;border-color:#2d6a4f;box-shadow:0 0 0 3px rgba(45,106,79,.18);transition:box-shadow .2s,border-color .2s}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:#3f7d20;box-shadow:0 0 0 3px rgba(63,125,32,.18);transition:box-shadow .2s,border-color .2s}
     #account-form>:nth-child(2){animation-delay:.07s}#account-form>:nth-child(3){animation-delay:.14s}#account-form>:nth-child(4){animation-delay:.21s}#account-form>:nth-child(5){animation-delay:.28s}#account-form>:nth-child(6){animation-delay:.35s}
     #account-form>div:not(.hidden),#account-form>button,#account-form>p{animation:fadeUp .4s backwards}
-    #account-modal .shake{animation:none!important}
     /* Reserve scrollbar space so the page/modal never jumps left-right when a scrollbar appears or disappears */
     html{scrollbar-gutter:stable;overflow-x:hidden}
     html.modal-open{overflow:hidden}
     #account-modal{scrollbar-gutter:stable;overscroll-behavior:contain}
     #account-modal button:not(:disabled):active{transform:none}
-    #google-signin-button{min-height:40px;overflow:hidden}
+    #google-signin-button{min-height:44px;overflow:hidden}
     #google-signin-button iframe{max-width:100%}
     #admin-menu-panel:not(.hidden)>button,#customer-menu-panel:not(.hidden)>button{animation:fadeUp .3s backwards}
     #admin-menu-panel>button:nth-child(3),#customer-menu-panel>button:nth-child(3){animation-delay:.06s}
     #admin-menu-panel>button:nth-child(4),#customer-menu-panel>button:nth-child(4){animation-delay:.09s}
     #admin-menu-panel>button:nth-child(5),#customer-menu-panel>button:nth-child(5){animation-delay:.12s}
     #admin-menu-panel>button:nth-child(6),#customer-menu-panel>button:nth-child(6){animation-delay:.15s}
-    #admin-menu-panel>button:hover,#customer-menu-panel>button:hover{padding-left:1.25rem;background:#f2f8f4}
+    #admin-menu-panel>button:hover,#customer-menu-panel>button:hover{padding-left:1.25rem;background:#f4f9ea}
     #admin-menu-panel>button,#customer-menu-panel>button{transition:padding .2s,background-color .2s}
     #admin-inventory-movements tbody tr,#admin-inventory-products>div{transition:background-color .2s}
-    #admin-inventory-movements tbody tr:hover,#admin-inventory-products>div:hover{background:#f2f8f4}
+    #admin-inventory-movements tbody tr:hover,#admin-inventory-products>div:hover{background:#f4f9ea}
     #pop-stack{position:fixed;top:78px;right:14px;z-index:140;display:flex;flex-direction:column;gap:10px;width:min(92vw,340px)}
-    .pop{position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e7e5e4;border-left:4px solid #2d6a4f;border-radius:14px;padding:10px 12px;box-shadow:0 14px 30px -12px rgba(20,54,38,.35);animation:popSlide .45s cubic-bezier(.2,1.2,.3,1)}
+    .pop{position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e7e5e4;border-left:4px solid #3f7d20;border-radius:14px;padding:10px 12px;box-shadow:0 14px 30px -12px rgba(31,68,32,.35);animation:popSlide .45s cubic-bezier(.2,1.2,.3,1)}
     .pop.out{opacity:0;transform:translateX(30px);transition:.3s}
     .pop img{width:46px;height:46px;border-radius:10px;object-fit:cover;flex-shrink:0}
-    .pop-ic{width:34px;height:34px;border-radius:50%;background:#e1efe6;color:#2d6a4f;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
-    .pop-act{font-size:12px;font-weight:600;color:#1b4332;background:#e9c46a;border-radius:8px;padding:6px 10px;flex-shrink:0}
-    .pop-bar{position:absolute;left:0;bottom:0;height:3px;width:100%;background:#e9c46a;transform-origin:left;animation:shrink linear forwards}
+    .pop-ic{width:34px;height:34px;border-radius:50%;background:#e6f3d3;color:#3f7d20;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+    .pop-act{font-size:12px;font-weight:600;color:#2f641b;background:#cfe88a;border-radius:8px;padding:6px 10px;flex-shrink:0}
+    .pop-bar{position:absolute;left:0;bottom:0;height:3px;width:100%;background:#cfe88a;transform-origin:left;animation:shrink linear forwards}
   </style>
 
   <style>
@@ -162,36 +168,40 @@
     header button:hover .cart-ico,.cart-ico.cart-wig{animation:cartWig .6s}
   </style>
 </head>
-<body class="bg-[#faf8f5] text-stone-800 font-sans flex flex-col min-h-screen"><svg style="position:absolute;width:0;height:0" aria-hidden="true"><symbol id="mfg-logo" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#e9c46a"/><path d="M24 38V22" stroke="#1b4332" stroke-width="3" stroke-linecap="round"/><path d="M24 24c0-7 5-11 12-11 0 7-5 11-12 11z" fill="#2d6a4f"/><path d="M24 29c0-6-4-9-10-9 0 6 4 9 10 9z" fill="#1b4332"/><path d="M15 38h18" stroke="#1b4332" stroke-width="3" stroke-linecap="round"/></symbol></svg>
+<body class="text-stone-800 font-sans flex flex-col min-h-screen"><svg style="position:absolute;width:0;height:0" aria-hidden="true"><symbol id="mfg-logo" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#e9c46a"/><path d="M24 38V22" stroke="#1b4332" stroke-width="3" stroke-linecap="round"/><path d="M24 24c0-7 5-11 12-11 0 7-5 11-12 11z" fill="#2d6a4f"/><path d="M24 29c0-6-4-9-10-9 0 6 4 9 10 9z" fill="#1b4332"/><path d="M15 38h18" stroke="#1b4332" stroke-width="3" stroke-linecap="round"/></symbol></svg>
 
   <!-- Header / Navigation -->
-  <header class="bg-brand-700 text-white sticky top-0 z-50 shadow-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between py-3">
-      <!-- Logo -->
-      <div class="logo-link flex items-center space-x-2 cursor-pointer" onclick="navigate('home')">
-        <svg class="w-10 h-10 flex-shrink-0"><use href="#mfg-logo"/></svg>
-        <span class="text-2xl font-serif font-bold tracking-tight text-white">My Farm Grows</span>
+  <header class="bg-white text-stone-800 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-[1fr_auto_1fr] items-center gap-2 py-3">
+      <div class="flex items-center min-w-0">
+        <button id="mobile-nav-toggle" type="button" onclick="toggleMobileNav()" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-nav" class="lg:hidden inline-flex items-center justify-center w-10 h-10 -ml-2 rounded-lg text-stone-700 hover:bg-stone-100 transition">
+          <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+        <nav class="hidden lg:flex gap-3 xl:gap-5 text-stone-800 font-medium text-sm whitespace-nowrap">
+          <button onclick="navigate('home')" id="nav-home" class="hover:text-brand-700 transition pb-1">Home</button>
+          <button onclick="navigate('products')" id="nav-products" class="hover:text-brand-700 transition pb-1">Products</button>
+          <button onclick="navigate('about')" id="nav-about" class="hover:text-brand-700 transition pb-1">About</button>
+          <button onclick="navigate('contact')" id="nav-contact" class="hover:text-brand-700 transition pb-1">Contact</button>
+          <button onclick="navigate('orders')" id="nav-orders" class="hover:text-brand-700 transition pb-1">My Orders</button>
+          <button onclick="navigate('admin')" id="nav-admin" class="hidden hover:text-brand-700 transition pb-1">Admin</button>
+        </nav>
       </div>
 
-      <!-- Center Links -->
-      <nav class="hidden md:flex space-x-8 text-stone-200 font-medium text-sm">
-        <button onclick="navigate('home')" id="nav-home" class="hover:text-white transition pb-1 border-b-2 border-transparent">Home</button>
-        <button onclick="navigate('products')" id="nav-products" class="hover:text-white transition pb-1 border-b-2 border-transparent">Products</button>
-        <button onclick="navigate('about')" id="nav-about" class="hover:text-white transition pb-1 border-b-2 border-transparent">About</button>
-        <button onclick="navigate('contact')" id="nav-contact" class="hover:text-white transition pb-1 border-b-2 border-transparent">Contact</button>
-        <button onclick="navigate('orders')" id="nav-orders" class="hover:text-white transition pb-1 border-b-2 border-transparent">My Orders</button>
-        <button onclick="navigate('admin')" id="nav-admin" class="hidden hover:text-white transition pb-1 border-b-2 border-transparent">Admin Dashboard</button>
-      </nav>
+      <!-- Logo -->
+      <div class="logo-link flex items-center gap-2 cursor-pointer" onclick="navigate('home')">
+        <svg class="w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0"><use href="#mfg-logo"/></svg>
+        <span class="text-xl sm:text-2xl font-serif text-brand-800 whitespace-nowrap">My Farm Grow</span>
+      </div>
 
-      <!-- Cart / CTA -->
-      <div class="flex items-center space-x-4">
-        <button onclick="openAccount()" id="account-button" class="hidden sm:inline-flex items-center bg-white/10 border border-white/20 text-white font-semibold px-4 py-2 rounded-full text-sm hover:bg-white/20 transition">Login / Register</button>
-        <button id="customer-order-now" onclick="navigate('products')" class="hidden sm:inline-flex items-center bg-brand-accent text-brand-800 font-semibold px-4 py-2 rounded-full text-sm shadow hover:bg-yellow-400 transition">
-          Order Now
-        </button>
+      <!-- Account / Cart -->
+      <div class="flex items-center justify-end gap-2 xl:gap-3">
+        <div class="hidden lg:flex items-center gap-2 xl:gap-3">
+          <button type="button" onclick="openSearch()" aria-label="Search products" class="search-pill"><i data-lucide="search" class="w-4 h-4"></i><span class="hidden xl:inline">Search</span></button>
+          <button onclick="openAccount()" id="account-button" class="border border-stone-300 text-stone-800 font-medium px-4 py-2 rounded-full text-sm hover:bg-stone-100 transition">Login / Register</button>
+        </div>
         <!-- Customer-only hamburger menu -->
         <div id="customer-menu-wrap" class="relative hidden">
-          <button id="customer-menu-toggle" type="button" onclick="toggleCustomerMenu()" aria-label="Open customer menu" aria-expanded="false" class="inline-flex items-center justify-center w-11 h-11 rounded-lg border border-white/25 text-white hover:bg-white/10 transition">
+          <button id="customer-menu-toggle" type="button" onclick="toggleCustomerMenu()" aria-label="Open customer menu" aria-expanded="false" class="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-stone-300 text-stone-700 hover:bg-stone-100 transition">
             <i data-lucide="menu" class="w-6 h-6"></i>
           </button>
           <div id="customer-menu-panel" class="hidden absolute right-0 top-14 w-72 rounded-xl bg-white text-stone-800 shadow-xl border border-stone-200 overflow-hidden z-[80]">
@@ -211,7 +221,7 @@
         </div>
         <!-- Admin-only hamburger menu -->
         <div id="admin-menu-wrap" class="relative hidden">
-          <button id="admin-menu-toggle" type="button" onclick="toggleAdminMenu()" aria-label="Open admin menu" aria-expanded="false" class="inline-flex items-center justify-center w-11 h-11 rounded-lg border border-white/25 text-white hover:bg-white/10 transition">
+          <button id="admin-menu-toggle" type="button" onclick="toggleAdminMenu()" aria-label="Open admin menu" aria-expanded="false" class="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-stone-300 text-stone-700 hover:bg-stone-100 transition">
             <i data-lucide="menu" class="w-6 h-6"></i>
           </button>
           <div id="admin-menu-panel" class="hidden absolute right-0 top-14 w-64 rounded-xl bg-white text-stone-800 shadow-xl border border-stone-200 overflow-hidden z-[80]">
@@ -228,11 +238,21 @@
             <div class="border-t border-stone-200 px-4 py-3 text-xs text-stone-500">More admin tools can be added here later.</div>
           </div>
         </div>
-        <button onclick="navigate('cart')" class="relative p-2 text-stone-200 hover:text-white transition">
+        <button onclick="navigate('cart')" aria-label="View cart" class="relative p-2 text-stone-700 hover:text-brand-700 transition">
           <svg class="cart-ico w-7 h-7" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 13c0-5 3-8 7-8s7 3 7 8"/><path d="M4 13h24l-2.5 12.5a2 2 0 0 1-2 1.5h-15a2 2 0 0 1-2-1.5z"/><path d="M11 13l1 14M16 13v14M21 13l-1 14" opacity=".55"/><path d="M16 5c0-2 2-3 4-3 0 2-2 3-4 3z" fill="currentColor"/></svg>
-          <span id="cart-badge" class="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">0</span>
+          <span id="cart-badge" class="absolute -top-1 -right-1 bg-[#b5521f] text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">0</span>
         </button>
       </div>
+    </div>
+    <div id="mobile-nav" class="hidden lg:hidden border-t border-stone-200 bg-white px-4 sm:px-6 py-1">
+      <button onclick="mobileNavGo('home')">Home</button>
+      <button onclick="mobileNavGo('products')">Products</button>
+      <button onclick="openSearch(); closeMobileNav()">Search</button>
+      <button onclick="mobileNavGo('about')">About</button>
+      <button onclick="mobileNavGo('contact')">Contact</button>
+      <button onclick="mobileNavGo('orders')">My Orders</button>
+      <button id="mobile-nav-admin" class="hidden" onclick="mobileNavGo('admin')">Admin Dashboard</button>
+      <button id="mobile-nav-account" onclick="openAccount(); closeMobileNav()">Login / Register</button>
     </div>
   </header>
 
@@ -242,115 +262,114 @@
     <!-- VIEW: HOME PAGE -->
     <section id="view-home" class="view-panel">
       <!-- Hero Section -->
-      <div class="relative bg-brand-800 text-white py-20 px-6 sm:px-12 overflow-hidden bg-cover bg-center" style="background-image: linear-gradient(rgba(20, 54, 38, 0.68), rgba(20, 54, 38, 0.82)), url('https://www.tradologie.com/docs/Images/kaushalya-logistics-banner.webp');">
-        <div class="max-w-4xl mx-auto text-center space-y-6">
-          <span class="inline-block bg-brand-700/80 border border-brand-600 text-brand-accent px-4 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
-            Andhra Pradesh's Farm-Fresh Store
-          </span>
-          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-serif font-extrabold leading-tight">
-            Farm-Fresh Groceries, Delivered to Your Door
-          </h1>
-          <p class="text-lg sm:text-xl text-stone-200 font-light max-w-2xl mx-auto">
-             Good Harvest, Good Life. Fresh rice, dal, spices, and essentials directly from local farms.
-          </p>
-          <div class="pt-4 flex flex-wrap justify-center gap-4">
-            <button onclick="navigate('products')" class="bg-brand-accent hover:bg-yellow-400 text-brand-800 px-6 py-3 rounded-md font-semibold text-base shadow transition">
-              Order Now
-            </button>
-            <button onclick="navigate('products')" class="bg-transparent border border-white hover:bg-white/10 text-white px-6 py-3 rounded-md font-semibold text-base transition">
-              Browse Products &rarr;
-            </button>
+      <div class="hero">
+        <div class="hero-grid">
+          <div>
+            <span class="hero-eyebrow"><i data-lucide="sprout"></i> Andhra Pradesh's farm-fresh store</span>
+            <h1 class="hero-title">Good harvest, <em>good life.</em></h1>
+            <p class="hero-copy">Farm-fresh groceries delivered to your door: rice, dal, spices, and essentials directly from local farms.</p>
+            <div class="hero-actions">
+              <button onclick="navigate('products')" class="btn-primary">Order Now</button>
+              <button onclick="navigate('products')" class="btn-ghost">Browse Products &rarr;</button>
+            </div>
+            <ul class="hero-promises">
+              <li><i data-lucide="circle-check"></i> No middlemen</li>
+              <li><i data-lucide="circle-check"></i> Delivered fresh daily</li>
+              <li><i data-lucide="circle-check"></i> Quality assured</li>
+            </ul>
           </div>
+          <div class="hero-visual" id="hero-visual">
+          </div>
+        </div>
+        <svg class="wave" viewBox="0 0 1440 64" preserveAspectRatio="none" fill="currentColor" aria-hidden="true"><path d="M0 40c180 30 360 30 540 8s360-44 540-30 270 30 360 22v24H0z"/></svg>
+      </div>
+
+      <!-- Delivery ribbon -->
+      <div class="ribbon" aria-label="Delivery zones">
+        <div class="ribbon-track">
+          <div class="ribbon-group"><span>Delivering across Andhra Pradesh</span><span>Vijayawada</span><span>Guntur</span><span>Visakhapatnam</span><span>Tirupati</span><span>Rajahmundry</span><span>Nellore</span><span>and surrounding areas</span></div>
+          <div class="ribbon-group" aria-hidden="true"><span>Delivering across Andhra Pradesh</span><span>Vijayawada</span><span>Guntur</span><span>Visakhapatnam</span><span>Tirupati</span><span>Rajahmundry</span><span>Nellore</span><span>and surrounding areas</span></div>
         </div>
       </div>
 
       <!-- Categories Section -->
-      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-        <div class="text-center sm:text-left mb-8">
-          <h2 class="text-3xl font-serif font-bold text-brand-800">Shop by Category</h2>
-          <p class="text-stone-500 mt-1">Everything your kitchen needs, straight from the farm.</p>
+      <section class="relative overflow-hidden py-14 sm:py-16 px-4 sm:px-6 lg:px-8">
+        <svg class="absolute w-40 h-40 -right-10 top-2 hidden sm:block text-[#b9d98f] opacity-40 pointer-events-none" viewBox="0 0 120 120" fill="currentColor" aria-hidden="true"><path d="M8 112C4 58 34 14 112 8c2 66-36 106-104 104z"/></svg>
+        <div class="relative max-w-6xl mx-auto">
+          <div class="text-center mb-10">
+            <h2 class="display-heading">Shop by <em>category</em></h2>
+            <p class="section-lede">Everything your kitchen needs, straight from the farm.</p>
+          </div>
+          <div id="home-categories" class="flex flex-wrap justify-center gap-4 min-h-[11.5rem]"></div>
         </div>
+      </section>
 
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <!-- Category 1 -->
-          <div onclick="filterCategory('Rice & Grains')" class="cursor-pointer group bg-white rounded-xl shadow-sm hover:shadow-md border border-stone-100 overflow-hidden text-center transition">
-            <div class="h-32 bg-cover bg-center group-hover:scale-105 transition duration-300" style="background-image: url('https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=500&q=80');"></div>
-            <div class="p-3">
-              <h3 class="font-bold text-stone-800 group-hover:text-brand-600 text-sm">Rice & Grains</h3>
-              <p class="text-xs text-stone-500">Sona Masoori & more</p>
+      <!-- Products by category -->
+      <section class="leaf-section py-12 sm:py-14 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+          <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-8">
+            <div>
+              <h2 class="display-heading">Fresh from <em>the farm</em></h2>
+              <p class="section-lede">Pick a category to see what's in stock.</p>
+            </div>
+            <div id="home-tabs" class="tab-pills" role="tablist" aria-label="Filter products by category"></div>
+          </div>
+          <div id="home-featured" class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"></div>
+          <div class="text-center mt-8">
+            <button onclick="filterCategory('All')" class="btn-primary">View All Products</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Promotions -->
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-14">
+        <div class="grid md:grid-cols-3 gap-5">
+          <div class="promo-card" data-promo="Oils">
+            <img src="images/promo-oils.jpg" alt="" loading="lazy">
+            <div class="promo-body">
+              <h3>Every dish,<br>the right oil</h3>
+              <button onclick="filterCategory('Oils')">Shop oils</button>
             </div>
           </div>
-          <!-- Category 2 -->
-          <div onclick="filterCategory('Pulses & Dal')" class="cursor-pointer group bg-white rounded-xl shadow-sm hover:shadow-md border border-stone-100 overflow-hidden text-center transition">
-            <div class="h-32 bg-cover bg-center group-hover:scale-105 transition duration-300" style="background-image: url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80');"></div>
-            <div class="p-3">
-              <h3 class="font-bold text-stone-800 group-hover:text-brand-600 text-sm">Pulses & Dal</h3>
-              <p class="text-xs text-stone-500">Toor, Moong & Chana</p>
+          <div class="promo-card" data-promo="Spices">
+            <img src="images/promo-spices.jpg" alt="" loading="lazy">
+            <div class="promo-body">
+              <h3>Bold spices,<br>full flavour</h3>
+              <button onclick="filterCategory('Spices')">Shop spices</button>
             </div>
           </div>
-          <!-- Category 3 -->
-          <div onclick="filterCategory('Spices & Mirchi')" class="cursor-pointer group bg-white rounded-xl shadow-sm hover:shadow-md border border-stone-100 overflow-hidden text-center transition">
-            <div class="h-32 bg-cover bg-center group-hover:scale-105 transition duration-300" style="background-image: url('https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=500&q=80');"></div>
-            <div class="p-3">
-              <h3 class="font-bold text-stone-800 group-hover:text-brand-600 text-sm">Spices & Mirchi</h3>
-              <p class="text-xs text-stone-500">Guntur red chillies</p>
-            </div>
-          </div>
-          <!-- Category 4 -->
-          <div onclick="filterCategory('Fresh Vegetables')" class="cursor-pointer group bg-white rounded-xl shadow-sm hover:shadow-md border border-stone-100 overflow-hidden text-center transition">
-            <div class="h-32 bg-cover bg-center group-hover:scale-105 transition duration-300" style="background-image: url('https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=500&q=80');"></div>
-            <div class="p-3">
-              <h3 class="font-bold text-stone-800 group-hover:text-brand-600 text-sm">Vegetables</h3>
-              <p class="text-xs text-stone-500">Seasonal & crisp</p>
-            </div>
-          </div>
-          <!-- Category 5 -->
-          <div onclick="filterCategory('Oils & Ghee')" class="cursor-pointer group bg-white rounded-xl shadow-sm hover:shadow-md border border-stone-100 overflow-hidden text-center transition">
-            <div class="h-32 bg-cover bg-center group-hover:scale-105 transition duration-300" style="background-image: url('https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=500&q=80');"></div>
-            <div class="p-3">
-              <h3 class="font-bold text-stone-800 group-hover:text-brand-600 text-sm">Oils & Ghee</h3>
-              <p class="text-xs text-stone-500">Pure cold-pressed</p>
-            </div>
-          </div>
-          <!-- Category 6 -->
-          <div onclick="filterCategory('Dry Fruits')" class="cursor-pointer group bg-white rounded-xl shadow-sm hover:shadow-md border border-stone-100 overflow-hidden text-center transition">
-            <div class="h-32 bg-cover bg-center group-hover:scale-105 transition duration-300" style="background-image: url('https://images.unsplash.com/photo-1596591606975-97ee5cef3a1e?auto=format&fit=crop&w=500&q=80');"></div>
-            <div class="p-3">
-              <h3 class="font-bold text-stone-800 group-hover:text-brand-600 text-sm">Dry Fruits</h3>
-              <p class="text-xs text-stone-500">Cashews & almonds</p>
+          <div class="promo-card" data-promo="Rice">
+            <img src="images/promo-rice.jpg" alt="" loading="lazy">
+            <div class="promo-body">
+              <h3>Daily rice,<br>done right</h3>
+              <button onclick="filterCategory('Rice')">Shop rice</button>
             </div>
           </div>
         </div>
       </section>
 
       <!-- Why Farm-Fresh Matters -->
-      <section class="bg-brand-50 border-y border-stone-200 py-16">
+      <section class="why-section py-14 sm:py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="text-center mb-12">
-            <h2 class="text-3xl font-serif font-bold text-brand-800">Why Farm-Fresh Matters</h2>
-            <p class="text-stone-600">Pure produce, transparent sourcing, direct support for farmers.</p>
+          <div class="text-center mb-10">
+            <h2 class="display-heading">Why <em>farm-fresh</em> matters</h2>
+            <p class="section-lede">Pure produce, transparent sourcing, direct support for farmers.</p>
           </div>
-          <div class="grid md:grid-cols-3 gap-8">
-            <div class="bg-white p-6 rounded-xl border border-stone-100 text-center shadow-sm">
-              <div class="w-12 h-12 bg-brand-100 text-brand-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i data-lucide="handshake" class="w-6 h-6"></i>
-              </div>
-              <h3 class="text-lg font-bold text-stone-800 mb-2">No Middlemen</h3>
-              <p class="text-sm text-stone-600">Direct sourcing guarantees fair earnings for growers and competitive prices for your household.</p>
+          <div class="grid md:grid-cols-3 gap-6">
+            <div class="why-card">
+              <div class="why-icon" style="--cat-bg:#f4e6bd;--cat-ink:#6b5317"><i data-lucide="handshake" class="w-6 h-6"></i></div>
+              <h3>No Middlemen</h3>
+              <p>Direct sourcing guarantees fair earnings for growers and competitive prices for your household.</p>
             </div>
-            <div class="bg-white p-6 rounded-xl border border-stone-100 text-center shadow-sm">
-              <div class="w-12 h-12 bg-brand-100 text-brand-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i data-lucide="clock" class="w-6 h-6"></i>
-              </div>
-              <h3 class="text-lg font-bold text-stone-800 mb-2">Delivered Fresh Daily</h3>
-              <p class="text-sm text-stone-600">Orders placed before 10 AM are packed and dispatched promptly to keep produce crisp and nutritious.</p>
+            <div class="why-card">
+              <div class="why-icon" style="--cat-bg:#d3e9b5;--cat-ink:#2f5f1a"><i data-lucide="clock" class="w-6 h-6"></i></div>
+              <h3>Delivered Fresh Daily</h3>
+              <p>Orders placed before 10 AM are packed and dispatched promptly to keep produce crisp and nutritious.</p>
             </div>
-            <div class="bg-white p-6 rounded-xl border border-stone-100 text-center shadow-sm">
-              <div class="w-12 h-12 bg-brand-100 text-brand-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i data-lucide="shield-check" class="w-6 h-6"></i>
-              </div>
-              <h3 class="text-lg font-bold text-stone-800 mb-2">Quality Assured</h3>
-              <p class="text-sm text-stone-600">Grown naturally using ethical cultivation practices, thoroughly inspected before packing.</p>
+            <div class="why-card">
+              <div class="why-icon" style="--cat-bg:#f6c7b4;--cat-ink:#8a2f17"><i data-lucide="shield-check" class="w-6 h-6"></i></div>
+              <h3>Quality Assured</h3>
+              <p>Grown naturally using ethical cultivation practices, thoroughly inspected before packing.</p>
             </div>
           </div>
         </div>
@@ -360,47 +379,16 @@
     <!-- VIEW: PRODUCTS CATALOG -->
     <section id="view-products" class="view-panel hidden py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="mb-8">
-        <h1 class="text-3xl font-serif font-bold text-brand-800">Our Products</h1>
-        <p class="text-stone-600 text-sm">Farm-fresh groceries, sourced directly from regional fields.</p>
+        <h1 class="display-heading text-center">Our <em>products</em></h1>
+        <p class="section-lede text-center">Farm-fresh groceries, sourced directly from regional fields.</p>
       </div>
 
       <div class="flex flex-col md:flex-row gap-8">
         <!-- Sidebar Filters -->
         <aside class="w-full md:w-64 flex-shrink-0">
-          <div class="bg-white p-5 rounded-xl border border-stone-200 sticky top-24">
-            <h3 class="font-bold text-xs uppercase tracking-wider text-stone-400 mb-4">Categories</h3>
+          <div class="bg-white p-3 md:p-5 rounded-2xl border border-stone-200 md:sticky md:top-24">
+            <h3 class="hidden md:block font-bold text-xs uppercase tracking-wider text-stone-500 mb-4">Categories</h3>
             <ul id="category-filter-list" class="space-y-2 text-sm font-medium">
-              <!-- Dynamically populated or static -->
-              <li>
-                <button onclick="filterCategory('All')" class="cat-btn w-full text-left px-3 py-2 rounded-lg bg-brand-50 text-brand-700 font-semibold" data-category="All">
-                  All Products
-                </button>
-              </li>
-              <li>
-                <button onclick="filterCategory('Rice & Grains')" class="cat-btn w-full text-left px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-600" data-category="Rice & Grains">
-                  Rice & Grains
-                </button>
-              </li>
-              <li>
-                <button onclick="filterCategory('Pulses & Dal')" class="cat-btn w-full text-left px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-600" data-category="Pulses & Dal">
-                  Pulses & Dal
-                </button>
-              </li>
-              <li>
-                <button onclick="filterCategory('Spices & Mirchi')" class="cat-btn w-full text-left px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-600" data-category="Spices & Mirchi">
-                  Spices & Mirchi
-                </button>
-              </li>
-              <li>
-                <button onclick="filterCategory('Fresh Vegetables')" class="cat-btn w-full text-left px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-600" data-category="Fresh Vegetables">
-                  Fresh Vegetables
-                </button>
-              </li>
-              <li>
-                <button onclick="filterCategory('Oils & Ghee')" class="cat-btn w-full text-left px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-600" data-category="Oils & Ghee">
-                  Oils & Ghee
-                </button>
-              </li>
             </ul>
           </div>
         </aside>
@@ -415,7 +403,7 @@
               id="search-input" 
               oninput="handleSearch()" 
               placeholder="Search products by name or category..." 
-              class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-stone-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+              class="w-full pl-10 pr-4 py-2.5 rounded-full border border-stone-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
             />
           </div>
 
@@ -476,7 +464,7 @@
             <option value="cash_on_delivery">Cash on delivery</option>
             <option value="online">Online payment (transaction record only)</option>
           </select>
-          <button onclick="placeOrder()" class="w-full bg-brand-accent text-brand-800 rounded-lg p-3 font-bold hover:bg-yellow-400">Place order</button>
+          <button onclick="placeOrder()" class="w-full bg-brand-accent text-brand-800 rounded-lg p-3 font-bold hover:bg-lime-300">Place order</button>
           <p class="text-xs text-stone-500 mt-3">Online payment is not connected to a payment gateway yet. This demo creates a pending transaction only.</p>
         </div>
       </div>
@@ -521,7 +509,7 @@
     <section id="view-dashboard" class="view-panel hidden py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
-          <p class="text-sm font-semibold text-brand-600 mb-1">MY FARM GROWS · MY ACCOUNT</p>
+          <p class="text-sm font-semibold text-brand-600 mb-1">MY FARM GROW · MY ACCOUNT</p>
           <h1 class="text-3xl sm:text-4xl font-serif font-bold text-brand-800">Welcome back, <span id="dashboard-customer-name">Customer</span>!</h1>
           <p class="text-stone-500 mt-2">Your orders, payments, and deliveries in one place.</p>
         </div>
@@ -533,7 +521,7 @@
           <p id="dashboard-total-orders" class="text-3xl font-bold text-brand-800 mt-3">—</p><p class="text-xs text-stone-500 mt-1">View your order history →</p>
         </button>
         <button onclick="navigate('orders')" class="card-fx text-left bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand-600 transition">
-          <div class="flex items-center justify-between"><span class="text-sm text-stone-500">In progress</span><span class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center"><i data-lucide="truck" class="w-5 h-5"></i></span></div>
+          <div class="flex items-center justify-between"><span class="text-sm text-stone-500">In progress</span><span class="w-10 h-10 rounded-xl bg-lime-50 text-lime-700 flex items-center justify-center"><i data-lucide="truck" class="w-5 h-5"></i></span></div>
           <p id="dashboard-active-orders" class="text-3xl font-bold text-brand-800 mt-3">—</p><p class="text-xs text-stone-500 mt-1">Processing or on the way</p>
         </button>
         <button onclick="customerMenuAction('payments')" class="card-fx text-left bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand-600 transition">
@@ -541,7 +529,7 @@
           <p id="dashboard-total-spend" class="text-2xl font-bold text-brand-800 mt-3">—</p><p class="text-xs text-stone-500 mt-1">Across your orders</p>
         </button>
         <button onclick="customerMenuAction('addresses')" class="card-fx text-left bg-white border border-stone-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-brand-600 transition">
-          <div class="flex items-center justify-between"><span class="text-sm text-stone-500">Saved addresses</span><span class="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center"><i data-lucide="map-pin" class="w-5 h-5"></i></span></div>
+          <div class="flex items-center justify-between"><span class="text-sm text-stone-500">Saved addresses</span><span class="w-10 h-10 rounded-xl bg-orange-50 text-orange-700 flex items-center justify-center"><i data-lucide="map-pin" class="w-5 h-5"></i></span></div>
           <p id="dashboard-address-count" class="text-3xl font-bold text-brand-800 mt-3">—</p><p class="text-xs text-stone-500 mt-1">Manage delivery addresses</p>
         </button>
       </div>
@@ -552,7 +540,7 @@
         </div>
         <div class="bg-brand-800 text-white rounded-2xl p-6 flex flex-col justify-between min-h-64">
           <div><div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-4"><svg class="w-8 h-8 flex-shrink-0"><use href="#mfg-logo"/></svg></div><h2 class="text-xl font-serif font-bold">Good food starts at the farm.</h2><p class="text-sm text-stone-200 mt-2">Shop rice, dal, spices, and everyday essentials sourced for your kitchen.</p></div>
-          <button onclick="navigate('products')" class="mt-6 bg-brand-accent text-brand-800 rounded-lg py-3 px-4 font-bold hover:bg-yellow-400 transition">Browse products <span aria-hidden="true">→</span></button>
+          <button onclick="navigate('products')" class="mt-6 bg-brand-accent text-brand-800 rounded-lg py-3 px-4 font-bold hover:bg-lime-300 transition">Browse products <span aria-hidden="true">→</span></button>
         </div>
       </div>
       <div class="bg-white border border-stone-200 rounded-2xl p-5 sm:p-6">
@@ -729,28 +717,83 @@
     </section>
 
     <!-- Account modal -->
-    <div id="account-modal" class="hidden fixed inset-0 z-[100] bg-black/50 p-4 overflow-y-auto">
-      <div class="max-w-md mx-auto mt-10 bg-white rounded-2xl p-6 shadow-xl"><div class="flex justify-center -mt-1 mb-2"><svg class="w-14 h-14 logo-float"><use href="#mfg-logo"/></svg></div>
-        <div class="flex justify-between items-center mb-4"><h2 id="account-title" class="text-2xl font-serif font-bold text-brand-800">Login</h2><button onclick="closeAccount()" class="text-2xl" aria-label="Close">&times;</button></div>
-        <div class="flex gap-2 mb-5"><button onclick="setAuthMode('login')" id="login-tab" class="flex-1 rounded-lg p-2 bg-brand-700 text-white">Login</button><button onclick="setAuthMode('register')" id="register-tab" class="flex-1 rounded-lg p-2 bg-stone-100">Register</button></div>
-        <form id="account-form" class="space-y-3">
-          <div id="name-field" class="hidden"><label class="text-sm font-medium">Full name</label><input name="name" class="w-full border rounded-lg p-3" placeholder="Your name"></div>
-          <div id="email-field"><label class="text-sm font-medium">Email</label><input name="email" type="email" required class="w-full border rounded-lg p-3" placeholder="you@example.com"></div>
-          <div id="otp-field" class="hidden"><label class="text-sm font-medium">Six-digit email code</label><input name="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" class="w-full border rounded-lg p-3" placeholder="Enter OTP"></div>
-          <div id="password-field"><label class="text-sm font-medium">Password</label><input name="password" type="password" minlength="8" class="w-full border rounded-lg p-3" placeholder="At least 8 characters"></div>
-          <div id="confirm-password-field" class="hidden"><label class="text-sm font-medium">Confirm password</label><input name="confirm_password" type="password" minlength="8" class="w-full border rounded-lg p-3" placeholder="Re-enter password"></div>
-          <div id="customer-type-field" class="hidden"><label class="text-sm font-medium">Account type</label><select name="customer_type" class="w-full border rounded-lg p-3"><option value="retail">Retail customer</option><option value="wholesale">Wholesale customer</option></select></div>
-          <p id="otp-help" class="hidden text-xs text-stone-500" aria-live="polite"></p>
-          <button type="button" id="resend-otp" onclick="resendAuthOTP()" class="hidden w-full border border-brand-600 text-brand-700 rounded-lg p-2 text-sm">Resend code</button>
-          <button id="account-submit" class="w-full bg-brand-700 text-white rounded-lg p-3 font-semibold">Login</button>
-          <button type="button" id="forgot-password" onclick="startForgotPassword()" class="text-sm text-brand-700 hover:underline">Forgot password?</button>
-          <p id="auth-message" class="text-xs text-stone-500" aria-live="polite">Registration creates a customer account. Admin access is never available through public registration.</p>
-        </form>
-        <div id="google-auth-area" class="mt-4">
-          <div class="flex items-center gap-3 text-xs text-stone-400 my-3"><span class="h-px bg-stone-200 flex-1"></span>OR<span class="h-px bg-stone-200 flex-1"></span></div>
-          <div id="google-signin-button" class="flex justify-center"></div>
+    <div id="account-modal" class="hidden" onmousedown="handleAccountBackdrop(event)">
+      <div class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="account-title">
+        <aside class="auth-aside" aria-hidden="true">
+          <div class="auth-brand"><svg class="w-10 h-10"><use href="#mfg-logo"/></svg><span>My Farm Grow</span></div>
+          <div>
+            <p class="auth-aside-title">Good harvest, <em>good life.</em></p>
+            <ul class="auth-aside-list">
+              <li><i data-lucide="circle-check"></i> No middlemen</li>
+              <li><i data-lucide="circle-check"></i> Delivered fresh daily</li>
+              <li><i data-lucide="circle-check"></i> Quality assured</li>
+            </ul>
+          </div>
+        </aside>
+        <div class="auth-main">
+          <button type="button" onclick="closeAccount()" class="auth-close" aria-label="Close"><i data-lucide="x"></i></button>
+          <div class="auth-brand auth-brand-small"><svg class="w-9 h-9"><use href="#mfg-logo"/></svg><span>My Farm Grow</span></div>
+          <button type="button" id="auth-back" onclick="setAuthMode('login')" class="auth-back hidden"><i data-lucide="arrow-left"></i> Back to login</button>
+          <h2 id="account-title" class="auth-title">Welcome back</h2>
+          <p id="auth-message" class="auth-message" aria-live="polite"></p>
+          <div id="auth-tabs" class="auth-tabs" role="tablist" aria-label="Login or register">
+            <button type="button" onclick="setAuthMode('login')" id="login-tab" role="tab" class="auth-tab" aria-selected="true">Login</button>
+            <button type="button" onclick="setAuthMode('register')" id="register-tab" role="tab" class="auth-tab" aria-selected="false">Register</button>
+          </div>
+          <div id="auth-progress" class="auth-progress hidden" aria-live="polite"></div>
+          <p id="auth-error" class="auth-error hidden" role="alert"></p>
+          <form id="account-form" class="space-y-3">
+            <div id="name-field" class="hidden">
+              <label class="auth-label" for="auth-name">Full name</label>
+              <div class="auth-input"><i data-lucide="user-round"></i><input id="auth-name" name="name" autocomplete="name" placeholder="Your name"></div>
+            </div>
+            <div id="email-field">
+              <label class="auth-label" for="auth-email">Email</label>
+              <div class="auth-input"><i data-lucide="mail"></i><input id="auth-email" name="email" type="email" required autocomplete="email" placeholder="you@example.com"></div>
+            </div>
+            <div id="otp-field" class="hidden">
+              <label class="auth-label" for="auth-otp">Six-digit email code</label>
+              <input id="auth-otp" name="otp" class="auth-otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="000000" oninput="handleOtpInput(this)">
+            </div>
+            <div id="password-field">
+              <div class="auth-label-row">
+                <label id="auth-password-label" class="auth-label" for="auth-password">Password</label>
+                <button type="button" id="forgot-password" onclick="startForgotPassword()" class="auth-link">Forgot password?</button>
+              </div>
+              <div class="auth-input"><i data-lucide="lock-keyhole"></i><input id="auth-password" name="password" type="password" minlength="8" autocomplete="current-password" placeholder="At least 8 characters"><button type="button" class="auth-show" onclick="togglePasswordVisibility(this)" aria-label="Show password" aria-pressed="false">Show</button></div>
+            </div>
+            <div id="confirm-password-field" class="hidden">
+              <label class="auth-label" for="auth-confirm">Confirm password</label>
+              <div class="auth-input"><i data-lucide="lock-keyhole"></i><input id="auth-confirm" name="confirm_password" type="password" minlength="8" autocomplete="new-password" placeholder="Re-enter password"><button type="button" class="auth-show" onclick="togglePasswordVisibility(this)" aria-label="Show password" aria-pressed="false">Show</button></div>
+            </div>
+            <fieldset id="customer-type-field" class="hidden">
+              <legend class="auth-label">Account type</legend>
+              <div class="auth-types">
+                <label class="auth-type"><input type="radio" name="customer_type" value="retail" checked><span><i data-lucide="shopping-basket"></i><b>Retail</b><small>For my home</small></span></label>
+                <label class="auth-type"><input type="radio" name="customer_type" value="wholesale"><span><i data-lucide="store"></i><b>Wholesale</b><small>For my business</small></span></label>
+              </div>
+            </fieldset>
+            <p id="otp-help" class="hidden auth-help" aria-live="polite"></p>
+            <button id="account-submit" class="auth-submit">Login</button>
+            <button type="button" id="resend-otp" onclick="resendAuthOTP()" class="hidden auth-resend">Resend code</button>
+          </form>
+          <div id="google-auth-area">
+            <div class="auth-divider"><span></span>or<span></span></div>
+            <div id="google-signin-button" class="flex justify-center"></div>
+          </div>
+          <div id="account-summary" class="auth-summary hidden">
+            <div class="auth-person">
+              <span id="summary-initial" class="auth-avatar"></span>
+              <div class="min-w-0">
+                <p id="summary-name" class="auth-person-name"></p>
+                <p id="summary-email" class="auth-person-email"></p>
+                <p id="summary-type" class="auth-person-type"></p>
+              </div>
+            </div>
+            <button type="button" id="summary-orders" onclick="closeAccount(); navigate('orders')" class="auth-submit">My orders</button>
+            <button type="button" id="logout-button" onclick="logout()" class="auth-logout">Logout</button>
+          </div>
         </div>
-        <button id="logout-button" onclick="logout()" class="hidden w-full mt-3 border border-red-200 text-red-700 rounded-lg p-3">Logout</button>
       </div>
     </div>
     <div id="toast" class="hidden fixed bottom-5 right-5 z-[120] max-w-md bg-stone-900 text-white px-5 py-3 rounded-xl shadow-lg text-sm"></div>
@@ -777,7 +820,7 @@
       <div class="space-y-3">
         <div class="flex items-center space-x-2">
           <svg class="w-8 h-8 flex-shrink-0"><use href="#mfg-logo"/></svg>
-          <span class="text-xl font-serif font-bold text-white">My Farm Grows</span>
+          <span class="text-xl font-serif font-bold text-white">My Farm Grow</span>
         </div>
         <p class="text-xs text-stone-400 leading-relaxed">
           Delivering fresh agricultural produce directly from Andhra Pradesh growers to your kitchen.
@@ -807,7 +850,7 @@
     </div>
     
     <div class="max-w-7xl mx-auto px-4 border-t border-brand-700 pt-4 text-center text-xs text-stone-500">
-      &copy; 2026 My Farm Grows. All rights reserved.
+      &copy; 2026 My Farm Grow. All rights reserved.
     </div>
   </footer>
 
@@ -818,6 +861,8 @@
     let currentUser = null;
     let authMode = "login";
     let products = [];
+    let catalog = [];
+    let homeTab = "All";
     let adminOrders = [];
     let cart = {items: [], total: 0};
     let addresses = [];
@@ -915,7 +960,7 @@
       document.getElementById("order-overlay")?.classList.remove("show");
     }
     function launchConfetti() {
-      const colors = ["#2d6a4f", "#e9c46a", "#d4a373", "#52b788", "#e76f51"];
+      const colors = ["#3f7d20", "#cfe88a", "#a8763e", "#e0a526", "#c4622d"];
       const wrap = document.createElement("div");
       wrap.className = "confetti-wrap";
       for (let i = 0; i < 60; i++) {
@@ -933,6 +978,7 @@
         headers["Content-Type"] = "application/json";
         options.body = JSON.stringify(options.body);
       }
+      if (window.location.protocol === "file:") throw new Error("this page was opened as a file. Start the server and open its address instead.");
       if (token) headers.Authorization = `Bearer ${token}`;
       const response = await fetch(`${API_BASE}${path}`, {...options, headers});
       if (response.status === 204) return null;
@@ -958,30 +1004,33 @@
       btn.textContent = currentUser ? `${currentUser.name} · Logout` : "Login / Register";
       const adminNav = document.getElementById("nav-admin");
       if (adminNav) adminNav.classList.toggle("hidden", currentUser?.role !== "admin");
+      document.getElementById("mobile-nav-admin").classList.toggle("hidden", currentUser?.role !== "admin");
+      document.getElementById("mobile-nav-account").textContent = btn.textContent;
+      btn.title = btn.textContent;
       const adminMenu = document.getElementById("admin-menu-wrap");
       const customerMenu = document.getElementById("customer-menu-wrap");
       const customerGreeting = document.getElementById("customer-menu-greeting");
-      const orderNow = document.getElementById("customer-order-now");
       const isAdmin = currentUser?.role === "admin";
       const isCustomer = Boolean(currentUser && currentUser.role !== "admin");
       if (adminMenu) adminMenu.classList.toggle("hidden", !isAdmin);
       if (customerMenu) customerMenu.classList.toggle("hidden", !isCustomer);
       if (customerGreeting && currentUser) customerGreeting.textContent = `Hello, ${currentUser.name || "Customer"}`;
-      if (orderNow) orderNow.classList.toggle("hidden", isAdmin);
+      renderFeatured();
     }
-    function openAccount() {
-      document.getElementById("account-modal").classList.remove("hidden"); document.documentElement.classList.add("modal-open");
-      if (currentUser) {
-        document.getElementById("account-title").textContent = "Your account";
-        document.getElementById("account-form").classList.add("hidden");
-        document.getElementById("logout-button").classList.remove("hidden");
-      } else {
-        document.getElementById("account-form").classList.remove("hidden");
-        document.getElementById("logout-button").classList.add("hidden");
-        setAuthMode("login");
-      }
+    function toggleMobileNav() {
+      const panel = document.getElementById("mobile-nav");
+      const open = panel.classList.toggle("hidden") === false;
+      document.getElementById("mobile-nav-toggle").setAttribute("aria-expanded", String(open));
     }
-    function closeAccount() { document.getElementById("account-modal").classList.add("hidden"); document.documentElement.classList.remove("modal-open"); }
+    function closeMobileNav() {
+      document.getElementById("mobile-nav").classList.add("hidden");
+      document.getElementById("mobile-nav-toggle").setAttribute("aria-expanded", "false");
+    }
+    function mobileNavGo(viewName) { closeMobileNav(); navigate(viewName); }
+    function openSearch() {
+      navigate("products");
+      document.getElementById("search-input").focus({preventScroll: true});
+    }
     let authStep = "credentials";
     let forgotStep = "request";
     let authOtpTimer = null;
@@ -990,44 +1039,108 @@
     let authOtpPurpose = "registration";
     let authGoogleClientId = null;
 
+    let accountOpener = null;
     function openAccount() {
+      accountOpener = document.activeElement;
       document.getElementById("account-modal").classList.remove("hidden"); document.documentElement.classList.add("modal-open");
-      if (currentUser) {
-        document.getElementById("account-title").textContent = "Your account";
-        document.getElementById("account-form").classList.add("hidden");
-        document.getElementById("google-auth-area").classList.add("hidden");
-        document.getElementById("logout-button").classList.remove("hidden");
-      } else {
-        document.getElementById("account-form").classList.remove("hidden");
-        document.getElementById("google-auth-area").classList.remove("hidden");
-        document.getElementById("logout-button").classList.add("hidden");
-        setAuthMode("login");
+      if (!currentUser) { setAuthMode("login"); return; }
+      ["account-form", "auth-tabs", "google-auth-area", "auth-back", "auth-progress", "auth-error"].forEach(id => showAuthField(id, false));
+      showAuthField("account-summary", true);
+      const admin = currentUser.role === "admin";
+      document.getElementById("account-title").textContent = "Your account";
+      document.getElementById("auth-message").textContent = "You're logged in and ready to shop.";
+      document.getElementById("summary-initial").textContent = String(currentUser.name || "?").trim().charAt(0).toUpperCase();
+      document.getElementById("summary-name").textContent = currentUser.name || "";
+      document.getElementById("summary-email").textContent = currentUser.email || "";
+      document.getElementById("summary-type").textContent = admin ? "Administrator" : currentUser.customer_type === "wholesale" ? "Wholesale customer" : "Retail customer";
+      showAuthField("summary-orders", !admin);
+    }
+    function closeAccount() {
+      document.getElementById("account-modal").classList.add("hidden");
+      document.documentElement.classList.remove("modal-open");
+      if (authOtpTimer) { clearInterval(authOtpTimer); authOtpTimer = null; }
+      if (accountOpener?.isConnected) accountOpener.focus({preventScroll: true});
+      accountOpener = null;
+    }
+    // A stray click outside must not throw away a registration or reset in progress.
+    function handleAccountBackdrop(event) {
+      if (event.target !== event.currentTarget) return;
+      if (authMode === "forgot" || authStep !== "credentials") return;
+      closeAccount();
+    }
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && !document.getElementById("account-modal").classList.contains("hidden")) closeAccount();
+    });
+    function showAuthError(message) {
+      const box = document.getElementById("auth-error");
+      box.textContent = message;
+      box.classList.toggle("hidden", !message);
+    }
+    function togglePasswordVisibility(button) {
+      const input = button.parentElement.querySelector("input");
+      const show = input.type === "password";
+      input.type = show ? "text" : "password";
+      button.textContent = show ? "Hide" : "Show";
+      button.setAttribute("aria-pressed", String(show));
+      button.setAttribute("aria-label", show ? "Hide password" : "Show password");
+    }
+    function hidePasswords() {
+      document.querySelectorAll("#account-form .auth-show").forEach(button => {
+        if (button.parentElement.querySelector("input").type === "text") togglePasswordVisibility(button);
+      });
+    }
+    function handleOtpInput(input) {
+      input.value = input.value.replace(/\D/g, "").slice(0, 6);
+      if (input.value.length === 6 && !document.getElementById("account-submit").disabled) document.getElementById("account-form").requestSubmit();
+    }
+    const AUTH_STEP_LABELS = {register: ["Your details", "Verify email", "Set password"], forgot: ["Your email", "Enter code", "New password"]};
+    // Shows the right chrome and fields for each step of login, registration and password reset.
+    function setAuthFlowStep(step) {
+      const form = document.getElementById("account-form");
+      const inFlow = step > 1 || authMode === "forgot";
+      showAuthField("auth-tabs", !inFlow);
+      showAuthField("auth-back", inFlow);
+      showAuthField("google-auth-area", !inFlow);
+      showAuthField("email-field", step === 1);
+      showAuthError("");
+      hidePasswords();
+      const progress = document.getElementById("auth-progress");
+      const labels = AUTH_STEP_LABELS[authMode];
+      progress.classList.toggle("hidden", !labels);
+      progress.innerHTML = labels ? labels.map((label, i) => `<span class="${i + 1 < step ? "done" : i + 1 === step ? "current" : ""}"${i + 1 === step ? ' aria-current="step"' : ""}>${label}</span>`).join("") : "";
+      form.elements.otp.value = "";
+      form.elements.password.autocomplete = authMode === "login" ? "current-password" : "new-password";
+      form.elements.password.placeholder = authMode === "login" ? "Enter your password" : "At least 8 characters";
+      document.getElementById("auth-password-label").textContent = authMode === "login" ? "Password" : authMode === "forgot" ? "New password" : "Create password";
+      if (matchMedia("(hover: hover)").matches) {
+        setTimeout(() => form.querySelector("#account-form > div:not(.hidden) input")?.focus(), 60);
       }
     }
-    function closeAccount() { document.getElementById("account-modal").classList.add("hidden"); document.documentElement.classList.remove("modal-open"); }
     function showAuthField(id, show) { document.getElementById(id).classList.toggle("hidden", !show); }
     function setAuthMode(mode) {
       authMode = mode; authStep = "credentials";
-      document.getElementById("account-title").textContent = mode === "login" ? "Login" : "Create account";
+      if (authOtpTimer) { clearInterval(authOtpTimer); authOtpTimer = null; }
+      const form = document.getElementById("account-form");
+      showAuthField("account-summary", false);
+      form.classList.remove("hidden");
+      document.getElementById("account-title").textContent = mode === "login" ? "Welcome back" : "Create your account";
       showAuthField("name-field", mode === "register");
       showAuthField("customer-type-field", mode === "register");
       showAuthField("otp-field", false); showAuthField("confirm-password-field", false);
-      showAuthField("password-field", mode === "login"); showAuthField("confirm-password-field", false);
+      showAuthField("password-field", mode === "login");
       showAuthField("forgot-password", mode === "login");
       showAuthField("resend-otp", false); showAuthField("otp-help", false);
-      document.getElementById("account-form").classList.remove("hidden");
-      document.getElementById("google-auth-area").classList.remove("hidden");
-      document.getElementById("email-field").classList.remove("hidden");
-      document.getElementById("account-form").elements.name.required = mode === "register";
-      document.getElementById("account-form").elements.name.disabled = mode !== "register";
-      document.getElementById("account-form").elements.password.required = mode === "login";
-      document.getElementById("account-form").elements.confirm_password.required = false;
-      document.getElementById("account-form").elements.otp.required = false;
-      document.getElementById("account-submit").textContent = mode === "login" ? "Login" : "Send email verification code";
-      document.getElementById("login-tab").className = mode === "login" ? "flex-1 rounded-lg p-2 bg-brand-700 text-white" : "flex-1 rounded-lg p-2 bg-stone-100";
-      document.getElementById("register-tab").className = mode === "register" ? "flex-1 rounded-lg p-2 bg-brand-700 text-white" : "flex-1 rounded-lg p-2 bg-stone-100";
-      document.getElementById("auth-message").textContent = mode === "register" ? "Verify your email before creating your password. Admin access is never available through public registration." : "Sign in with your email and password or Google.";
-      document.getElementById("google-auth-area").classList.toggle("hidden", false);
+      form.elements.name.required = mode === "register";
+      form.elements.name.disabled = mode !== "register";
+      form.elements.password.required = mode === "login";
+      form.elements.confirm_password.required = false;
+      form.elements.otp.required = false;
+      form.elements.password.value = ""; form.elements.confirm_password.value = "";
+      document.getElementById("account-submit").textContent = mode === "login" ? "Login" : "Send verification code";
+      ["login", "register"].forEach(name => document.getElementById(`${name}-tab`).setAttribute("aria-selected", String(mode === name)));
+      const forCart = window.pendingCartProduct ? "Log in to add this item to your cart." : "Log in to order and track your groceries.";
+      document.getElementById("auth-message").textContent = mode === "register" ? "We'll email you a code to confirm it's really you." : forCart;
+      setAuthFlowStep(1);
       if (window.google?.accounts?.id && authGoogleClientId) renderGoogleButton();
     }
     async function loadMe() {
@@ -1063,8 +1176,9 @@
           : {email};
         const result = await api(path, {method:"POST", body});
         startOtpCountdown(result.resend_after_seconds || 60);
+        showAuthError("");
         notify("A new verification code has been sent.");
-      } catch (error) { notify(error.message); }
+      } catch (error) { showAuthError(error.message); }
     }
     async function startForgotPassword() {
       authMode = "forgot"; forgotStep = "request"; authOtpPurpose = "password_reset";
@@ -1078,11 +1192,14 @@
       showAuthField("resend-otp", false); showAuthField("otp-help", false);
       document.getElementById("account-submit").textContent = "Send reset code";
       document.getElementById("auth-message").textContent = "Enter your registered email address to receive a password reset code.";
-      document.getElementById("google-auth-area").classList.add("hidden");
+      setAuthFlowStep(1);
     }
     async function finishLogin(data) {
       token = data.access_token; localStorage.setItem("mfg_access_token", token);
-      currentUser = await api("/api/auth/me"); updateAccountButton(); closeAccount();
+      currentUser = await api("/api/auth/me");
+      try { cart = await api("/api/cart"); updateCartBadge(); } catch {}
+      updateAccountButton(); closeAccount();
+      document.getElementById("account-form").reset();
       showWelcome(currentUser);
       if (currentUser.role === "admin") { navigate("admin"); return; }
       if (window.pendingCartProduct) { const id = window.pendingCartProduct; window.pendingCartProduct = null; await addToCart(id); }
@@ -1091,6 +1208,8 @@
       event.preventDefault();
       const formEl = event.currentTarget, f = new FormData(formEl);
       const btn = document.getElementById("account-submit");
+      const submitLabel = btn.textContent;
+      showAuthError("");
       btn.disabled = true; btn.innerHTML = '<span class="mini-spin"></span> Please wait…';
       try {
         const email = String(f.get("email") || "").trim().toLowerCase();
@@ -1110,6 +1229,7 @@
           document.getElementById("account-title").textContent = "Verify your email";
           document.getElementById("account-submit").textContent = "Verify email";
           document.getElementById("auth-message").textContent = `We sent a six-digit code to ${email}.`;
+          setAuthFlowStep(2);
           startOtpCountdown(result.resend_after_seconds || 60); return;
         }
         if (authMode === "register" && authStep === "verify") {
@@ -1121,7 +1241,8 @@
           formEl.elements.password.required = true; formEl.elements.confirm_password.required = true;
           document.getElementById("account-title").textContent = "Create password";
           document.getElementById("account-submit").textContent = "Create account";
-          document.getElementById("auth-message").textContent = "Email verified. Create a password to finish registration."; return;
+          document.getElementById("auth-message").textContent = "Email verified. Create a password to finish registration.";
+          setAuthFlowStep(3); return;
         }
         if (authMode === "register" && authStep === "password") {
           if (f.get("password") !== f.get("confirm_password")) throw new Error("Passwords do not match.");
@@ -1135,6 +1256,7 @@
           formEl.elements.otp.required = true;
           document.getElementById("account-submit").textContent = "Verify code";
           document.getElementById("auth-message").textContent = "If the account exists, a reset code has been sent.";
+          setAuthFlowStep(2);
           startOtpCountdown(result.resend_after_seconds || 60); return;
         }
         if (authMode === "forgot" && forgotStep === "verify") {
@@ -1145,14 +1267,18 @@
           showAuthField("password-field", true); showAuthField("confirm-password-field", true);
           formEl.elements.password.required = true; formEl.elements.confirm_password.required = true;
           document.getElementById("account-submit").textContent = "Update password";
-          document.getElementById("auth-message").textContent = "Choose a new password."; return;
+          document.getElementById("auth-message").textContent = "Choose a new password.";
+          setAuthFlowStep(3); return;
         }
         if (authMode === "forgot" && forgotStep === "reset") {
           if (f.get("password") !== f.get("confirm_password")) throw new Error("Passwords do not match.");
           await api("/api/auth/password/forgot/reset", {method:"POST", body:{email:authOtpEmail, reset_token:authResetToken, new_password:f.get("password")}});
           notify("Password updated. Please log in."); setAuthMode("login"); return;
         }
-      } catch (error) { notify(error.message); shakeEl(document.querySelector("#account-modal > div")); }
+      } catch (error) {
+        btn.textContent = submitLabel;
+        showAuthError(error.message);
+      }
       finally { btn.disabled = false; if (authMode === "login") btn.textContent = "Login"; }
     });
 
@@ -1161,7 +1287,7 @@
         const config = await api("/api/auth/config");
         authGoogleClientId = config.google_client_id;
         if (!authGoogleClientId) {
-          document.getElementById("google-auth-area").innerHTML = '<p class="text-xs text-stone-400 text-center">Google sign-in is not configured yet.</p>';
+          document.getElementById("google-auth-area").innerHTML = '<p class="text-xs text-stone-500 text-center mt-4">Google sign-in is not configured yet.</p>';
           return;
         }
         const waitForGoogle = () => {
@@ -1176,13 +1302,13 @@
       if (!target || !window.google?.accounts?.id || !authGoogleClientId) return;
       if (target.childElementCount) return; // already rendered; re-rendering makes the layout jump
       google.accounts.id.initialize({client_id:authGoogleClientId, callback:handleGoogleCredential});
-      google.accounts.id.renderButton(target, {theme:"outline", size:"medium", shape:"rectangular", text:"continue_with", width:260});
+      google.accounts.id.renderButton(target, {theme:"outline", size:"large", shape:"pill", text:"continue_with", width:Math.min(320, innerWidth - 115)});
     }
     async function handleGoogleCredential(response) {
       try {
         const result = await api("/api/auth/google", {method:"POST", body:{credential:response.credential}});
         await finishLogin(result); notify("Signed in with Google.");
-      } catch (error) { notify(error.message); }
+      } catch (error) { showAuthError(error.message); }
     }
     initializeGoogleSignIn();
 
@@ -1310,7 +1436,7 @@
       }
       if (viewName === "about" || viewName === "contact") {
         document.getElementById("view-generic").classList.remove("hidden");
-        document.getElementById("generic-title").innerText = viewName === "about" ? "About My Farm Grows" : "Contact Our Team";
+        document.getElementById("generic-title").innerText = viewName === "about" ? "About My Farm Grow" : "Contact Our Team";
         document.getElementById("generic-desc").innerText = viewName === "about" ? "A farm-to-home grocery experience connecting customers with agricultural products." : "Contact our team for questions and bulk order support.";
       }
       window.scrollTo({top:0, behavior:"smooth"});
@@ -1323,90 +1449,219 @@
       });
       navigate("products");
     }
-    function handleSearch() { renderProducts(); }
+    let searchTimer;
+    function handleSearch() { clearTimeout(searchTimer); searchTimer = setTimeout(renderProducts, 250); }
     // Product image paths served by FastAPI from frontend/images/.
     // Windows path example: D:\\Project\\frontend\\images\\basmati-rice.jpg
-    // Browser URL for that file: /static/images/basmati-rice.jpg
+    // Browser URL for that file: images/basmati-rice.jpg
     function getProductImage(product) {
       const name = String(product.name || "").toLowerCase();
-      if (name.includes("sona masoori")) return "/static/images/sona-masoori-rice.jpg";
-      if (name.includes("basmati")) return "/static/images/basmati-rice.jpg";
-      if (name.includes("rice")) return "/static/images/basmati-rice.jpg";
-      if (name.includes("toor dal")) return "/static/images/toor-dal.jpg";
-      if (name.includes("red chilli") || name.includes("red chili") || name.includes("chilli powder") || name.includes("chili powder") || name.includes("mirchi powder")) return "/static/images/red-mirchi.jpg";
-      if (name.includes("masoor dal")) return "/static/images/masoor-dal.jpg";
-      if (name.includes("moong dal")) return "/static/images/moong-dal.jpg";
-      if (name.includes("mirchi") || name.includes("chilli")) return "/static/images/red-mirchi.jpg";
-      if (name.includes("turmeric")) return "/static/images/turmeric.jpg";
-      if (name.includes("ghee")) return "/static/images/desi-ghee.jpg";
-      if (name.includes("sunflower oil")) return "/static/images/sunflower-oil.jpg";
-      if (name.includes("whole green gram") || name.includes("green gram") || name.includes("mung bean")) return "/static/images/whole-green-gram.jpg";
-      if (name.includes("groundnut oil")) return "/static/images/groundnut-oil.jpg";
-      if (name.includes("sesame oil")) return "/static/images/sesame-oil.jpg";
-      if (name.includes("jaggery")) return "/static/images/jaggery.jpg";
-      if (name.includes("sugar")) return "/static/images/sugar.jpg";
-      if (name.includes("wheat flour")) return "/static/images/wheat-flour.jpg";
-      if (name.includes("ragi flour")) return "/static/images/ragi-flour.jpg";
-      if (name.includes("spice")) return "/static/images/spices.jpg";
+      if (name.includes("sona masoori") || name.includes("sonamasuri")) return "images/sona-masoori-rice.jpg";
+      if (name.includes("basmati")) return "images/basmati-rice.jpg";
+      if (name.includes("rice")) return "images/basmati-rice.jpg";
+      if (name.includes("toor dal")) return "images/toor-dal.jpg";
+      if (name.includes("red chilli") || name.includes("red chili") || name.includes("chilli powder") || name.includes("chili powder") || name.includes("mirchi powder")) return "images/red-mirchi.jpg";
+      if (name.includes("masoor dal")) return "images/masoor-dal.jpg";
+      if (name.includes("moong dal")) return "images/moong-dal.jpg";
+      if (name.includes("mirchi") || name.includes("chilli")) return "images/red-mirchi.jpg";
+      if (name.includes("turmeric")) return "images/turmeric.jpg";
+      if (name.includes("ghee")) return "images/desi-ghee.jpg";
+      if (name.includes("sunflower oil")) return "images/sunflower-oil.jpg";
+      if (name.includes("whole green gram") || name.includes("green gram") || name.includes("mung bean")) return "images/whole-green-gram.jpg";
+      if (name.includes("groundnut oil")) return "images/groundnut-oil.jpg";
+      if (name.includes("sesame oil")) return "images/sesame-oil.jpg";
+      if (name.includes("jaggery")) return "images/jaggery.jpg";
+      if (name.includes("sugar")) return "images/sugar.jpg";
+      if (name.includes("wheat flour")) return "images/wheat-flour.jpg";
+      if (name.includes("ragi flour")) return "images/ragi-flour.jpg";
+      if (name.includes("spice")) return "images/spices.jpg";
       return product.image_url || "";
     }
 
+    const CATEGORY_STYLES = [
+      {keys: ["rice", "grain", "flour", "wheat"], icon: "wheat", bg: "#f4e6bd", ink: "#6b5317"},   // straw
+      {keys: ["pulse", "dal", "gram"], icon: "bean", bg: "#f8d9a8", ink: "#7a4a12"},               // lentil
+      {keys: ["spice", "mirchi", "chilli"], icon: "flame", bg: "#f6c7b4", ink: "#8a2f17"},         // red chilli
+      {keys: ["oil", "ghee"], icon: "droplets", bg: "#e4e7a3", ink: "#56591a"},                    // olive gold
+      {keys: ["sweet", "jaggery", "sugar"], icon: "candy", bg: "#e9cfae", ink: "#6a4320"},         // jaggery
+      {keys: ["vegetable", "green"], icon: "carrot", bg: "#cfe8b4", ink: "#2f5f1a"},               // leaf
+      {keys: ["fruit"], icon: "apple", bg: "#e9c8d6", ink: "#742a4c"},                             // plum
+    ];
+    const DEFAULT_CATEGORY_STYLE = {icon: "sprout", bg: "#dcebd0", ink: "#33532b"};                // sage
+    function categoryStyle(category) {
+      const name = String(category).toLowerCase();
+      return CATEGORY_STYLES.find(style => style.keys.some(key => name.includes(key))) || DEFAULT_CATEGORY_STYLE;
+    }
+    function categoryVars(category) {
+      const style = categoryStyle(category);
+      return `--cat-bg:${style.bg};--cat-ink:${style.ink}`;
+    }
+    function customerPrice(p) { return currentUser?.customer_type === "wholesale" ? p.wholesale_price : p.retail_price; }
+    function productById(id) { return catalog.find(p => Number(p.id) === Number(id)) || products.find(p => Number(p.id) === Number(id)); }
+    function cartLine(productId) { return (cart.items || []).find(x => Number(x.product_id) === Number(productId)); }
+    function cartSlot(p, variant) { return `<div class="cart-slot cart-slot-${variant}" data-product-id="${p.id}" data-variant="${variant}"></div>`; }
+    function cartSlotHtml(p, state, variant) {
+      if (state === "out") return '<span class="out-of-stock">Out of stock</span>';
+      if (state === "line") return `<div class="qty-stepper"><button aria-label="Decrease ${esc(p.name)} quantity" onclick="stepCartLine(${p.id},-1)">−</button><span class="qty-count" aria-live="polite"></span><button aria-label="Increase ${esc(p.name)} quantity" onclick="stepCartLine(${p.id},1)">+</button></div>`;
+      return `<button class="add-btn" aria-label="Add ${esc(p.name)} to cart" onclick="addToCart(${p.id}, this)">${variant === "catalog" ? "Add to Cart" : "+ Add"}</button>`;
+    }
+    // Swaps a card's button only when its state changes, so cards never reload.
+    function refreshCartControls() {
+      document.querySelectorAll(".cart-slot").forEach(slot => {
+        const p = productById(slot.dataset.productId);
+        if (!p) return;
+        const line = cartLine(p.id);
+        const state = line ? "line" : Number(p.stock_quantity) <= 0 ? "out" : "add";
+        if (slot.dataset.state !== state) {
+          slot.innerHTML = cartSlotHtml(p, state, slot.dataset.variant);
+          slot.dataset.state = state;
+        }
+        if (line) {
+          const count = slot.querySelector(".qty-count");
+          if (count.textContent !== String(line.quantity)) count.textContent = line.quantity;
+        }
+      });
+    }
+    // Category links come from the live catalog so every link leads to real products.
+    async function loadCatalog() {
+      document.getElementById("home-featured").innerHTML = skeletonCards(4);
+      try {
+        catalog = await api("/api/products/?limit=100&active_only=true");
+      } catch (error) {
+        document.getElementById("home-featured").innerHTML = `<div class="col-span-full p-6 bg-red-50 text-red-700 rounded-xl">Could not load products: ${esc(error.message)}</div>`;
+        return;
+      }
+      const categories = [...new Set(catalog.map(p => p.category).filter(Boolean))].sort();
+      document.getElementById("home-categories").innerHTML = categories.map(c => {
+        const count = catalog.filter(p => p.category === c).length;
+        return `<button class="cat-tile card-fx w-[calc(50%-.5rem)] sm:w-[calc(33.333%-.7rem)] lg:w-[calc(20%-.8rem)]" style="${categoryVars(c)}" data-category="${esc(c)}" onclick="filterCategory(this.dataset.category)"><span class="cat-tile-icon"><i data-lucide="${categoryStyle(c).icon}"></i></span><span class="cat-tile-name">${esc(c)}</span><span class="cat-tile-count">${count} ${count === 1 ? "product" : "products"}</span></button>`;
+      }).join("");
+      document.getElementById("category-filter-list").innerHTML = ["All", ...categories].map(c => {
+        const active = c === selectedCategory;
+        return `<li><button onclick="filterCategory(this.dataset.category)" data-category="${esc(c)}" class="cat-btn w-full text-left px-3 py-2 rounded-lg ${active ? "bg-brand-50 text-brand-700 font-semibold" : "hover:bg-stone-50 text-stone-600"}">${c === "All" ? "All Products" : esc(c)}</button></li>`;
+      }).join("");
+      document.querySelectorAll("[data-promo]").forEach(el => el.classList.toggle("hidden", !categories.includes(el.dataset.promo)));
+      document.getElementById("home-tabs").innerHTML = ["All", ...categories].map(c =>
+        `<button class="tab-pill" role="tab" data-tab="${esc(c)}" onclick="setHomeTab(this.dataset.tab)">${c === "All" ? "" : `<i style="--dot:${categoryStyle(c).bg}"></i>`}${esc(c)}</button>`
+      ).join("");
+      renderFeatured();
+      if (window.lucide) lucide.createIcons();
+    }
+    function setHomeTab(category) { homeTab = category; renderFeatured(); }
+    let lastChipsHtml = "";
+    function renderHeroChips() {
+      const picks = [];
+      for (const p of catalog) {
+        if (Number(p.stock_quantity) > 0 && getProductImage(p) && !picks.some(x => x.category === p.category)) picks.push(p);
+        if (picks.length === 2) break;
+      }
+      const html = picks.map(p =>
+        `<button class="hero-chip" data-category="${esc(p.category)}" onclick="filterCategory(this.dataset.category)"><img src="${esc(getProductImage(p))}" alt=""><span><b>${esc(p.name)}</b><span>${money(customerPrice(p))} / ${esc(p.unit)}</span></span></button>`
+      ).join("");
+      if (html === lastChipsHtml) return;
+      lastChipsHtml = html;
+      const visual = document.getElementById("hero-visual");
+      visual.querySelectorAll(".hero-chip").forEach(chip => chip.remove());
+      visual.insertAdjacentHTML("beforeend", html);
+    }
+    let lastFeaturedHtml = "";
+    function renderFeatured() {
+      const grid = document.getElementById("home-featured");
+      if (!catalog.length) return;
+      document.querySelectorAll("#home-tabs .tab-pill").forEach(tab => tab.setAttribute("aria-selected", String(tab.dataset.tab === homeTab)));
+      const items = catalog.filter(p => homeTab === "All" || p.category === homeTab).slice(0, 8);
+      const html = items.map((p, i) => {
+        const image = getProductImage(p);
+        return `<article class="feature-card fade-up" style="animation-delay:${i * 40}ms">
+          <div class="feature-card-media" style="${categoryVars(p.category)}"><img src="${esc(image)}" alt="${esc(p.name)}" loading="lazy" class="${image ? "" : "hidden"}" onerror="this.classList.add('hidden')"></div>
+          <h3>${esc(p.name)}</h3>
+          <div class="feature-foot"><span class="feature-price">${money(customerPrice(p))} <small>/ ${esc(p.unit)}</small></span>${cartSlot(p, "featured")}</div>
+        </article>`;
+      }).join("");
+      if (html !== lastFeaturedHtml) {
+        grid.innerHTML = html;
+        lastFeaturedHtml = html;
+      }
+      renderHeroChips();
+      refreshCartControls();
+    }
+
+    let lastGridHtml = "";
+    let productRequest = 0;
     async function renderProducts() {
       const grid = document.getElementById("product-grid");
-      grid.innerHTML = skeletonCards(6);
+      const request = ++productRequest;
+      // Placeholders only when there is nothing to show; a refresh keeps the current cards on screen.
+      if (!grid.querySelector("article")) { grid.innerHTML = skeletonCards(6); lastGridHtml = ""; }
       try {
         const query = document.getElementById("search-input")?.value.trim() || "";
         const params = new URLSearchParams({limit:"100", active_only:"true"});
         if (query) params.set("search", query);
         if (selectedCategory !== "All") params.set("category", selectedCategory);
-        products = await api(`/api/products/?${params.toString()}`);
-        if (!products.length) { grid.innerHTML = '<div class="col-span-full py-12 text-center text-stone-500">No products found. Try another search or category.</div>'; return; }
-        grid.innerHTML = products.map((p, i) => {
-          const price = currentUser?.customer_type === "wholesale" ? p.wholesale_price : p.retail_price;
+        const results = await api(`/api/products/?${params.toString()}`);
+        if (request !== productRequest) return; // A newer search has started.
+        products = results;
+        if (!products.length) { grid.innerHTML = '<div class="col-span-full py-12 text-center text-stone-500">No products found. Try another search or category.</div>'; lastGridHtml = ""; return; }
+        const html = products.map((p, i) => {
           const priceLabel = currentUser?.customer_type === "wholesale" ? "Wholesale price" : "Retail price";
-          return `<article class="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm flex flex-col justify-between hover:border-brand-600 card-fx fade-up" style="animation-delay:${Math.min(i,11)*50}ms">
-            <div><div class="h-44 bg-stone-100 flex items-center justify-center relative overflow-hidden">
-              <img src="${esc(getProductImage(p))}" alt="${esc(p.name)}" class="w-full h-full object-cover ${getProductImage(p) ? "" : "hidden"}" onerror="this.classList.add('hidden')">
-              <span class="absolute top-2 left-2 bg-brand-700 text-white text-[11px] font-bold px-2 py-1 rounded">${esc(p.category)}</span>
-            </div><div class="p-4">
+          const image = getProductImage(p);
+          return `<article class="product-card card-fx fade-up" style="animation-delay:${Math.min(i,11)*50}ms">
+            <div class="product-card-media" style="${categoryVars(p.category)}">
+              <img src="${esc(image)}" alt="${esc(p.name)}" class="${image ? "" : "hidden"}" onerror="this.classList.add('hidden')">
+              <span class="product-badge">${esc(p.category)}</span>
+            </div>
+            <div class="flex-1 pt-3 px-1">
               <h3 class="text-base font-bold text-stone-800">${esc(p.name)}</h3>
               <p class="text-xs text-stone-500 mt-1">${esc(p.description || "Farm-sourced grocery essential.")}</p>
-              <div class="mt-3 flex flex-wrap gap-2 text-xs"><span class="bg-stone-100 px-2 py-1 rounded">${esc(p.unit)}</span><span class="bg-stone-100 px-2 py-1 rounded">${Number(p.stock_quantity)} in stock</span></div>
-              <p class="text-xs text-stone-500 mt-2">${priceLabel}: <b class="text-brand-800">${money(price)}</b></p>
-              ${Number(p.min_wholesale_quantity)>0 ? `<p class="text-xs text-stone-400 mt-1">Wholesale threshold: ${p.min_wholesale_quantity} ${esc(p.unit)}</p>` : ""}
-            </div></div>
-            <div class="p-4 pt-0 flex items-center justify-between border-t border-stone-100 mt-2"><span class="text-lg font-bold text-brand-800">${money(price)}</span>
-            ${(() => { const line=(cart.items||[]).find(x=>Number(x.product_id)===Number(p.id)); return p.stock_quantity<=0 ? '<button disabled class="bg-stone-100 text-stone-400 text-xs px-3 py-2 rounded-md">Out of stock</button>' : line ? `<div class="inline-flex items-center border border-brand-600 rounded-lg overflow-hidden"><button aria-label="Decrease ${esc(p.name)} quantity" onclick="changeProductQty(${line.id},${Number(line.quantity)-1})" class="px-3 py-2 text-brand-700 hover:bg-brand-50">−</button><span class="min-w-8 text-center text-sm font-semibold">${line.quantity}</span><button aria-label="Increase ${esc(p.name)} quantity" onclick="changeProductQty(${line.id},${Number(line.quantity)+1},${p.id})" class="px-3 py-2 text-brand-700 hover:bg-brand-50">+</button></div>` : `<button onclick="addToCart(${p.id}, this)" class="bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-600 font-medium text-xs px-3 py-2 rounded-md">+ Add</button>`; })()}</div></article>`;
+              <div class="mt-2 flex flex-wrap gap-2 text-xs"><span class="bg-stone-100 px-2 py-1 rounded">${esc(p.unit)}</span><span class="bg-stone-100 px-2 py-1 rounded">${Number(p.stock_quantity)} in stock</span></div>
+              ${Number(p.min_wholesale_quantity)>0 ? `<p class="text-xs text-stone-500 mt-2">Wholesale threshold: ${p.min_wholesale_quantity} ${esc(p.unit)}</p>` : ""}
+            </div>
+            <div class="mt-3 px-1 pb-1 flex items-center justify-between gap-2">
+              <div><p class="text-[11px] text-stone-500">${priceLabel}</p><p class="text-lg font-extrabold text-brand-800">${money(customerPrice(p))}</p></div>
+              ${cartSlot(p, "catalog")}
+            </div></article>`;
         }).join("");
-        if (window.lucide) lucide.createIcons();
-      } catch (error) { grid.innerHTML = `<div class="col-span-full p-6 bg-red-50 text-red-700 rounded-xl">Could not load products: ${esc(error.message)}. Check that the FastAPI server and database are running.</div>`; }
+        if (html !== lastGridHtml) {
+          grid.innerHTML = html;
+          lastGridHtml = html;
+        }
+        refreshCartControls();
+        renderFeatured();
+      } catch (error) { if (request === productRequest) { grid.innerHTML = `<div class="col-span-full p-6 bg-red-50 text-red-700 rounded-xl">Could not load products: ${esc(error.message)}. Check that the FastAPI server and database are running.</div>`; lastGridHtml = ""; } }
     }
     async function addToCart(productId, btn) {
       if (!token || !currentUser) { window.pendingCartProduct = productId; openAccount(); notify("Please log in to add items to your cart."); return; }
-      const done = btn ? setBtnBusy(btn, "Adding…") : null;
+      if (btn) { btn.disabled = true; btn.classList.add("is-busy"); }
       try {
         cart = await api("/api/cart/items", {method:"POST", body:{product_id:productId, quantity:1}});
-        updateCartBadge(); bumpCartBadge();
         if (btn) flyToCart(btn);
-        if (done) done(true);
+        updateCartBadge(); bumpCartBadge();
         showAddedPop(productId);
-        await renderProducts();
-      } catch (error) { if (done) done(false); notify(error.message); }
+      } catch (error) {
+        if (btn) { btn.disabled = false; btn.classList.remove("is-busy"); }
+        notify(error.message);
+      }
     }
-    async function changeProductQty(itemId, quantity, productId) {
+    const cartUpdating = new Set();
+    async function stepCartLine(productId, change) {
+      const line = cartLine(productId);
+      if (!line || cartUpdating.has(productId)) return;
+      cartUpdating.add(productId);
+      const quantity = Number(line.quantity) + change;
       try {
         if (quantity < 1) {
-          await api(`/api/cart/items/${itemId}`, {method:"DELETE"});
+          await api(`/api/cart/items/${line.id}`, {method:"DELETE"});
           cart = await api("/api/cart");
         } else {
-          cart = await api(`/api/cart/items/${itemId}`, {method:"PATCH", body:{quantity}});
+          cart = await api(`/api/cart/items/${line.id}`, {method:"PATCH", body:{quantity}});
         }
         updateCartBadge();
-        await renderProducts();
       } catch (error) { notify(error.message); }
+      finally { cartUpdating.delete(productId); }
     }
     function updateCartBadge() {
       document.getElementById("cart-badge").textContent = (cart.items || []).reduce((n, item) => n + Number(item.quantity), 0);
+      refreshCartControls();
     }
     async function loadCart() {
       const container = document.getElementById("cart-container");
@@ -2368,7 +2623,7 @@
       setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 300); }, ms);
     }
     function showAddedPop(productId) {
-      const p = (products || []).find(x => Number(x.id) === Number(productId));
+      const p = productById(productId);
       const line = (cart.items || []).find(i => Number(i.product_id) === Number(productId));
       showPop({img: p ? getProductImage(p) : "", title: p?.name || line?.product_name || "Item", sub: `Added to cart${line ? " · " + line.quantity + " in cart" : ""}`, action: {label: "View cart", fn: "navigate('cart')"}});
     }
@@ -2405,7 +2660,7 @@
       // Splash with logo
       const splash = document.createElement("div");
       splash.id = "splash";
-      splash.innerHTML = '<svg class="logo-float" width="84" height="84"><use href="#mfg-logo"/></svg><span>My Farm Grows</span>';
+      splash.innerHTML = '<svg class="logo-float" width="84" height="84"><use href="#mfg-logo"/></svg><span>My Farm Grow</span>';
       document.body.appendChild(splash);
       addEventListener("load", () => setTimeout(() => { splash.classList.add("out"); setTimeout(() => splash.remove(), 600); }, 700));
       // Scroll progress, sticky header, back-to-top, hero parallax
@@ -2419,8 +2674,6 @@
           const y = scrollY, h = document.documentElement.scrollHeight - innerHeight;
           bar.style.width = (h > 0 ? y / h * 100 : 0) + "%";
           hdr.classList.toggle("scrolled", y > 30); up.classList.toggle("show", y > 500);
-          const hero = document.querySelector("#view-home > div:first-child");
-          if (hero && y < 900) hero.style.backgroundPosition = `center ${y * 0.35}px`;
           tick = false;
         });
       }, {passive: true});
@@ -2477,8 +2730,9 @@
     window.addEventListener("DOMContentLoaded", async ()=>{
       if(window.lucide) lucide.createIcons();
       await loadMe();
-      await renderProducts();
       if(token){try{cart=await api("/api/cart");updateCartBadge();}catch{}}
+      await loadCatalog();
+      await renderProducts();
     });
   </script>
 </body>

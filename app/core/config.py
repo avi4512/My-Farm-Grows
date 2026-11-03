@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     to start without them instead of falling back to insecure defaults.
     """
 
-    app_name: str = "My Farm Grows"
+    app_name: str = "My Farm Grow"
     debug: bool = False
 
     database_url: str = Field(min_length=1)

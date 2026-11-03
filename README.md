@@ -1,4 +1,4 @@
-# My Farm Grows
+# My Farm Grow
 
 Online grocery ordering platform for retail and wholesale customers
 (FastAPI, SQLAlchemy, PostgreSQL, Alembic).
@@ -42,6 +42,11 @@ Online grocery ordering platform for retail and wholesale customers
    ```powershell
    uv run uvicorn app.main:app --reload
    ```
+
+6. To open the site on a phone on the same Wi-Fi, run the backend with
+   `--host 0.0.0.0` and open `http://<your-computer-ip>:8000/` on the phone
+   (`ipconfig` shows the IP). Opening `frontend/index.html` as a file shows the
+   layout only: products, login, and cart need the server.
 
 ## Browser storefront integration
 
@@ -108,7 +113,7 @@ Set these in the private `.env` file (never commit it):
 
 ```dotenv
 RESEND_API_KEY=re_xxxxxxxxx
-EMAIL_FROM=My Farm Grows <verification@your-verified-domain.example>
+EMAIL_FROM=My Farm Grow <verification@your-verified-domain.example>
 GOOGLE_CLIENT_ID=your-web-oauth-client-id.apps.googleusercontent.com
 ```
 
