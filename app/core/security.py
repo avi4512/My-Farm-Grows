@@ -60,7 +60,7 @@ def get_current_customer(
 
     try:
         customer_id = int(payload["sub"])
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token subject",
