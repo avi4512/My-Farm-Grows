@@ -107,7 +107,7 @@ async def _issue_otp(db: Session, email: str, purpose: str, name: str | None = N
     db.add(record)
     db.commit()
     try:
-        await send_email(email, "Your My Farm Grows verification code", otp_email_html(otp, purpose))
+        await send_email(email, "Your My Farm Grow verification code", otp_email_html(otp, purpose))
     except Exception as exc:
         db.delete(record)
         db.commit()
@@ -280,8 +280,8 @@ async def reset_password(payload: PasswordResetRequest, db: Session = Depends(ge
         from app.services.email import send_email
         await send_email(
             email,
-            "Your My Farm Grows password was changed",
-            "<p>Your My Farm Grows password was changed successfully. If you did not do this, contact support immediately.</p>",
+            "Your My Farm Grow password was changed",
+            "<p>Your My Farm Grow password was changed successfully. If you did not do this, contact support immediately.</p>",
         )
     except Exception:
         # Password change remains successful; notification delivery can be retried operationally.

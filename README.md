@@ -1,4 +1,4 @@
-# My Farm Grows
+# My Farm Grow
 
 Online grocery ordering platform for retail and wholesale customers
 (FastAPI, SQLAlchemy, PostgreSQL, Alembic).
@@ -108,7 +108,7 @@ Set these in the private `.env` file (never commit it):
 
 ```dotenv
 RESEND_API_KEY=re_xxxxxxxxx
-EMAIL_FROM=My Farm Grows <verification@your-verified-domain.example>
+EMAIL_FROM=My Farm Grow <verification@your-verified-domain.example>
 GOOGLE_CLIENT_ID=your-web-oauth-client-id.apps.googleusercontent.com
 ```
 

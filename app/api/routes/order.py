@@ -232,8 +232,8 @@ async def create_order(
         try:
             await send_email(
                 customer.email,
-                f"My Farm Grows order confirmation #{order_id}",
-                f"<p>Hi {escape(customer.name)},</p><p>Your order <strong>#{order_id}</strong> has been placed successfully.</p><p>Order total: ₹{order.total_amount}</p><p>Thank you for shopping with My Farm Grows.</p>",
+                f"My Farm Grow order confirmation #{order_id}",
+                f"<p>Hi {escape(customer.name)},</p><p>Your order <strong>#{order_id}</strong> has been placed successfully.</p><p>Order total: ₹{order.total_amount}</p><p>Thank you for shopping with My Farm Grow.</p>",
             )
         except Exception:
             logging.getLogger("myfarmgrows.email").warning(

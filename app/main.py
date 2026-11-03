@@ -24,7 +24,7 @@ configure_logging()
 logger = logging.getLogger("myfarmgrows.http")
 
 app = FastAPI(
-    title="My Farm Grows API",
+    title="My Farm Grow API",
     description="Online grocery ordering platform for retail and wholesale customers",
     version="0.1.0",
 )

@@ -1,4 +1,4 @@
-My Farm Grows - Product Images
+My Farm Grow - Product Images
 
 These are individual JPG crops from the generated product collage.
 Copy the images into your project at:

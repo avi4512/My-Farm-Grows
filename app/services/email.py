@@ -20,7 +20,7 @@ def otp_email_html(code: str, purpose: str) -> str:
     label = "verify your email address" if purpose == "registration" else "reset your password"
     return f"""
     <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;color:#26352b">
-      <h2>My Farm Grows</h2>
+      <h2>My Farm Grow</h2>
       <p>Use this one-time password to {label}:</p>
       <div style="font-size:32px;font-weight:700;letter-spacing:8px;padding:16px;background:#f2f8f4;border-radius:8px">{code}</div>
       <p>This code expires in 5 minutes. If you did not request it, you can ignore this email.</p>
