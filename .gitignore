@@ -12,4 +12,11 @@ wheels/
 # Virtual environments
 .venv
 .env
-\n# Local secrets, logs and generated artifacts\n.env\n.env.*\n!.env.example\nlogs/\n.ruff_cache/\n.pytest_cache/\n
+
+# Local secrets, logs and generated artifacts
+.env
+.env.*
+!.env.example
+logs/
+.ruff_cache/
+.pytest_cache/
