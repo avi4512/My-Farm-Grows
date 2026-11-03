@@ -114,7 +114,7 @@ def add_to_cart(
             detail="Product not found or unavailable",
         )
 
-    # Validate that the customer's account has a configured price.
+    # Validate price and prevent the cart from exceeding available inventory.
     get_product_price(product, customer)
 
     item = (
@@ -126,8 +126,15 @@ def add_to_cart(
         .first()
     )
 
+    requested_quantity = (item.quantity if item else 0) + payload.quantity
+    if requested_quantity > product.stock_quantity:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Only {product.stock_quantity} units are currently available",
+        )
+
     if item:
-        item.quantity += payload.quantity
+        item.quantity = requested_quantity
     else:
         item = CartItem(
             customer_id=customer.id,
@@ -171,6 +178,11 @@ def update_cart_item(
         )
 
     get_product_price(product, customer)
+    if payload.quantity > product.stock_quantity:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Only {product.stock_quantity} units are currently available",
+        )
 
     item.quantity = payload.quantity
 

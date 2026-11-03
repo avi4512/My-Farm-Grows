@@ -26,6 +26,7 @@ class CustomerResponse(BaseModel):
     customer_type: str
     role: str
     is_active: bool
+    email_verified: bool = True
 
 
 class TokenResponse(BaseModel):

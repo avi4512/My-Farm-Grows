@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     jwt_secret_key: str = Field(min_length=32)
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = Field(default=30, gt=0)
+    resend_api_key: str | None = None
+    email_from: str | None = None
+    google_client_id: str | None = None
 
     model_config = SettingsConfigDict(
         env_file=".env",

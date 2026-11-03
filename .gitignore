@@ -5,7 +5,11 @@ build/
 dist/
 wheels/
 *.egg-info
+.env
+.env.*
+!.env.example
 
 # Virtual environments
 .venv
 .env
+\n# Local secrets, logs and generated artifacts\n.env\n.env.*\n!.env.example\nlogs/\n.ruff_cache/\n.pytest_cache/\n

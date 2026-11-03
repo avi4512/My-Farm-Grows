@@ -28,6 +28,20 @@ class Customer(Base):
         nullable=False,
     )
 
+    email_verified: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+        server_default="false",
+    )
+
+    google_sub: Mapped[str | None] = mapped_column(
+        String(255),
+        unique=True,
+        nullable=True,
+        index=True,
+    )
+
     customer_type: Mapped[str] = mapped_column(
         String(20),
         default="retail",

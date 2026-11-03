@@ -1,6 +1,8 @@
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, status
+import logging
+from html import escape
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.security import get_current_customer
@@ -10,6 +12,7 @@ from app.models.address import Address
 from app.models.cart import CartItem
 from app.models.customer import Customer
 from app.models.order import Order, OrderItem
+from app.services.email import send_email
 from app.schemas.order import OrderCreate, OrderResponse
 from app.services.inventory import record_inventory_movement
 
@@ -56,7 +59,7 @@ def get_order_or_404(
     response_model=OrderResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def create_order(
+async def create_order(
     payload: OrderCreate,
     db: Session = Depends(get_db),
     customer: Customer = Depends(get_current_customer),
@@ -225,6 +228,17 @@ def create_order(
 
         # Save the ID before loading the response.
         order_id = order.id
+
+        try:
+            await send_email(
+                customer.email,
+                f"My Farm Grows order confirmation #{order_id}",
+                f"<p>Hi {escape(customer.name)},</p><p>Your order <strong>#{order_id}</strong> has been placed successfully.</p><p>Order total: ₹{order.total_amount}</p><p>Thank you for shopping with My Farm Grows.</p>",
+            )
+        except Exception:
+            logging.getLogger("myfarmgrows.email").warning(
+                "order_confirmation_email_failed order_id=%s", order_id
+            )
 
         return get_order_or_404(
             db,
