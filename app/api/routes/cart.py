@@ -14,24 +14,9 @@ from app.schemas.cart import (
     CartLineResponse,
     CartResponse,
 )
+from app.services.pricing import get_unit_price
 
 router = APIRouter(prefix="/api/cart", tags=["Shopping Cart"])
-
-
-def get_product_price(product: Product, customer: Customer) -> Decimal:
-    """Choose the price according to the customer's account type."""
-    if customer.customer_type == "wholesale":
-        price = product.wholesale_price
-    else:
-        price = product.retail_price
-
-    if price is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Price is not configured for this customer type",
-        )
-
-    return Decimal(str(price))
 
 
 def get_cart_item(
@@ -78,7 +63,7 @@ def build_cart_response(
         if product is None or not product.is_active:
             continue
 
-        unit_price = get_product_price(product, customer)
+        unit_price = get_unit_price(product, item.quantity)
         subtotal = unit_price * item.quantity
         total += subtotal
 
@@ -114,9 +99,7 @@ def add_to_cart(
             detail="Product not found or unavailable",
         )
 
-    # Validate price and prevent the cart from exceeding available inventory.
-    get_product_price(product, customer)
-
+    # Prevent the cart from exceeding available inventory.
     item = (
         db.query(CartItem)
         .filter(
@@ -177,7 +160,6 @@ def update_cart_item(
             detail="Product is no longer available",
         )
 
-    get_product_price(product, customer)
     if payload.quantity > product.stock_quantity:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

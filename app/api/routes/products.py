@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.permissions import require_admin
@@ -169,4 +170,14 @@ def delete_product(
         )
 
     db.delete(product)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "This product has orders, so it cannot be deleted. "
+                "Deactivate it instead."
+            ),
+        ) from exc
