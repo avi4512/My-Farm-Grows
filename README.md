@@ -48,6 +48,21 @@ Online grocery ordering platform for retail and wholesale customers
    (`ipconfig` shows the IP). Opening `frontend/index.html` as a file shows the
    layout only: products, login, and cart need the server.
 
+## Automated tests
+
+```powershell
+uv run pytest
+```
+
+The tests need PostgreSQL running. They use a separate database,
+`<your database name>_test`, on the local server from `DATABASE_URL`, and rebuild
+it from the migrations on every run. To use another server, set
+`TEST_DATABASE_URL`; its database name must end in `_test`. They never send real
+email.
+
+A test marked `xfail` is a known bug. Once the bug is fixed, that test fails the
+run as a reminder to remove the mark.
+
 ## Browser storefront integration
 
 The storefront is served by FastAPI at `http://127.0.0.1:8000/`. The interactive

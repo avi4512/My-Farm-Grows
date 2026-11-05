@@ -15,18 +15,9 @@ from app.models.order import Order, OrderItem
 from app.services.email import send_email
 from app.schemas.order import OrderCreate, OrderResponse
 from app.services.inventory import record_inventory_movement
+from app.services.pricing import get_unit_price
 
 router = APIRouter(prefix="/api/orders", tags=["Orders"])
-
-
-def get_product_price(product: Product, quantity: int) -> Decimal:
-    """Choose the product price based on the ordered quantity."""
-    if quantity >= product.min_wholesale_quantity:
-        price = product.wholesale_price
-    else:
-        price = product.retail_price
-
-    return Decimal(str(price))
 
 
 def get_order_or_404(
@@ -143,7 +134,7 @@ async def create_order(
                     ),
                 )
 
-            unit_price = get_product_price(
+            unit_price = get_unit_price(
                 product,
                 cart_item.quantity,
             )

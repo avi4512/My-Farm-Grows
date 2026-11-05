@@ -39,7 +39,7 @@ class EmailOTPRequest(BaseModel):
 
 class OTPVerifyRequest(BaseModel):
     email: EmailStr
-    otp: str = Field(pattern=r"^\\d{6}$")
+    otp: str = Field(pattern=r"^\d{6}$")
 
 
 class RegistrationCompleteRequest(BaseModel):
