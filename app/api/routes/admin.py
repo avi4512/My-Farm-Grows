@@ -22,6 +22,8 @@ from app.schemas.order import (
 )
 from app.services.delivery_sync import sync_order_status_from_delivery
 from app.services.inventory import record_inventory_movement
+from app.services.payments import refund_paid_online_payment
+from app.services.razorpay import RazorpayError
 
 router = APIRouter(
     prefix="/api/admin",
@@ -157,8 +159,21 @@ def update_order_status(
 
         order.status = new_status
 
-        # Payment status is deliberately not changed here.
-        # A refund must only be recorded after it is completed.
+        # Cancelling a paid online order refunds it through Razorpay. The
+        # order is marked refunded only once Razorpay confirms the refund.
+        if new_status == "cancelled":
+            db.flush()
+            try:
+                refund_paid_online_payment(db, order)
+            except RazorpayError as error:
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail=(
+                        "The refund could not be started with the payment "
+                        "service, so the order was not cancelled. Try again shortly."
+                    ),
+                ) from error
+
         db.commit()
 
         return (
@@ -230,6 +245,7 @@ def update_payment_status(
         "failed": {"pending"},
         "paid": {"refunded", "partially_refunded"},
         "partially_refunded": {"refunded"},
+        "refund_pending": {"refunded"},
         "refunded": set(),
     }
 
@@ -620,8 +636,7 @@ def update_customer(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
-                "You cannot remove your own admin access "
-                "or deactivate your own account"
+                "You cannot remove your own admin access or deactivate your own account"
             ),
         )
 

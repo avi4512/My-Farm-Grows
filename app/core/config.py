@@ -23,6 +23,15 @@ class Settings(BaseSettings):
     resend_api_key: str | None = None
     email_from: str | None = None
     google_client_id: str | None = None
+    # Razorpay. Online payment is offered only when the key id and secret are set.
+    # Use test keys (rzp_test_...) until the sandbox flow has been checked end to end.
+    razorpay_key_id: str | None = None
+    razorpay_key_secret: str | None = None
+    razorpay_webhook_secret: str | None = None
+
+    @property
+    def online_payments_enabled(self) -> bool:
+        return bool(self.razorpay_key_id and self.razorpay_key_secret)
 
     model_config = SettingsConfigDict(
         env_file=".env",

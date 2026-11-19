@@ -446,7 +446,7 @@
           <label class="block text-sm font-semibold mb-2" for="payment-method">Payment method</label>
           <select id="payment-method" class="w-full border rounded-lg p-3 mb-4">
             <option value="cash_on_delivery">Cash on delivery</option>
-            <option value="online">Online payment (transaction record only)</option>
+            <option value="online" id="online-pay-option" disabled>Pay online (coming soon)</option>
           </select>
           <button onclick="placeOrder()" class="w-full bg-brand-accent text-brand-800 rounded-lg p-3 font-bold hover:bg-lime-300">Place order</button>
           <p class="text-xs text-stone-500 mt-3">Online payment is not connected to a payment gateway yet. This demo creates a pending transaction only.</p>
@@ -767,7 +767,7 @@
         </div>
         <button onclick="loadAdminPayments()" class="border rounded-lg px-4 py-2 text-sm hover:bg-stone-50">Refresh</button>
       </div>
-      <div class="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-4 text-sm mb-5">No payment gateway is connected yet. Mark an online payment as paid only after you have confirmed the money arrived.</div>
+      <div id="admin-payments-notice" class="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-4 text-sm mb-5">No payment gateway is connected yet. Mark an online payment as paid only after you have confirmed the money arrived.</div>
       <div id="admin-payments-summary" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5"></div>
       <div id="admin-payments-recon" class="mb-5"></div>
       <div class="bg-white border border-stone-200 rounded-xl p-5">
@@ -2021,19 +2021,15 @@
         lastPlacedOrder = order;
         lastOrderMessage = "";
 
-        if (order.payment_method === "online") {
-          try {
-            await api("/api/payments/", {
-              method: "POST",
-              body: {order_id: order.id, payment_method: "online"}
-            });
-          } catch (error) {
-            // The order exists even if its separate payment transaction record failed.
-            lastOrderMessage = `Your order was created, but the payment transaction record could not be saved: ${error.message}`;
-          }
-        }
-
         await finishOrderOverlay();
+        if (order.payment_method === "online") {
+          hideOrderOverlay();
+          const result = await payOnline(order.id);
+          if (result === "paid") order.payment_status = "paid";
+          else lastOrderMessage = result === "failed"
+            ? "Your order is saved, but the payment did not go through. You can try again from My Orders."
+            : "Your order is saved and waiting for payment. You can pay any time from My Orders.";
+        }
         renderOrderSuccess();
         navigate("order-success");
         launchConfetti();
@@ -2044,6 +2040,74 @@
         hideOrderOverlay();
         if (button) { button.disabled = false; button.textContent = "Place order"; }
       }
+    }
+
+    // ---- Online payment (Razorpay Checkout) ----
+    // The server creates the Razorpay order and verifies the result; the browser
+    // only opens the payment window. No secret ever reaches this page.
+    let paymentConfig = {online_enabled: false, key_id: null};
+    async function loadPaymentConfig() {
+      try { paymentConfig = await api("/api/payments/config"); } catch { paymentConfig = {online_enabled: false, key_id: null}; }
+      const option = document.getElementById("online-pay-option");
+      option.disabled = !paymentConfig.online_enabled;
+      option.textContent = paymentConfig.online_enabled ? "Pay online (UPI, card, netbanking)" : "Pay online (coming soon)";
+      const notice = document.getElementById("admin-payments-notice");
+      if (notice && paymentConfig.online_enabled) {
+        notice.textContent = "Online payments are confirmed by Razorpay automatically. Use Mark paid only for payments you have checked in the Razorpay dashboard.";
+      }
+    }
+    let razorpayScript = null;
+    function loadRazorpayScript() {
+      if (window.Razorpay) return Promise.resolve();
+      razorpayScript ??= new Promise((resolve, reject) => {
+        const tag = document.createElement("script");
+        tag.src = "https://checkout.razorpay.com/v1/checkout.js";
+        tag.onload = resolve;
+        tag.onerror = () => { razorpayScript = null; reject(new Error("Could not load the payment window. Check your internet connection.")); };
+        document.head.appendChild(tag);
+      });
+      return razorpayScript;
+    }
+    // Opens Razorpay for one order. Resolves to "paid", "failed" or "dismissed".
+    async function payOnline(orderId) {
+      try {
+        const [session] = await Promise.all([
+          api("/api/payments/razorpay/order", {method: "POST", body: {order_id: orderId}}),
+          loadRazorpayScript(),
+        ]);
+        return await new Promise(resolve => {
+          let failed = false;
+          const checkout = new window.Razorpay({
+            key: session.key_id,
+            order_id: session.razorpay_order_id,
+            amount: session.amount,
+            currency: session.currency,
+            name: "My Farm Grow",
+            description: `Order #${session.order_id}`,
+            prefill: {name: session.customer_name, email: session.customer_email},
+            theme: {color: "#3f7d20"},
+            handler: async response => {
+              try {
+                const payment = await api("/api/payments/razorpay/verify", {method: "POST", body: response});
+                if (payment.status === "paid") { notify("Payment received. Thank you!"); resolve("paid"); }
+                else { notify("The payment did not go through."); resolve("failed"); }
+              } catch (error) { notify(error.message); resolve("failed"); }
+            },
+            modal: {ondismiss: () => resolve(failed ? "failed" : "dismissed")},
+          });
+          // Razorpay lets the customer retry inside the window, so only remember the failure.
+          checkout.on("payment.failed", () => { failed = true; });
+          checkout.open();
+        });
+      } catch (error) {
+        notify(error.message);
+        return "failed";
+      }
+    }
+    async function payOnlineFromOrders(orderId, button) {
+      if (button) { button.disabled = true; button.textContent = "Opening…"; }
+      await payOnline(orderId);
+      await loadOrders();
     }
 
     function renderOrderSuccess() {
@@ -2070,8 +2134,8 @@
         message.textContent = lastOrderMessage;
         message.className = "text-sm rounded-lg p-3 mb-5 border border-amber-200 bg-amber-50 text-amber-800";
       } else if (order.payment_method === "online") {
-        message.textContent = "Online payment is not connected to a payment gateway yet. A transaction record may be pending; no online payment has been collected by this demo.";
-        message.className = "text-sm rounded-lg p-3 mb-5 border border-amber-200 bg-amber-50 text-amber-800";
+        message.textContent = "Payment received. Thank you!";
+        message.className = "text-sm rounded-lg p-3 mb-5 border border-green-200 bg-green-50 text-green-800";
       } else {
         message.textContent = "Please pay the order amount to the delivery partner when your order arrives.";
         message.className = "text-sm rounded-lg p-3 mb-5 border border-green-200 bg-green-50 text-green-800";
@@ -2160,7 +2224,8 @@
         el.innerHTML=orders.map((o,idx)=>{
           const items=Array.isArray(o.items) ? o.items : [];
           const canCancel=String(o.status || "").toLowerCase()==="pending";
-          return `<article class="bg-white border border-stone-200 rounded-xl p-5 fade-up" style="animation-delay:${Math.min(idx,8)*70}ms">${orderHeaderHtml(o)}<div class="border-t mt-4 pt-3 space-y-3 text-sm">${items.map(i=>`<div class="flex items-center justify-between gap-3"><div class="flex items-center gap-3 min-w-0"><img src="${esc(getProductImage({name:i.product_name, image_url:i.image_url}))}" alt="${esc(i.product_name)}" class="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover border border-stone-200 bg-stone-50 flex-shrink-0" onerror="this.classList.add('hidden')"><span class="min-w-0">${esc(i.product_name)} × ${esc(i.quantity)} ${esc(i.unit)}</span></div><span class="text-stone-600 flex-shrink-0">${money(i.subtotal)}</span></div>`).join("")}</div><div class="border-t mt-4 pt-3 flex flex-wrap items-start justify-between gap-3"><div class="text-xs text-stone-500">Deliver to: ${esc(o.recipient_name)}, ${esc(o.address_line1)}, ${esc(o.city)}, ${esc(o.state)} ${esc(o.postal_code)} · ${esc(String(o.payment_method || "").replaceAll("_"," "))}</div><div class="text-right">${Number(o.discount_amount) > 0 ? `<p class="text-xs text-brand-700 font-semibold">Offer −${money(o.discount_amount)}</p>` : ""}<p class="text-xs text-stone-500">Order total</p><p class="font-bold text-brand-800">${money(o.total_amount)}</p></div></div><div class="mt-4 flex flex-wrap gap-2">${canCancel?`<button onclick="cancelOrder(${Number(o.id)})" class="text-sm border border-red-300 text-red-700 rounded-lg px-3 py-2 hover:bg-red-50">Cancel order</button>`:""}<button onclick="navigate('tracking')" class="text-sm border border-stone-300 text-stone-700 rounded-lg px-3 py-2 hover:bg-stone-50">Track shipment</button></div></article>`;
+          const canPay=paymentConfig.online_enabled && o.payment_method==="online" && o.status!=="cancelled" && ["pending","failed"].includes(o.payment_status);
+          return `<article class="bg-white border border-stone-200 rounded-xl p-5 fade-up" style="animation-delay:${Math.min(idx,8)*70}ms">${orderHeaderHtml(o)}<div class="border-t mt-4 pt-3 space-y-3 text-sm">${items.map(i=>`<div class="flex items-center justify-between gap-3"><div class="flex items-center gap-3 min-w-0"><img src="${esc(getProductImage({name:i.product_name, image_url:i.image_url}))}" alt="${esc(i.product_name)}" class="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover border border-stone-200 bg-stone-50 flex-shrink-0" onerror="this.classList.add('hidden')"><span class="min-w-0">${esc(i.product_name)} × ${esc(i.quantity)} ${esc(i.unit)}</span></div><span class="text-stone-600 flex-shrink-0">${money(i.subtotal)}</span></div>`).join("")}</div><div class="border-t mt-4 pt-3 flex flex-wrap items-start justify-between gap-3"><div class="text-xs text-stone-500">Deliver to: ${esc(o.recipient_name)}, ${esc(o.address_line1)}, ${esc(o.city)}, ${esc(o.state)} ${esc(o.postal_code)} · ${esc(String(o.payment_method || "").replaceAll("_"," "))}</div><div class="text-right">${Number(o.discount_amount) > 0 ? `<p class="text-xs text-brand-700 font-semibold">Offer −${money(o.discount_amount)}</p>` : ""}<p class="text-xs text-stone-500">Order total</p><p class="font-bold text-brand-800">${money(o.total_amount)}</p></div></div><div class="mt-4 flex flex-wrap gap-2">${canPay?`<button onclick="payOnlineFromOrders(${Number(o.id)}, this)" class="text-sm bg-brand-700 hover:bg-brand-800 text-white rounded-lg px-3 py-2 font-semibold">Pay now</button>`:""}${canCancel?`<button onclick="cancelOrder(${Number(o.id)})" class="text-sm border border-red-300 text-red-700 rounded-lg px-3 py-2 hover:bg-red-50">Cancel order</button>`:""}<button onclick="navigate('tracking')" class="text-sm border border-stone-300 text-stone-700 rounded-lg px-3 py-2 hover:bg-stone-50">Track shipment</button></div></article>`;
         }).join("");
         if (window.lucide) lucide.createIcons();
       } catch(error){el.innerHTML=`<p class="text-red-700">${esc(error.message)}</p>`;}
@@ -2422,6 +2487,7 @@
         paid: "bg-green-100 text-green-800",
         failed: "bg-red-100 text-red-800",
         refunded: "bg-slate-100 text-slate-800",
+        refund_pending: "bg-orange-100 text-orange-800",
         partially_refunded: "bg-orange-100 text-orange-800"
       };
       return `<span class="inline-block rounded-full px-2 py-1 text-xs font-semibold ${colors[status] || "bg-stone-100 text-stone-700"}">${esc(String(status || "unknown").replaceAll("_"," "))}</span>`;
@@ -3221,6 +3287,7 @@
     async function loadPaymentHistory() { try { return await api("/api/payments/history"); } catch(error) { notify(error.message); return []; } }
     window.addEventListener("DOMContentLoaded", async ()=>{
       if(window.lucide) lucide.createIcons();
+      loadPaymentConfig();
       await loadMe();
       if(token){try{cart=await api("/api/cart");updateCartBadge();}catch{}}
       await loadCatalog();

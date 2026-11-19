@@ -138,9 +138,52 @@ Updating a delivery's progress also moves the order status forward
 delivered -> delivered). The order status never moves backwards and
 cancelled orders are not changed.
 
-**Payment note:** the current UI can create a pending payment transaction for
-online-payment orders, but it does not process real online payments because no
-payment gateway integration is configured.
+**Payment note:** online payment goes through Razorpay; see "Online payments
+(Razorpay)" below. Without Razorpay keys the checkout offers cash on delivery only.
+
+## Online payments (Razorpay)
+
+How a payment works:
+
+1. The customer places an online order. Stock is reserved as for any order.
+2. The server creates a Razorpay order for the exact total in paise
+   (`POST /api/payments/razorpay/order`) and the browser opens Razorpay Checkout.
+3. After payment, the server checks the signature, asks Razorpay for the payment,
+   checks the order id, amount and currency, captures it if needed, and only then
+   marks the order paid (`POST /api/payments/razorpay/verify`).
+4. Razorpay also sends signed webhook events to
+   `POST /api/payments/razorpay/webhook`, so a payment is recorded even if the
+   customer closes the browser. Each event id is stored and applied only once.
+5. An unpaid or failed online order shows **Pay now** in My Orders.
+
+Refunds: cancelling a paid online order (by the customer while it is pending, or
+by an admin) refunds the full amount through Razorpay. If Razorpay cannot start
+the refund, the order is **not** cancelled and the error is shown. A refund that
+Razorpay finishes later shows as `refund pending` until the `refund.processed`
+webhook arrives. A payment that arrives after its order was cancelled is
+refunded automatically.
+
+### Setup
+
+1. In the Razorpay dashboard (Test mode), create API keys and put them in `.env`:
+
+   ```dotenv
+   RAZORPAY_KEY_ID=rzp_test_...
+   RAZORPAY_KEY_SECRET=...
+   RAZORPAY_WEBHOOK_SECRET=...   # any long random string, also entered in step 2
+   ```
+
+2. Add a webhook (Settings > Webhooks) pointing to
+   `https://<your-domain>/api/payments/razorpay/webhook` with the same secret and
+   these events: `payment.captured`, `payment.failed`, `order.paid`,
+   `refund.processed`, `refund.failed`. Razorpay needs a public HTTPS URL; for
+   local testing use a tunnel such as ngrok or cloudflared.
+3. Run `uv run python -m alembic upgrade head` (adds the Razorpay columns and the
+   webhook event table).
+4. Test the whole flow with Razorpay's test cards and UPI ids: pay, fail, retry,
+   cancel a paid order and check the refund.
+5. Only then switch to live keys (`rzp_live_...`). Keys stay in environment
+   variables only; the key secret and webhook secret never reach the browser.
 
 ## Finalization updates in this package
 
@@ -163,8 +206,9 @@ HTTP method, URL path, response status and duration are logged to `logs/app.log`
 5. Run migrations with `uv run alembic upgrade head`.
 6. Start the API with `uv run uvicorn app.main:app --reload`.
 
-### Payment gateway status — action still required
-The existing payment endpoints store payment transactions and allow administrative status management. This package does **not** claim that real online payments are integrated. Do not accept real money using the current "online" checkout option. Before production, integrate a payment provider (for example Razorpay) with server-side order creation, signature verification, signed webhook verification, idempotency, amount/currency validation and reconciliation. Merchant credentials must be stored only in environment variables and never committed. Test the full flow in the provider's sandbox before enabling live mode.
+### Payment gateway status
+Razorpay is integrated (see "Online payments (Razorpay)"). Do not accept real
+money until the full flow has been tested end to end with test keys.
 
 ### Security and release checklist
 - Never commit `.env`; rotate any credentials that have ever been committed or shared.

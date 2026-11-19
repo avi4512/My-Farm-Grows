@@ -36,6 +36,19 @@ class Payment(Base):
         unique=True,
     )
 
+    # Razorpay order id (order_...) this payment attempt belongs to.
+    gateway_order_id: Mapped[str | None] = mapped_column(
+        String(64),
+        nullable=True,
+        unique=True,
+    )
+
+    # Razorpay refund id (rfnd_...) once a refund has been requested.
+    gateway_refund_id: Mapped[str | None] = mapped_column(
+        String(64),
+        nullable=True,
+    )
+
     payment_method: Mapped[str] = mapped_column(
         String(30),
         nullable=False,

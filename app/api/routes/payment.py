@@ -1,6 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import hashlib
+import json
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+
+from app.core.config import settings
 
 from app.core.permissions import require_admin
 from app.core.security import get_current_customer
@@ -8,7 +15,27 @@ from app.db.session import get_db
 from app.models.customer import Customer
 from app.models.order import Order
 from app.models.payment import Payment
-from app.schemas.payment import PaymentCreate, PaymentResponse, PaymentStatusUpdate
+from app.models.payment_webhook_event import PaymentWebhookEvent
+from app.schemas.payment import (
+    PaymentConfigResponse,
+    PaymentCreate,
+    PaymentResponse,
+    PaymentStatusUpdate,
+    RazorpayOrderRequest,
+    RazorpayOrderResponse,
+    RazorpayVerifyRequest,
+)
+from app.services import razorpay
+from app.services.payments import (
+    PaymentMismatch,
+    check_gateway_payment,
+    mark_failed,
+    mark_paid,
+    mark_refunded,
+    refund_paid_online_payment,
+)
+
+logger = logging.getLogger("myfarmgrows.payments")
 
 router = APIRouter(
     prefix="/api/payments",
@@ -75,6 +102,272 @@ def create_payment(
     except Exception:
         db.rollback()
         raise
+
+
+# ---- Razorpay ----
+# Keep these static routes before the dynamic /{payment_id} routes.
+
+
+@router.get("/config", response_model=PaymentConfigResponse)
+def payment_config():
+    """Tell the storefront whether to offer online payment."""
+    enabled = settings.online_payments_enabled
+    return PaymentConfigResponse(
+        online_enabled=enabled, key_id=settings.razorpay_key_id if enabled else None
+    )
+
+
+def _gateway_error(error: razorpay.RazorpayError) -> HTTPException:
+    logger.warning("razorpay_error %s", error)
+    return HTTPException(
+        status_code=status.HTTP_502_BAD_GATEWAY,
+        detail="The payment service is not responding. Please try again shortly.",
+    )
+
+
+@router.post("/razorpay/order", response_model=RazorpayOrderResponse)
+def create_razorpay_order(
+    payload: RazorpayOrderRequest,
+    db: Session = Depends(get_db),
+    customer: Customer = Depends(get_current_customer),
+):
+    """Start (or resume) online payment for one of the customer's orders."""
+    if not settings.online_payments_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "Online payment is not available yet. Please choose cash on delivery."
+            ),
+        )
+
+    order = (
+        db.query(Order)
+        .filter(Order.id == payload.order_id, Order.customer_id == customer.id)
+        .with_for_update()
+        .first()
+    )
+    if order is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if order.payment_method != "online":
+        raise HTTPException(status_code=400, detail="This order is cash on delivery")
+    if order.status == "cancelled":
+        raise HTTPException(status_code=400, detail="This order was cancelled")
+    if order.payment_status in {"paid", "refunded", "refund_pending"}:
+        raise HTTPException(status_code=400, detail="This order is already paid")
+
+    # A Razorpay order accepts retries until one succeeds, so reuse it.
+    payment = (
+        db.query(Payment)
+        .filter(
+            Payment.order_id == order.id,
+            Payment.status == "pending",
+            Payment.gateway_order_id.isnot(None),
+            Payment.amount == order.total_amount,
+        )
+        .order_by(Payment.id.desc())
+        .first()
+    )
+    if payment is None:
+        try:
+            gateway_order = razorpay.create_order(
+                razorpay.to_paise(order.total_amount),
+                receipt=f"order_{order.id}",
+                notes={"order_id": str(order.id)},
+            )
+        except razorpay.RazorpayError as error:
+            db.rollback()
+            raise _gateway_error(error) from error
+        payment = Payment(
+            order_id=order.id,
+            payment_method="online",
+            amount=order.total_amount,
+            status="pending",
+            gateway_order_id=gateway_order["id"],
+        )
+        db.add(payment)
+    if order.payment_status == "failed":
+        order.payment_status = "pending"
+
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    return RazorpayOrderResponse(
+        key_id=settings.razorpay_key_id,
+        razorpay_order_id=payment.gateway_order_id,
+        amount=razorpay.to_paise(payment.amount),
+        currency="INR",
+        order_id=order.id,
+        customer_name=customer.name,
+        customer_email=customer.email,
+    )
+
+
+def _locked_payment_and_order(db: Session, gateway_order_id: str, customer_id=None):
+    query = db.query(Payment).join(Order, Payment.order_id == Order.id)
+    query = query.filter(Payment.gateway_order_id == gateway_order_id)
+    if customer_id is not None:
+        query = query.filter(Order.customer_id == customer_id)
+    payment = query.with_for_update(of=Payment).first()
+    if payment is None:
+        return None, None
+    order = db.query(Order).filter(Order.id == payment.order_id).with_for_update().one()
+    return payment, order
+
+
+def _refund_if_cancelled(db: Session, order: Order) -> None:
+    """Money that arrives for an order cancelled meanwhile goes straight back."""
+    if order.status == "cancelled" and order.payment_status == "paid":
+        db.flush()
+        refund_paid_online_payment(db, order)
+
+
+@router.post("/razorpay/verify", response_model=PaymentResponse)
+def verify_razorpay_payment(
+    payload: RazorpayVerifyRequest,
+    db: Session = Depends(get_db),
+    customer: Customer = Depends(get_current_customer),
+):
+    """Confirm a payment from Razorpay Checkout before marking the order paid."""
+    payment, order = _locked_payment_and_order(
+        db, payload.razorpay_order_id, customer.id
+    )
+    if payment is None:
+        raise HTTPException(status_code=404, detail="Payment not found")
+
+    if not razorpay.payment_signature_is_valid(
+        payload.razorpay_order_id,
+        payload.razorpay_payment_id,
+        payload.razorpay_signature,
+    ):
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Payment could not be verified")
+
+    try:
+        # Never trust the browser for amount or status: ask Razorpay.
+        entity = razorpay.fetch_payment(payload.razorpay_payment_id)
+        check_gateway_payment(payment, entity)
+        if entity.get("status") == "authorized":
+            entity = razorpay.capture_payment(
+                payload.razorpay_payment_id, razorpay.to_paise(payment.amount)
+            )
+        if entity.get("status") == "captured":
+            mark_paid(db, payment, order, payload.razorpay_payment_id)
+            _refund_if_cancelled(db, order)
+        elif entity.get("status") == "failed":
+            mark_failed(db, payment, order, entity.get("error_description"))
+        else:
+            db.rollback()
+            raise HTTPException(
+                status_code=409, detail="Payment is not complete yet. Please wait."
+            )
+        db.commit()
+    except PaymentMismatch as error:
+        db.rollback()
+        logger.warning("payment_mismatch order_id=%s %s", payment.order_id, error)
+        raise HTTPException(
+            status_code=400, detail="Payment could not be verified"
+        ) from error
+    except razorpay.RazorpayError as error:
+        db.rollback()
+        raise _gateway_error(error) from error
+    except Exception:
+        db.rollback()
+        raise
+
+    db.refresh(payment)
+    return payment
+
+
+def _record_event(db: Session, event_id: str, event_type: str) -> bool:
+    """Store the event id; False if it was handled before."""
+    db.add(PaymentWebhookEvent(event_id=event_id[:100], event_type=event_type[:60]))
+    try:
+        db.flush()
+    except IntegrityError:
+        db.rollback()
+        return False
+    return True
+
+
+def _apply_webhook_event(db: Session, event_type: str, payload: dict) -> None:
+    if event_type in {"payment.captured", "payment.failed", "order.paid"}:
+        entity = (payload.get("payment") or {}).get("entity") or {}
+        payment, order = _locked_payment_and_order(db, entity.get("order_id") or "")
+        if payment is None:
+            return
+        check_gateway_payment(payment, entity)
+        if event_type == "payment.failed":
+            mark_failed(db, payment, order, entity.get("error_description"))
+        elif entity.get("status") == "captured":
+            mark_paid(db, payment, order, entity.get("id"))
+            _refund_if_cancelled(db, order)
+    elif event_type in {"refund.processed", "refund.failed"}:
+        entity = (payload.get("refund") or {}).get("entity") or {}
+        payment_id = entity.get("payment_id")
+        if not payment_id:
+            return
+        payment = (
+            db.query(Payment)
+            .filter(Payment.transaction_reference == payment_id)
+            .with_for_update()
+            .first()
+        )
+        if payment is None:
+            return
+        order = (
+            db.query(Order).filter(Order.id == payment.order_id).with_for_update().one()
+        )
+        if event_type == "refund.processed":
+            mark_refunded(payment, order)
+        else:
+            # Order stays "refund_pending"; the admin follows up in Razorpay.
+            logger.warning("refund_failed order_id=%s", order.id)
+
+
+@router.post("/razorpay/webhook", include_in_schema=False)
+async def razorpay_webhook(request: Request, db: Session = Depends(get_db)):
+    """Razorpay server-to-server events. Authenticated by signature, not login."""
+    body = await request.body()
+    if not razorpay.webhook_signature_is_valid(
+        body, request.headers.get("X-Razorpay-Signature")
+    ):
+        raise HTTPException(status_code=400, detail="Invalid signature")
+
+    try:
+        event = json.loads(body)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail="Invalid JSON") from error
+    event_type = str(event.get("event", ""))
+    event_id = (
+        request.headers.get("X-Razorpay-Event-Id")
+        or "body-" + hashlib.sha256(body).hexdigest()
+    )
+
+    # A retried delivery hits the unique event id and stops here.
+    if not _record_event(db, event_id, event_type):
+        return {"status": "duplicate"}
+
+    try:
+        _apply_webhook_event(db, event_type, event.get("payload") or {})
+        db.commit()
+    except PaymentMismatch as error:
+        # Nothing changes, but keep the event as handled so Razorpay stops retrying.
+        db.rollback()
+        logger.warning("webhook_payment_mismatch event=%s %s", event_id, error)
+        _record_event(db, event_id, event_type)
+        db.commit()
+        return {"status": "ignored"}
+    except razorpay.RazorpayError as error:
+        # Refunding a late payment failed: let Razorpay retry the event.
+        db.rollback()
+        raise _gateway_error(error) from error
+    except Exception:
+        db.rollback()
+        raise
+    return {"status": "ok"}
 
 
 # Keep static routes before dynamic /{payment_id} routes.

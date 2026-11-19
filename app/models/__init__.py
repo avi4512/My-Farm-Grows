@@ -5,6 +5,7 @@ from app.models.delivery import Delivery
 from app.models.inventory_movement import InventoryMovement
 from app.models.order import Order, OrderItem
 from app.models.payment import Payment
+from app.models.payment_webhook_event import PaymentWebhookEvent
 from app.models.product import Product
 
 __all__ = [
@@ -16,5 +17,6 @@ __all__ = [
     "Order",
     "OrderItem",
     "Payment",
+    "PaymentWebhookEvent",
     "Product",
 ]
