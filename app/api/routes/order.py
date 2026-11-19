@@ -16,6 +16,8 @@ from app.services.email import send_email
 from app.schemas.order import OrderCreate, OrderResponse
 from app.services.inventory import record_inventory_movement
 from app.services.pricing import get_order_discount, get_unit_price
+from app.services.payments import refund_paid_online_payment
+from app.services.razorpay import RazorpayError
 
 router = APIRouter(prefix="/api/orders", tags=["Orders"])
 
@@ -371,7 +373,20 @@ def cancel_order(
         order.status = "cancelled"
         cancelled_order_id = order.id
 
-        # Do not automatically mark a payment as refunded.
+        # A paid online order is refunded in full through Razorpay. It is
+        # marked refunded only once Razorpay confirms the refund.
+        db.flush()
+        try:
+            refund_paid_online_payment(db, order)
+        except RazorpayError as error:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=(
+                    "The refund could not be started with the payment "
+                    "service, so the order was not cancelled. Try again shortly."
+                ),
+            ) from error
+
         db.commit()
 
         return get_order_or_404(
