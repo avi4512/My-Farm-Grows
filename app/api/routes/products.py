@@ -3,21 +3,13 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.permissions import require_admin
-from app.db.session import SessionLocal
+from app.db.session import get_db
 from app.models import Product
 from app.models.customer import Customer
 from app.schemas.product import ProductCreate, ProductResponse, ProductUpdate
 from app.services.inventory import record_inventory_movement
 
 router = APIRouter(prefix="/api/products", tags=["Products"])
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @router.post("/", response_model=ProductResponse, status_code=201)
@@ -130,6 +122,12 @@ def update_product(
     try:
         for field, value in update_data.items():
             setattr(product, field, value)
+
+        if product.wholesale_price > product.retail_price:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Wholesale price cannot be higher than retail price",
+            )
 
         db.flush()
         new_stock = product.stock_quantity
