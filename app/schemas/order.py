@@ -61,6 +61,7 @@ class OrderResponse(BaseModel):
     postal_code: str
     country: str
 
+    discount_amount: Decimal = Decimal("0.00")
     total_amount: Decimal
     status: str
     payment_method: str

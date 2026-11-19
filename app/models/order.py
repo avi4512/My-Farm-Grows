@@ -47,6 +47,12 @@ class Order(Base):
     postal_code: Mapped[str] = mapped_column(String(10), nullable=False)
     country: Mapped[str] = mapped_column(String(100), nullable=False, default="India")
 
+    # Order offer discount (see app/services/pricing.py). total_amount is the
+    # sum of the item subtotals minus this discount.
+    discount_amount: Mapped[Decimal] = mapped_column(
+        Numeric(12, 2), nullable=False, default=Decimal("0.00"), server_default="0"
+    )
+
     total_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
 
     status: Mapped[str] = mapped_column(String(30), nullable=False, default="pending")

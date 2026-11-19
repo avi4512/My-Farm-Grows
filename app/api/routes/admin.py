@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
@@ -7,6 +8,7 @@ from app.db.session import get_db
 from app.models import Delivery, InventoryMovement, Product
 from app.models.customer import Customer
 from app.models.order import Order
+from app.schemas.customer import CustomerAdminResponse, CustomerAdminUpdate
 from app.schemas.delivery import (
     DeliveryCreate,
     DeliveryResponse,
@@ -546,3 +548,90 @@ def update_delivery(
     except Exception:
         db.rollback()
         raise
+
+
+def _customer_rows(db: Session, query) -> list[CustomerAdminResponse]:
+    """Attach each customer's order count to the admin response."""
+    order_counts = (
+        db.query(Order.customer_id, func.count(Order.id).label("order_count"))
+        .group_by(Order.customer_id)
+        .subquery()
+    )
+    rows = (
+        query.outerjoin(order_counts, order_counts.c.customer_id == Customer.id)
+        .add_columns(func.coalesce(order_counts.c.order_count, 0))
+        .all()
+    )
+    return [
+        CustomerAdminResponse.model_validate(customer).model_copy(
+            update={
+                "order_count": order_count,
+                "has_google_login": customer.google_sub is not None,
+            }
+        )
+        for customer, order_count in rows
+    ]
+
+
+@router.get("/customers", response_model=list[CustomerAdminResponse])
+def list_customers(
+    search: str | None = Query(default=None, max_length=255),
+    role: str | None = Query(default=None, pattern="^(customer|admin)$"),
+    db: Session = Depends(get_db),
+    current_admin: Customer = Depends(require_admin),
+):
+    """List customer accounts for the admin dashboard, newest first."""
+    query = db.query(Customer)
+    if search and search.strip():
+        term = f"%{search.strip()}%"
+        query = query.filter(or_(Customer.name.ilike(term), Customer.email.ilike(term)))
+    if role:
+        query = query.filter(Customer.role == role)
+    return _customer_rows(
+        db, query.order_by(Customer.created_at.desc(), Customer.id.desc())
+    )
+
+
+@router.patch("/customers/{customer_id}", response_model=CustomerAdminResponse)
+def update_customer(
+    customer_id: int,
+    payload: CustomerAdminUpdate,
+    db: Session = Depends(get_db),
+    current_admin: Customer = Depends(require_admin),
+):
+    """Change a customer's role, account type or active flag."""
+    customer = (
+        db.query(Customer).filter(Customer.id == customer_id).with_for_update().first()
+    )
+    if customer is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Customer not found",
+        )
+
+    changes = payload.model_dump(exclude_unset=True, exclude_none=True)
+
+    # An administrator cannot remove their own access. Because the caller stays
+    # an active admin, the shop can never be left without one.
+    if customer.id == current_admin.id and (
+        changes.get("role", "admin") != "admin"
+        or changes.get("is_active", True) is False
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "You cannot remove your own admin access "
+                "or deactivate your own account"
+            ),
+        )
+
+    for field, value in changes.items():
+        setattr(customer, field, value)
+
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    return _customer_rows(db, db.query(Customer).filter(Customer.id == customer_id))[0]

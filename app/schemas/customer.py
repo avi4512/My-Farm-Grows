@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
@@ -32,3 +33,28 @@ class CustomerResponse(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class CustomerAdminResponse(BaseModel):
+    """A customer as shown on the admin customer list."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    email: EmailStr
+    customer_type: str
+    role: str
+    is_active: bool
+    email_verified: bool
+    has_google_login: bool = False
+    created_at: datetime
+    order_count: int = 0
+
+
+class CustomerAdminUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    role: Literal["customer", "admin"] | None = None
+    is_active: bool | None = None
+    customer_type: Literal["retail", "wholesale"] | None = None

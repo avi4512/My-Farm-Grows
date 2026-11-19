@@ -35,4 +35,8 @@ class CartLineResponse(BaseModel):
 
 class CartResponse(BaseModel):
     items: list[CartLineResponse]
+    # Sum of the line subtotals, before the order offer discount.
+    subtotal: Decimal
+    discount: Decimal
+    # Amount to pay: subtotal minus discount.
     total: Decimal

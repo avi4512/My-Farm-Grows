@@ -19,3 +19,5 @@ class Product(Base):
     )
     stock_quantity: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # Either a file in frontend/images ("images/toor-dal.jpg") or an https URL.
+    image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)

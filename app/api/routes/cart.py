@@ -14,7 +14,7 @@ from app.schemas.cart import (
     CartLineResponse,
     CartResponse,
 )
-from app.services.pricing import get_unit_price
+from app.services.pricing import get_order_discount, get_unit_price
 
 router = APIRouter(prefix="/api/cart", tags=["Shopping Cart"])
 
@@ -78,7 +78,10 @@ def build_cart_response(
             )
         )
 
-    return CartResponse(items=lines, total=total)
+    discount = get_order_discount(total)
+    return CartResponse(
+        items=lines, subtotal=total, discount=discount, total=total - discount
+    )
 
 
 @router.post(
