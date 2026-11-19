@@ -245,7 +245,7 @@
           </div>
         </div>
         <button onclick="navigate('cart')" aria-label="View cart" class="relative p-2 text-stone-700 hover:text-brand-700 transition">
-          <svg class="cart-ico w-7 h-7" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 13c0-5 3-8 7-8s7 3 7 8"/><path d="M4 13h24l-2.5 12.5a2 2 0 0 1-2 1.5h-15a2 2 0 0 1-2-1.5z"/><path d="M11 13l1 14M16 13v14M21 13l-1 14" opacity=".55"/><path d="M16 5c0-2 2-3 4-3 0 2-2 3-4 3z" fill="currentColor"/></svg>
+          <svg class="cart-ico w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3h2.2l2.4 11.2a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.2L20.8 7H6"/><circle cx="9.5" cy="19.5" r="1.4"/><circle cx="17" cy="19.5" r="1.4"/></svg>
           <span id="cart-badge" class="absolute -top-1 -right-1 bg-[#b5521f] text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">0</span>
         </button>
       </div>
@@ -1908,7 +1908,8 @@
       finally { cartUpdating.delete(productId); }
     }
     function updateCartBadge() {
-      document.getElementById("cart-badge").textContent = (cart.items || []).reduce((n, item) => n + Number(item.quantity), 0);
+      // Count products, not units: 100 kg of rice is one item in the cart.
+      document.getElementById("cart-badge").textContent = (cart.items || []).length;
       refreshCartControls();
     }
     async function loadCart() {
