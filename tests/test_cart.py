@@ -232,3 +232,19 @@ def test_cannot_change_another_customers_cart_item(
     assert (
         client.get("/api/cart", headers=auth(owner)).json()["items"][0]["quantity"] == 1
     )
+
+
+@pytest.mark.parametrize(
+    ("quantity", "subtotal", "discount"),
+    [(25, "5000.00", "0.00"), (26, "5200.00", "520.00")],
+)
+def test_ten_percent_offer_applies_only_above_5000(
+    make_customer, make_product, add_to_cart, quantity, subtotal, discount
+):
+    product = make_product(retail_price=200, wholesale_price=200, stock_quantity=100)
+
+    cart = add_to_cart(make_customer(), product, quantity)
+
+    assert Decimal(cart["subtotal"]) == Decimal(subtotal)
+    assert Decimal(cart["discount"]) == Decimal(discount)
+    assert Decimal(cart["total"]) == Decimal(subtotal) - Decimal(discount)

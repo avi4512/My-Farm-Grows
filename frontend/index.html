@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1f4420" />
   <title>My Farm Grow - Farm-Fresh Groceries Delivered</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -170,6 +171,10 @@
 </head>
 <body class="text-stone-800 font-sans flex flex-col min-h-screen"><svg style="position:absolute;width:0;height:0" aria-hidden="true"><symbol id="mfg-logo" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#e9c46a"/><path d="M24 38V22" stroke="#1b4332" stroke-width="3" stroke-linecap="round"/><path d="M24 24c0-7 5-11 12-11 0 7-5 11-12 11z" fill="#2d6a4f"/><path d="M24 29c0-6-4-9-10-9 0 6 4 9 10 9z" fill="#1b4332"/><path d="M15 38h18" stroke="#1b4332" stroke-width="3" stroke-linecap="round"/></symbol></svg>
 
+  <!-- Offer banner. The discount itself is applied by the backend
+       (ORDER_DISCOUNT_* in app/services/pricing.py); keep ORDER_OFFER in the script in step with it. -->
+  <div class="offer-bar"><i data-lucide="badge-percent"></i><span>Get 10% off on orders above &#8377;5,000</span></div>
+
   <!-- Header / Navigation -->
   <header class="bg-white text-stone-800 sticky top-0 z-50 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-[1fr_auto_1fr] items-center gap-2 py-3">
@@ -195,6 +200,7 @@
 
       <!-- Account / Cart -->
       <div class="flex items-center justify-end gap-2 xl:gap-3">
+        <button type="button" onclick="openSearch()" aria-label="Search products" class="app-search"><i data-lucide="search"></i></button>
         <div class="hidden lg:flex items-center gap-2 xl:gap-3">
           <button type="button" onclick="openSearch()" aria-label="Search products" class="search-pill"><i data-lucide="search" class="w-4 h-4"></i><span class="hidden xl:inline">Search</span></button>
           <button onclick="openAccount()" id="account-button" class="border border-stone-300 text-stone-800 font-medium px-4 py-2 rounded-full text-sm hover:bg-stone-100 transition">Login / Register</button>
@@ -233,9 +239,9 @@
             <button onclick="adminMenuAction('deliveries')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="truck" class="w-4 h-4"></i> Delivery & shipments</button>
             <button onclick="adminMenuAction('inventory')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="boxes" class="w-4 h-4"></i> Inventory management</button>
             <button onclick="adminMenuAction('inventory-history')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="history" class="w-4 h-4"></i> Inventory movement history</button>
-            <button onclick="adminMenuAction('products')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="package" class="w-4 h-4"></i> View product catalog</button>
-            <button onclick="adminMenuAction('payments')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="credit-card" class="w-4 h-4"></i> Payment status</button>
-            <div class="border-t border-stone-200 px-4 py-3 text-xs text-stone-500">More admin tools can be added here later.</div>
+            <button onclick="adminMenuAction('products')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="package" class="w-4 h-4"></i> Products</button>
+            <button onclick="adminMenuAction('payments')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="credit-card" class="w-4 h-4"></i> Payments</button>
+            <button onclick="adminMenuAction('customers')" class="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center gap-3"><i data-lucide="users" class="w-4 h-4"></i> Customers</button>
           </div>
         </div>
         <button onclick="navigate('cart')" aria-label="View cart" class="relative p-2 text-stone-700 hover:text-brand-700 transition">
@@ -247,12 +253,12 @@
     <div id="mobile-nav" class="hidden lg:hidden border-t border-stone-200 bg-white px-4 sm:px-6 py-1">
       <button onclick="mobileNavGo('home')">Home</button>
       <button onclick="mobileNavGo('products')">Products</button>
-      <button onclick="openSearch(); closeMobileNav()">Search</button>
+      <button onclick="openSearch(); dismissMobileNav()">Search</button>
       <button onclick="mobileNavGo('about')">About</button>
       <button onclick="mobileNavGo('contact')">Contact</button>
       <button onclick="mobileNavGo('orders')">My Orders</button>
       <button id="mobile-nav-admin" class="hidden" onclick="mobileNavGo('admin')">Admin Dashboard</button>
-      <button id="mobile-nav-account" onclick="openAccount(); closeMobileNav()">Login / Register</button>
+      <button id="mobile-nav-account" onclick="openAccount(); dismissMobileNav()">Login / Register</button>
     </div>
   </header>
 
@@ -266,16 +272,16 @@
         <div class="hero-grid">
           <div>
             <span class="hero-eyebrow"><i data-lucide="sprout"></i> Andhra Pradesh's farm-fresh store</span>
-            <h1 class="hero-title">Good harvest, <em>good life.</em></h1>
+            <h1 class="hero-title">From our farmers, <em>to your home.</em></h1>
             <p class="hero-copy">Farm-fresh groceries delivered to your door: rice, dal, spices, and essentials directly from local farms.</p>
             <div class="hero-actions">
-              <button onclick="navigate('products')" class="btn-primary">Order Now</button>
-              <button onclick="navigate('products')" class="btn-ghost">Browse Products &rarr;</button>
+              <button onclick="navigate('products')" class="btn-primary">Explore Products</button>
+              <button onclick="navigate('contact')" class="btn-ghost">Contact Us &rarr;</button>
             </div>
             <ul class="hero-promises">
-              <li><i data-lucide="circle-check"></i> No middlemen</li>
-              <li><i data-lucide="circle-check"></i> Delivered fresh daily</li>
-              <li><i data-lucide="circle-check"></i> Quality assured</li>
+              <li><span class="promise-ico" style="--cat-bg:#f4e6bd;--cat-ink:#6b5317"><i data-lucide="handshake"></i></span> No middlemen</li>
+              <li><span class="promise-ico" style="--cat-bg:#d3e9b5;--cat-ink:#2f5f1a"><i data-lucide="truck"></i></span> Delivered fresh daily</li>
+              <li><span class="promise-ico" style="--cat-bg:#f6c7b4;--cat-ink:#8a2f17"><i data-lucide="shield-check"></i></span> Quality assured</li>
             </ul>
           </div>
           <div class="hero-visual" id="hero-visual">
@@ -292,15 +298,20 @@
         </div>
       </div>
 
-      <!-- Categories Section -->
-      <section class="relative overflow-hidden py-14 sm:py-16 px-4 sm:px-6 lg:px-8">
-        <svg class="absolute w-40 h-40 -right-10 top-2 hidden sm:block text-[#b9d98f] opacity-40 pointer-events-none" viewBox="0 0 120 120" fill="currentColor" aria-hidden="true"><path d="M8 112C4 58 34 14 112 8c2 66-36 106-104 104z"/></svg>
-        <div class="relative max-w-6xl mx-auto">
+      <!-- Order journey animation -->
+      <section class="py-10 sm:py-12 px-4 sm:px-6 lg:px-8" aria-label="How your order reaches you">
+        <div class="max-w-3xl mx-auto">
           <div class="text-center mb-10">
-            <h2 class="display-heading">Shop by <em>category</em></h2>
-            <p class="section-lede">Everything your kitchen needs, straight from the farm.</p>
+            <h2 class="display-heading">From your order <em>to your door</em></h2>
           </div>
-          <div id="home-categories" class="flex flex-wrap justify-center gap-4 min-h-[11.5rem]"></div>
+          <div class="oflow">
+            <div class="oflow-row">
+              <div class="oflow-track"><span class="oflow-fill"></span><span class="oflow-truck"><i data-lucide="truck"></i></span></div>
+              <div class="oflow-step"><span class="oflow-node oflow-n1"><i data-lucide="clipboard-check"></i></span><p>Order received</p></div>
+              <div class="oflow-step"><span class="oflow-node oflow-n2"><i data-lucide="tractor"></i></span><p>Picked from the farm</p></div>
+              <div class="oflow-step"><span class="oflow-node oflow-n3"><i data-lucide="map-pin"></i></span><p>Delivered to your address</p></div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -317,33 +328,6 @@
           <div id="home-featured" class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"></div>
           <div class="text-center mt-8">
             <button onclick="filterCategory('All')" class="btn-primary">View All Products</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Promotions -->
-      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-14">
-        <div class="grid md:grid-cols-3 gap-5">
-          <div class="promo-card" data-promo="Oils">
-            <img src="images/promo-oils.jpg" alt="" loading="lazy">
-            <div class="promo-body">
-              <h3>Every dish,<br>the right oil</h3>
-              <button onclick="filterCategory('Oils')">Shop oils</button>
-            </div>
-          </div>
-          <div class="promo-card" data-promo="Spices">
-            <img src="images/promo-spices.jpg" alt="" loading="lazy">
-            <div class="promo-body">
-              <h3>Bold spices,<br>full flavour</h3>
-              <button onclick="filterCategory('Spices')">Shop spices</button>
-            </div>
-          </div>
-          <div class="promo-card" data-promo="Rice">
-            <img src="images/promo-rice.jpg" alt="" loading="lazy">
-            <div class="promo-body">
-              <h3>Daily rice,<br>done right</h3>
-              <button onclick="filterCategory('Rice')">Shop rice</button>
-            </div>
           </div>
         </div>
       </section>
@@ -716,13 +700,113 @@
       </div>
     </section>
 
+    <!-- ADMIN: PRODUCT CATALOG (create / edit / hide / delete) -->
+    <section id="view-admin-products" class="view-panel hidden py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 class="text-3xl font-serif font-bold text-brand-800">Products</h1>
+          <p class="text-sm text-stone-500 mt-1">Add products, change prices and images, or hide products from the storefront.</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="startNewProduct()" class="bg-brand-700 hover:bg-brand-800 text-white rounded-lg px-4 py-2 text-sm font-semibold">+ New product</button>
+          <button onclick="loadAdminProducts()" class="border rounded-lg px-4 py-2 text-sm hover:bg-stone-50">Refresh</button>
+        </div>
+      </div>
+      <div class="grid lg:grid-cols-3 gap-5">
+        <div class="lg:col-span-2 bg-white border border-stone-200 rounded-xl p-5 min-w-0">
+          <div class="flex flex-wrap items-center gap-3 mb-4">
+            <input id="admin-product-search" oninput="renderAdminProducts()" placeholder="Search name or category..." class="border rounded-lg p-2 text-sm flex-1 min-w-48">
+            <label class="text-sm flex items-center gap-2"><input id="admin-product-show-hidden" type="checkbox" checked onchange="renderAdminProducts()"> Show hidden</label>
+          </div>
+          <div id="admin-products-list" class="overflow-x-auto"><p class="text-sm text-stone-500">Loading products...</p></div>
+        </div>
+        <form id="admin-product-form" class="bg-white border border-stone-200 rounded-xl p-5 space-y-3 self-start">
+          <h3 id="admin-product-form-title" class="font-bold text-lg">New product</h3>
+          <input type="hidden" name="id">
+          <div><label class="block text-sm font-medium mb-1" for="pf-name">Name</label><input id="pf-name" name="name" required minlength="2" maxlength="150" class="w-full border rounded-lg p-2.5 text-sm"></div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="block text-sm font-medium mb-1" for="pf-category">Category</label><input id="pf-category" name="category" required maxlength="100" list="pf-categories" class="w-full border rounded-lg p-2.5 text-sm"><datalist id="pf-categories"></datalist></div>
+            <div><label class="block text-sm font-medium mb-1" for="pf-unit">Unit</label><input id="pf-unit" name="unit" required maxlength="30" value="kg" list="pf-units" class="w-full border rounded-lg p-2.5 text-sm"><datalist id="pf-units"><option value="kg"><option value="litre"><option value="piece"><option value="pack"></datalist></div>
+          </div>
+          <div><label class="block text-sm font-medium mb-1" for="pf-description">Description</label><textarea id="pf-description" name="description" rows="2" class="w-full border rounded-lg p-2.5 text-sm"></textarea></div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="block text-sm font-medium mb-1" for="pf-retail">Retail price (₹)</label><input id="pf-retail" name="retail_price" type="number" step="0.01" min="0.01" required class="w-full border rounded-lg p-2.5 text-sm"></div>
+            <div><label class="block text-sm font-medium mb-1" for="pf-wholesale">Wholesale price (₹)</label><input id="pf-wholesale" name="wholesale_price" type="number" step="0.01" min="0.01" required class="w-full border rounded-lg p-2.5 text-sm"></div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="block text-sm font-medium mb-1" for="pf-minw">Wholesale from (qty)</label><input id="pf-minw" name="min_wholesale_quantity" type="number" min="1" step="1" required value="25" class="w-full border rounded-lg p-2.5 text-sm"></div>
+            <div id="pf-stock-wrap"><label class="block text-sm font-medium mb-1" for="pf-stock">Opening stock</label><input id="pf-stock" name="stock_quantity" type="number" min="0" step="1" value="0" class="w-full border rounded-lg p-2.5 text-sm"></div>
+          </div>
+          <p id="pf-stock-note" class="hidden text-xs text-stone-500">To change stock, use Inventory management so the change is recorded with a reason.</p>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="pf-image">Image</label>
+            <div class="flex gap-3 items-start">
+              <img id="pf-image-preview" alt="" class="hidden w-16 h-16 rounded-lg object-cover border border-stone-200 bg-stone-50 flex-shrink-0">
+              <div class="flex-1 min-w-0">
+                <input id="pf-image" name="image_url" maxlength="500" list="pf-images" placeholder="images/toor-dal.jpg or https://..." class="w-full border rounded-lg p-2.5 text-sm">
+                <datalist id="pf-images"></datalist>
+                <p class="text-xs text-stone-500 mt-1">A file in <code>frontend/images</code> or a full https link. Leave empty for a category icon.</p>
+              </div>
+            </div>
+          </div>
+          <label class="text-sm flex items-center gap-2"><input name="is_active" type="checkbox" checked> Show on storefront</label>
+          <div class="flex gap-2 pt-1">
+            <button type="submit" id="pf-submit" class="flex-1 bg-brand-700 hover:bg-brand-800 text-white rounded-lg p-3 font-semibold">Create product</button>
+            <button type="button" onclick="startNewProduct()" class="border rounded-lg px-4 text-sm hover:bg-stone-50">Clear</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ADMIN: PAYMENTS AND RECONCILIATION -->
+    <section id="view-admin-payments" class="view-panel hidden py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 class="text-3xl font-serif font-bold text-brand-800">Payments</h1>
+          <p class="text-sm text-stone-500 mt-1">Every payment transaction, plus a check that order payment status matches the transactions.</p>
+        </div>
+        <button onclick="loadAdminPayments()" class="border rounded-lg px-4 py-2 text-sm hover:bg-stone-50">Refresh</button>
+      </div>
+      <div class="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-4 text-sm mb-5">No payment gateway is connected yet. Mark an online payment as paid only after you have confirmed the money arrived.</div>
+      <div id="admin-payments-summary" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5"></div>
+      <div id="admin-payments-recon" class="mb-5"></div>
+      <div class="bg-white border border-stone-200 rounded-xl p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <h3 class="font-bold text-lg">Transactions</h3>
+          <div class="flex flex-wrap gap-2">
+            <input id="admin-payment-search" oninput="renderAdminPayments()" placeholder="Order #, reference..." class="border rounded-lg p-2 text-sm w-44">
+            <select id="admin-payment-status" onchange="renderAdminPayments()" class="border rounded-lg p-2 text-sm"><option value="">All statuses</option><option value="pending">Pending</option><option value="paid">Paid</option><option value="failed">Failed</option></select>
+          </div>
+        </div>
+        <div id="admin-payments-list" class="overflow-x-auto"><p class="text-sm text-stone-500">Loading payments...</p></div>
+      </div>
+    </section>
+
+    <!-- ADMIN: CUSTOMERS -->
+    <section id="view-admin-customers" class="view-panel hidden py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 class="text-3xl font-serif font-bold text-brand-800">Customers</h1>
+          <p class="text-sm text-stone-500 mt-1">Change account type, give or remove admin access, and deactivate accounts.</p>
+        </div>
+        <button onclick="loadAdminCustomers()" class="border rounded-lg px-4 py-2 text-sm hover:bg-stone-50">Refresh</button>
+      </div>
+      <div class="bg-white border border-stone-200 rounded-xl p-5">
+        <div class="flex flex-wrap gap-3 mb-4">
+          <input id="admin-customer-search" oninput="renderAdminCustomers()" placeholder="Search name or email..." class="border rounded-lg p-2 text-sm flex-1 min-w-48">
+          <select id="admin-customer-role" onchange="renderAdminCustomers()" class="border rounded-lg p-2 text-sm"><option value="">All roles</option><option value="customer">Customers</option><option value="admin">Admins</option></select>
+        </div>
+        <div id="admin-customers-list" class="overflow-x-auto"><p class="text-sm text-stone-500">Loading customers...</p></div>
+      </div>
+    </section>
+
     <!-- Account modal -->
     <div id="account-modal" class="hidden" onmousedown="handleAccountBackdrop(event)">
       <div class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="account-title">
         <aside class="auth-aside" aria-hidden="true">
           <div class="auth-brand"><svg class="w-10 h-10"><use href="#mfg-logo"/></svg><span>My Farm Grow</span></div>
           <div>
-            <p class="auth-aside-title">Good harvest, <em>good life.</em></p>
+            <p class="auth-aside-title">From our farmers, <em>to your home.</em></p>
             <ul class="auth-aside-list">
               <li><i data-lucide="circle-check"></i> No middlemen</li>
               <li><i data-lucide="circle-check"></i> Delivered fresh daily</li>
@@ -798,17 +882,100 @@
     </div>
     <div id="toast" class="hidden fixed bottom-5 right-5 z-[120] max-w-md bg-stone-900 text-white px-5 py-3 rounded-xl shadow-lg text-sm"></div>
 
-    <!-- VIEW: ABOUT / CONTACT PLACEHOLDER -->
-    <section id="view-generic" class="view-panel hidden py-20 max-w-2xl mx-auto px-4 text-center">
-      <div class="bg-white p-8 rounded-2xl border border-stone-200 shadow-sm space-y-4">
-        <div class="w-12 h-12 bg-brand-100 text-brand-700 rounded-full flex items-center justify-center mx-auto">
-          <i data-lucide="leaf" class="w-6 h-6"></i>
+    <!-- VIEW: ABOUT -->
+    <section id="view-about" class="view-panel hidden info-page">
+      <span class="info-eyebrow"><i data-lucide="sprout"></i> Our motive</span>
+      <h1 class="display-heading">Straight from farmers, <em>to your home</em></h1>
+      <p class="info-lead">My Farm Grow is a delivery app that connects farmers directly with families. Your food comes from the people who grow it to your kitchen, with no middlemen in between.</p>
+
+      <div class="info-cards">
+        <div class="why-card">
+          <div class="why-icon" style="--cat-bg:#f4e6bd;--cat-ink:#6b5317"><i data-lucide="handshake" class="w-6 h-6"></i></div>
+          <h3>Fair earnings for farmers</h3>
+          <p>Selling directly means more of what you pay reaches the people who grow your food.</p>
         </div>
-        <h2 id="generic-title" class="text-2xl font-serif font-bold text-brand-800">Section Title</h2>
-        <p id="generic-desc" class="text-stone-600 text-sm">Farm-fresh groceries directly from local growers to your family table.</p>
-        <button onclick="navigate('products')" class="mt-4 bg-brand-700 hover:bg-brand-800 text-white px-5 py-2 rounded-lg text-sm font-semibold transition">
-          Browse Catalog
-        </button>
+        <div class="why-card">
+          <div class="why-icon" style="--cat-bg:#d3e9b5;--cat-ink:#2f5f1a"><i data-lucide="truck" class="w-6 h-6"></i></div>
+          <h3>Fresher food for families</h3>
+          <p>Fewer stops between the field and your door keeps every order fresh.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-icon" style="--cat-bg:#f6c7b4;--cat-ink:#8a2f17"><i data-lucide="shield-check" class="w-6 h-6"></i></div>
+          <h3>Honest sourcing</h3>
+          <p>Every product is inspected before packing, so you can trust what reaches your home.</p>
+        </div>
+      </div>
+
+      <h2 class="info-subhead">How it works</h2>
+      <div class="journey">
+        <svg viewBox="0 0 640 240" role="img" aria-label="Animation: crops are harvested on the farm, a truck takes the crate to be checked and packed, then delivers it to a home.">
+          <defs><linearGradient id="j-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9eefa"/><stop offset="1" stop-color="#f6fbe9"/></linearGradient></defs>
+          <rect width="640" height="240" fill="url(#j-sky)"/>
+          <circle class="j-sun" cx="205" cy="58" r="22" fill="#f5c451"/>
+          <g class="j-cloud"><ellipse cx="0" cy="62" rx="30" ry="11" fill="#fff"/><ellipse cx="18" cy="54" rx="18" ry="11" fill="#fff"/></g>
+          <path d="M0 168Q80 110 170 150T340 140T520 150T640 130V168Z" fill="#cfe3a6"/>
+          <rect y="168" width="640" height="72" fill="#a9d06e"/>
+          <rect y="190" width="640" height="36" fill="#e6d3a3"/>
+          <path d="M0 208H640" stroke="#fff" stroke-width="3" stroke-dasharray="18 14"/>
+
+          <!-- Step 1: the farm -->
+          <g transform="translate(74,186)"><g class="j-farmer"><rect x="-7" y="-24" width="5" height="24" fill="#4d5a3f"/><rect x="2" y="-24" width="5" height="24" fill="#4d5a3f"/><rect x="-10" y="-52" width="20" height="31" rx="6" fill="#f3f6f1"/><circle cy="-60" r="8" fill="#a5683f"/><path d="M-17 -62L0 -78L17 -62Z" fill="#d9b36c"/></g></g>
+          <g transform="translate(30,186)"><g class="j-plant"><path d="M0 0V-24M0 -10q-9 -3 -11 -11M0 -15q9 -3 11 -11" fill="none" stroke="#3f7d20" stroke-width="3" stroke-linecap="round"/></g></g><g transform="translate(52,186)"><g class="j-plant"><path d="M0 0V-24M0 -10q-9 -3 -11 -11M0 -15q9 -3 11 -11" fill="none" stroke="#3f7d20" stroke-width="3" stroke-linecap="round"/></g></g><g transform="translate(74,186)"><g class="j-plant"><path d="M0 0V-24M0 -10q-9 -3 -11 -11M0 -15q9 -3 11 -11" fill="none" stroke="#3f7d20" stroke-width="3" stroke-linecap="round"/></g></g><g transform="translate(96,186)"><g class="j-plant"><path d="M0 0V-24M0 -10q-9 -3 -11 -11M0 -15q9 -3 11 -11" fill="none" stroke="#3f7d20" stroke-width="3" stroke-linecap="round"/></g></g><g transform="translate(118,186)"><g class="j-plant"><path d="M0 0V-24M0 -10q-9 -3 -11 -11M0 -15q9 -3 11 -11" fill="none" stroke="#3f7d20" stroke-width="3" stroke-linecap="round"/></g></g>
+          <g class="j-crate1"><rect x="-13" y="-11" width="26" height="22" rx="2" fill="#c9975a" stroke="#8a6236" stroke-width="1.5"/><path d="M-13 -3h26M-13 4h26" stroke="#8a6236" stroke-width="1.2"/><ellipse cx="-5" cy="-13" rx="6" ry="4" fill="#5a9c2f"/><ellipse cx="6" cy="-13" rx="6" ry="4" fill="#e9a23b"/></g>
+          <g transform="translate(74,30)"><circle r="15" fill="#3f7d20"/><text text-anchor="middle" y="6" fill="#fff" font-size="17" font-weight="800">1</text></g>
+
+          <!-- Step 2: check and pack -->
+          <path d="M258 110L320 72L382 110Z" fill="#3f7d20"/>
+          <rect x="268" y="110" width="104" height="72" fill="#fff8e8"/>
+          <rect x="298" y="128" width="44" height="54" fill="#7a5a2c"/>
+          <g class="j-crate3"><rect x="-13" y="-11" width="26" height="22" rx="2" fill="#c9975a" stroke="#8a6236" stroke-width="1.5"/><path d="M-13 -3h26M-13 4h26" stroke="#8a6236" stroke-width="1.2"/><ellipse cx="-5" cy="-13" rx="6" ry="4" fill="#5a9c2f"/><ellipse cx="6" cy="-13" rx="6" ry="4" fill="#e9a23b"/></g>
+          <g transform="translate(372,122)"><g class="j-pop j-pop1"><circle r="15" fill="#3f7d20" stroke="#fff" stroke-width="2.5"/><path d="M-6 0l4 4 8 -9" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+          <g transform="translate(320,30)"><circle r="15" fill="#3f7d20"/><text text-anchor="middle" y="6" fill="#fff" font-size="17" font-weight="800">2</text></g>
+
+          <!-- Step 3: the home -->
+          <rect x="604" y="78" width="11" height="26" fill="#8d4a26"/>
+          <path d="M524 114L577 70L630 114Z" fill="#a8552b"/>
+          <rect x="535" y="114" width="84" height="68" fill="#fffbea"/>
+          <rect x="566" y="142" width="22" height="40" fill="#7a4a12"/>
+          <rect class="j-window" x="544" y="126" width="16" height="16" fill="#bfe0ef"/>
+          <rect class="j-window" x="594" y="126" width="16" height="16" fill="#bfe0ef"/>
+          <g class="j-crate2"><rect x="-13" y="-11" width="26" height="22" rx="2" fill="#c9975a" stroke="#8a6236" stroke-width="1.5"/><path d="M-13 -3h26M-13 4h26" stroke="#8a6236" stroke-width="1.2"/><ellipse cx="-5" cy="-13" rx="6" ry="4" fill="#5a9c2f"/><ellipse cx="6" cy="-13" rx="6" ry="4" fill="#e9a23b"/></g>
+          <g transform="translate(612,158)"><g class="j-pop j-pop2"><circle r="15" fill="#3f7d20" stroke="#fff" stroke-width="2.5"/><path d="M-6 0l4 4 8 -9" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+          <g transform="translate(577,30)"><circle r="15" fill="#3f7d20"/><text text-anchor="middle" y="6" fill="#fff" font-size="17" font-weight="800">3</text></g>
+
+          <!-- Truck -->
+          <g class="j-truck">
+            <rect width="62" height="40" rx="4" fill="#2f641b"/>
+            <path d="M31 30c-9 -2 -12 -9 -10 -19c10 1 16 7 14 16zM31 30l-3 -7" fill="#cfe88a"/>
+            <path d="M62 12H80L94 28V40H62Z" fill="#f7f3e4"/>
+            <path d="M68 16H78L87 27H68Z" fill="#bfe0ef"/>
+            <g transform="translate(18,42)"><g class="j-wheel"><circle r="9" fill="#34382f"/><circle r="4" fill="#dfe3d6"/><path d="M0 -8V8M-8 0H8" stroke="#dfe3d6" stroke-width="1.5"/></g></g>
+            <g transform="translate(76,42)"><g class="j-wheel"><circle r="9" fill="#34382f"/><circle r="4" fill="#dfe3d6"/><path d="M0 -8V8M-8 0H8" stroke="#dfe3d6" stroke-width="1.5"/></g></g>
+          </g>
+        </svg>
+      </div>
+      <ol class="info-steps journey-steps">
+        <li><span>1</span><div><h3>Farmers harvest</h3><p>Local growers in Andhra Pradesh bring in their produce.</p></div></li>
+        <li><span>2</span><div><h3>We check and pack</h3><p>Each order is inspected and packed with care.</p></div></li>
+        <li><span>3</span><div><h3>Delivered to your home</h3><p>Your groceries arrive right at your door.</p></div></li>
+      </ol>
+
+      <button onclick="navigate('products')" class="btn-primary info-cta">Browse Products</button>
+    </section>
+
+    <!-- VIEW: CONTACT -->
+    <!-- Contact details shown on the Contact page. The email below is still a placeholder: replace it before launch -->
+    <section id="view-contact" class="view-panel hidden info-page">
+      <span class="info-eyebrow"><i data-lucide="headset"></i> We're here to help</span>
+      <h1 class="display-heading">Contact <em>our team</em></h1>
+      <p class="info-lead">Questions about your groceries or a bulk order? Reach out and we'll be glad to help.</p>
+
+      <div class="contact-grid">
+        <div class="contact-item"><span class="why-icon" style="--cat-bg:#d3e9b5;--cat-ink:#2f5f1a"><i data-lucide="phone"></i></span><div><p>Phone</p><b>+91 87902 04512</b></div></div>
+        <div class="contact-item"><span class="why-icon" style="--cat-bg:#d3e9b5;--cat-ink:#2f5f1a"><i data-lucide="message-circle"></i></span><div><p>WhatsApp</p><b>+91 87902 04512</b></div></div>
+        <div class="contact-item"><span class="why-icon" style="--cat-bg:#f4e6bd;--cat-ink:#6b5317"><i data-lucide="mail"></i></span><div><p>Email</p><b>help@myfarmgrow.in</b></div></div>
+        <div class="contact-item"><span class="why-icon" style="--cat-bg:#f4e6bd;--cat-ink:#6b5317"><i data-lucide="clock"></i></span><div><p>Working hours</p><b>7:00 AM – 8:00 PM, all days</b></div></div>
+        <div class="contact-item contact-wide"><span class="why-icon" style="--cat-bg:#f6c7b4;--cat-ink:#8a2f17"><i data-lucide="map-pin"></i></span><div><p>Address</p><b>Door No. 7-26, Near Ramalayam Temple, Konanki, Piduguralla, Andhra Pradesh</b></div></div>
       </div>
     </section>
 
@@ -830,10 +997,10 @@
       <div>
         <h4 class="text-white font-semibold mb-3">Quick Links</h4>
         <ul class="space-y-2 text-xs">
-          <li><a href="#" onclick="navigate('home')" class="hover:text-white">Home</a></li>
-          <li><a href="#" onclick="navigate('products')" class="hover:text-white">Products</a></li>
-          <li><a href="#" onclick="navigate('about')" class="hover:text-white">About Us</a></li>
-          <li><a href="#" onclick="navigate('contact')" class="hover:text-white">Contact</a></li>
+          <li><a href="#" onclick="navigate('home'); return false" class="hover:text-white">Home</a></li>
+          <li><a href="#" onclick="navigate('products'); return false" class="hover:text-white">Products</a></li>
+          <li><a href="#" onclick="navigate('about'); return false" class="hover:text-white">About Us</a></li>
+          <li><a href="#" onclick="navigate('contact'); return false" class="hover:text-white">Contact</a></li>
         </ul>
       </div>
 
@@ -844,15 +1011,25 @@
 
       <div>
         <h4 class="text-white font-semibold mb-3">Customer Support</h4>
-        <p class="text-xs text-stone-400">Email: help@myfarmgrows.in</p>
+        <p class="text-xs text-stone-400">Email: help@myfarmgrow.in</p>
         <p class="text-xs text-stone-400 mt-1">Available 7:00 AM – 8:00 PM</p>
       </div>
     </div>
     
     <div class="max-w-7xl mx-auto px-4 border-t border-brand-700 pt-4 text-center text-xs text-stone-500">
       &copy; 2026 My Farm Grow. All rights reserved.
+      <p class="mt-2 text-[11px] text-stone-500">Photos: chilli powder by GI tagged products (CC BY-SA 4.0), brown rice by Gaurav Dhwaj Khadka (CC BY-SA 4.0), ghee by Phadke09 (CC BY-SA 4.0), via Wikimedia Commons.</p>
     </div>
   </footer>
+
+  <!-- Phone bottom tab bar -->
+  <nav id="app-tabbar" aria-label="Main">
+    <button type="button" data-view="home" onclick="navigate('home')"><i data-lucide="house"></i><span>Home</span></button>
+    <button type="button" data-view="products" onclick="navigate('products')"><i data-lucide="shopping-basket"></i><span>Products</span></button>
+    <button type="button" data-view="about" onclick="navigate('about')"><i data-lucide="sprout"></i><span>About</span></button>
+    <button type="button" data-view="contact" onclick="navigate('contact')"><i data-lucide="phone"></i><span>Contact</span></button>
+    <button type="button" id="tabbar-account" onclick="openAccount()"><i data-lucide="user-round"></i><span>Account</span></button>
+  </nav>
 
   <!-- Application Logic: connected to the FastAPI backend -->
   <script>
@@ -1021,12 +1198,21 @@
       const panel = document.getElementById("mobile-nav");
       const open = panel.classList.toggle("hidden") === false;
       document.getElementById("mobile-nav-toggle").setAttribute("aria-expanded", String(open));
+      // Give the open menu its own history entry so the phone's back button closes it
+      // instead of leaving the site.
+      if (open) history.pushState({...(history.state || {}), menu: true}, "", location.href);
+      else if (history.state?.menu) history.back();
     }
     function closeMobileNav() {
       document.getElementById("mobile-nav").classList.add("hidden");
       document.getElementById("mobile-nav-toggle").setAttribute("aria-expanded", "false");
     }
-    function mobileNavGo(viewName) { closeMobileNav(); navigate(viewName); }
+    // Close the menu and drop its history entry when no navigation took its place.
+    function dismissMobileNav() {
+      closeMobileNav();
+      if (history.state?.menu) history.back();
+    }
+    function mobileNavGo(viewName) { closeMobileNav(); navigate(viewName); if (history.state?.menu) history.back(); }
     function openSearch() {
       navigate("products");
       document.getElementById("search-input").focus({preventScroll: true});
@@ -1394,11 +1580,11 @@
       } else if (action === "inventory-history") {
         navigate("inventory-history");
       } else if (action === "products") {
-        navigate("products");
-        notify("Product catalog opened. Product create/edit controls can be added as a separate admin feature.");
+        navigate("admin-products");
       } else if (action === "payments") {
-        navigate("admin");
-        notify("Payment status controls are available in the admin order cards.");
+        navigate("admin-payments");
+      } else if (action === "customers") {
+        navigate("admin-customers");
       }
     }
 
@@ -1409,7 +1595,16 @@
       if (customerWrap && !customerWrap.contains(event.target)) closeCustomerMenu();
     });
 
-    function navigate(viewName) {
+    // Each view change is recorded in browser history so the phone's back button
+    // steps back through the site instead of closing it.
+    function viewState(viewName) { return {view: viewName, category: selectedCategory}; }
+    function recordView(viewName) {
+      const state = viewState(viewName), current = history.state;
+      const url = viewName === "home" ? location.pathname + location.search : `#${viewName}`;
+      if (!current || current.menu || (current.view === state.view && current.category === state.category)) history.replaceState(state, "", url);
+      else history.pushState(state, "", url);
+    }
+    function navigate(viewName, options = {}) {
       document.querySelectorAll(".view-panel").forEach(el => el.classList.add("hidden"));
       const view = document.getElementById(`view-${viewName}`);
       if (view) view.classList.remove("hidden");
@@ -1423,49 +1618,63 @@
       if (viewName === "addresses") loadMyAddresses();
       if (viewName === "order-success") renderOrderSuccess();
       if (viewName === "dashboard") loadCustomerDashboard();
-      if (viewName === "admin" || viewName === "deliveries" || viewName === "inventory" || viewName === "inventory-history") {
+      if (["admin", "deliveries", "inventory", "inventory-history", "admin-products", "admin-payments", "admin-customers"].includes(viewName)) {
         if (!currentUser || currentUser.role !== "admin") {
           notify("Administrator access is required.");
-          navigate("home");
+          navigate("home", options);
           return;
         }
         if (viewName === "admin") loadAdminOrders();
         if (viewName === "deliveries") loadAdminDeliveries();
         if (viewName === "inventory") loadAdminInventory();
         if (viewName === "inventory-history") loadInventoryHistoryView();
+        if (viewName === "admin-products") loadAdminProducts();
+        if (viewName === "admin-payments") loadAdminPayments();
+        if (viewName === "admin-customers") loadAdminCustomers();
       }
-      if (viewName === "about" || viewName === "contact") {
-        document.getElementById("view-generic").classList.remove("hidden");
-        document.getElementById("generic-title").innerText = viewName === "about" ? "About My Farm Grow" : "Contact Our Team";
-        document.getElementById("generic-desc").innerText = viewName === "about" ? "A farm-to-home grocery experience connecting customers with agricultural products." : "Contact our team for questions and bulk order support.";
-      }
+      if (!options.fromHistory) recordView(viewName);
       window.scrollTo({top:0, behavior:"smooth"});
     }
-    function filterCategory(category) {
+    function setSelectedCategory(category) {
       selectedCategory = category;
       document.querySelectorAll(".cat-btn").forEach(btn => {
         const active = btn.getAttribute("data-category") === category;
         btn.className = `cat-btn w-full text-left px-3 py-2 rounded-lg ${active ? "bg-brand-50 text-brand-700 font-semibold" : "hover:bg-stone-50 text-stone-600"}`;
       });
+    }
+    function filterCategory(category) {
+      setSelectedCategory(category);
       navigate("products");
     }
+    window.addEventListener("popstate", event => {
+      const state = event.state || {view: "home", category: "All"};
+      closeMobileNav();
+      if (!document.getElementById("account-modal").classList.contains("hidden")) closeAccount();
+      if (state.menu) return;
+      if (state.category && state.category !== selectedCategory) setSelectedCategory(state.category);
+      navigate(state.view || "home", {fromHistory: true});
+    });
     let searchTimer;
     function handleSearch() { clearTimeout(searchTimer); searchTimer = setTimeout(renderProducts, 250); }
     // Product image paths served by FastAPI from frontend/images/.
     // Windows path example: D:\\Project\\frontend\\images\\basmati-rice.jpg
     // Browser URL for that file: images/basmati-rice.jpg
+    // An image set by the admin (products.image_url) wins; the name matching
+    // below only covers products created before that field existed.
     function getProductImage(product) {
+      if (product.image_url) return product.image_url;
       const name = String(product.name || "").toLowerCase();
       if (name.includes("sona masoori") || name.includes("sonamasuri")) return "images/sona-masoori-rice.jpg";
       if (name.includes("basmati")) return "images/basmati-rice.jpg";
-      if (name.includes("rice")) return "images/basmati-rice.jpg";
+      if (name.includes("brown rice")) return "images/brown-rice.jpg";
+      if (name.includes("rice")) return "images/regular-rice.jpg";
       if (name.includes("toor dal")) return "images/toor-dal.jpg";
-      if (name.includes("red chilli") || name.includes("red chili") || name.includes("chilli powder") || name.includes("chili powder") || name.includes("mirchi powder")) return "images/red-mirchi.jpg";
+      if (name.includes("red chilli") || name.includes("red chili") || name.includes("chilli powder") || name.includes("chili powder") || name.includes("mirchi powder")) return "images/red-chilli-powder.jpg";
       if (name.includes("masoor dal")) return "images/masoor-dal.jpg";
       if (name.includes("moong dal")) return "images/moong-dal.jpg";
       if (name.includes("mirchi") || name.includes("chilli")) return "images/red-mirchi.jpg";
       if (name.includes("turmeric")) return "images/turmeric.jpg";
-      if (name.includes("ghee")) return "images/desi-ghee.jpg";
+      if (name.includes("ghee")) return "images/ghee.jpg";
       if (name.includes("sunflower oil")) return "images/sunflower-oil.jpg";
       if (name.includes("whole green gram") || name.includes("green gram") || name.includes("mung bean")) return "images/whole-green-gram.jpg";
       if (name.includes("groundnut oil")) return "images/groundnut-oil.jpg";
@@ -1496,8 +1705,45 @@
       const style = categoryStyle(category);
       return `--cat-bg:${style.bg};--cat-ink:${style.ink}`;
     }
-    // Price for buying one unit. Matches app/services/pricing.py, which applies the wholesale price from the minimum quantity.
-    function singleUnitPrice(p) { return Number(p.min_wholesale_quantity) <= 1 ? p.wholesale_price : p.retail_price; }
+    // Unit price for a quantity. Matches app/services/pricing.py, which applies the wholesale price from the minimum quantity.
+    function unitPriceFor(p, quantity) { return Number(quantity >= Number(p.min_wholesale_quantity) ? p.wholesale_price : p.retail_price); }
+    function singleUnitPrice(p) { return unitPriceFor(p, 1); }
+
+    // Order offer shown in the banner. The backend applies it (app/services/pricing.py); these only drive the hints.
+    const ORDER_OFFER = {threshold: 5000, percent: 10};
+
+    // Products sold in whole bags, by category. Prices stay per kg in the database:
+    // a 25 kg bag adds 25 kg to the cart at the price for 25 kg.
+    const BAG_SIZES = {Rice: [25, 50]};
+    const chosenBag = {}; // product id -> index into its bag sizes
+    function bagSizes(p) { return String(p.unit).toLowerCase() === "kg" ? BAG_SIZES[p.category] || null : null; }
+    // Quantity one tap on Add / + adds: one unit, or the chosen bag.
+    function buyQuantity(p) { const sizes = bagSizes(p); return sizes ? sizes[chosenBag[p.id] || 0] : 1; }
+    function priceHtml(p) {
+      const sizes = bagSizes(p);
+      if (!sizes) return `${money(singleUnitPrice(p))} <small>/ ${esc(p.unit)}</small>`;
+      const kg = buyQuantity(p);
+      return `${money(Math.round(unitPriceFor(p, kg) * kg * 100) / 100)} <small>/ ${kg} kg bag</small>`;
+    }
+    function sizePills(p) {
+      const sizes = bagSizes(p);
+      if (!sizes) return "";
+      const chosen = chosenBag[p.id] || 0;
+      return `<div class="size-pills" role="group" aria-label="Bag size for ${esc(p.name)}" data-sizes-for="${p.id}">${sizes.map((kg, i) =>
+        `<button type="button" aria-pressed="${i === chosen}" onclick="chooseBag(${p.id},${i})">${kg} kg</button>`
+      ).join("")}</div>`;
+    }
+    // Switches the bag size everywhere the product is shown, without re-rendering the cards.
+    function chooseBag(id, index) {
+      const p = productById(id);
+      if (!p) return;
+      chosenBag[p.id] = index;
+      document.querySelectorAll(`[data-price-for="${p.id}"]`).forEach(el => { el.innerHTML = priceHtml(p); });
+      // Number the buttons inside each group: the product can be on the page more than once.
+      document.querySelectorAll(`[data-sizes-for="${p.id}"]`).forEach(group =>
+        group.querySelectorAll("button").forEach((b, i) => b.setAttribute("aria-pressed", String(i === index))));
+      refreshCartControls();
+    }
     function productById(id) { return catalog.find(p => Number(p.id) === Number(id)) || products.find(p => Number(p.id) === Number(id)); }
     function cartLine(productId) { return (cart.items || []).find(x => Number(x.product_id) === Number(productId)); }
     function cartSlot(p, variant) { return `<div class="cart-slot cart-slot-${variant}" data-product-id="${p.id}" data-variant="${variant}"></div>`; }
@@ -1512,14 +1758,15 @@
         const p = productById(slot.dataset.productId);
         if (!p) return;
         const line = cartLine(p.id);
-        const state = line ? "line" : Number(p.stock_quantity) <= 0 ? "out" : "add";
+        const state = line ? "line" : Number(p.stock_quantity) < buyQuantity(p) ? "out" : "add";
         if (slot.dataset.state !== state) {
           slot.innerHTML = cartSlotHtml(p, state, slot.dataset.variant);
           slot.dataset.state = state;
         }
         if (line) {
           const count = slot.querySelector(".qty-count");
-          if (count.textContent !== String(line.quantity)) count.textContent = line.quantity;
+          const text = bagSizes(p) ? `${line.quantity} kg` : String(line.quantity);
+          if (count.textContent !== text) count.textContent = text;
         }
       });
     }
@@ -1533,10 +1780,6 @@
         return;
       }
       const categories = [...new Set(catalog.map(p => p.category).filter(Boolean))].sort();
-      document.getElementById("home-categories").innerHTML = categories.map(c => {
-        const count = catalog.filter(p => p.category === c).length;
-        return `<button class="cat-tile card-fx w-[calc(50%-.5rem)] sm:w-[calc(33.333%-.7rem)] lg:w-[calc(20%-.8rem)]" style="${categoryVars(c)}" data-category="${esc(c)}" onclick="filterCategory(this.dataset.category)"><span class="cat-tile-icon"><i data-lucide="${categoryStyle(c).icon}"></i></span><span class="cat-tile-name">${esc(c)}</span><span class="cat-tile-count">${count} ${count === 1 ? "product" : "products"}</span></button>`;
-      }).join("");
       document.getElementById("category-filter-list").innerHTML = ["All", ...categories].map(c => {
         const active = c === selectedCategory;
         return `<li><button onclick="filterCategory(this.dataset.category)" data-category="${esc(c)}" class="cat-btn w-full text-left px-3 py-2 rounded-lg ${active ? "bg-brand-50 text-brand-700 font-semibold" : "hover:bg-stone-50 text-stone-600"}">${c === "All" ? "All Products" : esc(c)}</button></li>`;
@@ -1557,7 +1800,7 @@
         if (picks.length === 2) break;
       }
       const html = picks.map(p =>
-        `<button class="hero-chip" data-category="${esc(p.category)}" onclick="filterCategory(this.dataset.category)"><img src="${esc(getProductImage(p))}" alt=""><span><b>${esc(p.name)}</b><span>${money(singleUnitPrice(p))} / ${esc(p.unit)}</span></span></button>`
+        `<button class="hero-chip" data-category="${esc(p.category)}" onclick="filterCategory(this.dataset.category)"><img src="${esc(getProductImage(p))}" alt=""><span><b>${esc(p.name)}</b><span>From ${priceHtml(p).replace(/<\/?small>/g, "")}</span></span></button>`
       ).join("");
       if (html === lastChipsHtml) return;
       lastChipsHtml = html;
@@ -1576,7 +1819,8 @@
         return `<article class="feature-card fade-up" style="animation-delay:${i * 40}ms">
           <div class="feature-card-media" style="${categoryVars(p.category)}"><img src="${esc(image)}" alt="${esc(p.name)}" loading="lazy" class="${image ? "" : "hidden"}" onerror="this.classList.add('hidden')"></div>
           <h3>${esc(p.name)}</h3>
-          <div class="feature-foot"><span class="feature-price">${money(singleUnitPrice(p))} <small>/ ${esc(p.unit)}</small></span>${cartSlot(p, "featured")}</div>
+          ${sizePills(p)}
+          <div class="feature-foot"><span class="feature-price" data-price-for="${p.id}">${priceHtml(p)}</span>${cartSlot(p, "featured")}</div>
         </article>`;
       }).join("");
       if (html !== lastFeaturedHtml) {
@@ -1613,11 +1857,13 @@
             <div class="flex-1 pt-3 px-1">
               <h3 class="text-base font-bold text-stone-800">${esc(p.name)}</h3>
               <p class="text-xs text-stone-500 mt-1">${esc(p.description || "Farm-sourced grocery essential.")}</p>
-              <div class="mt-2 flex flex-wrap gap-2 text-xs"><span class="bg-stone-100 px-2 py-1 rounded">${esc(p.unit)}</span><span class="bg-stone-100 px-2 py-1 rounded">${Number(p.stock_quantity)} in stock</span></div>
-              ${Number(p.min_wholesale_quantity)>1 ? `<p class="text-xs text-stone-500 mt-2">${money(p.wholesale_price)} each when you buy ${p.min_wholesale_quantity} ${esc(p.unit)} or more</p>` : ""}
+              ${bagSizes(p)
+                ? `<p class="text-[11px] text-stone-500 mt-3 mb-1 font-semibold uppercase tracking-wide">Bag size</p>${sizePills(p)}`
+                : `<div class="mt-2 flex flex-wrap gap-2 text-xs"><span class="bg-stone-100 px-2 py-1 rounded">${esc(p.unit)}</span><span class="bg-stone-100 px-2 py-1 rounded">${Number(p.stock_quantity)} in stock</span></div>
+              ${Number(p.min_wholesale_quantity)>1 && Number(p.wholesale_price) < Number(p.retail_price) ? `<p class="text-xs text-stone-500 mt-2">${money(p.wholesale_price)} each when you buy ${p.min_wholesale_quantity} ${esc(p.unit)} or more</p>` : ""}`}
             </div>
             <div class="mt-3 px-1 pb-1 flex items-center justify-between gap-2">
-              <div><p class="text-[11px] text-stone-500">Price</p><p class="text-lg font-extrabold text-brand-800">${money(singleUnitPrice(p))}</p></div>
+              <div><p class="text-[11px] text-stone-500">Price</p><p class="feature-price text-lg" data-price-for="${p.id}">${priceHtml(p)}</p></div>
               ${cartSlot(p, "catalog")}
             </div></article>`;
         }).join("");
@@ -1633,7 +1879,8 @@
       if (!token || !currentUser) { window.pendingCartProduct = productId; openAccount(); notify("Please log in to add items to your cart."); return; }
       if (btn) { btn.disabled = true; btn.classList.add("is-busy"); }
       try {
-        cart = await api("/api/cart/items", {method:"POST", body:{product_id:productId, quantity:1}});
+        const p = productById(productId);
+        cart = await api("/api/cart/items", {method:"POST", body:{product_id:productId, quantity:p ? buyQuantity(p) : 1}});
         if (btn) flyToCart(btn);
         updateCartBadge(); bumpCartBadge();
         showAddedPop(productId);
@@ -1647,7 +1894,8 @@
       const line = cartLine(productId);
       if (!line || cartUpdating.has(productId)) return;
       cartUpdating.add(productId);
-      const quantity = Number(line.quantity) + change;
+      const p = productById(productId);
+      const quantity = Number(line.quantity) + change * (p ? buyQuantity(p) : 1);
       try {
         if (quantity < 1) {
           await api(`/api/cart/items/${line.id}`, {method:"DELETE"});
@@ -1669,11 +1917,24 @@
       try { cart = await api("/api/cart"); renderCart(); }
       catch(error) { container.innerHTML = `<p class="text-red-700">${esc(error.message)}</p>`; }
     }
+    // Subtotal, offer discount and total rows shared by the cart and checkout.
+    function cartTotalsHtml(c) {
+      const discount = Number(c.discount || 0);
+      const subtotal = Number(c.subtotal ?? c.total ?? 0);
+      const rows = discount > 0
+        ? `<div class="flex justify-between text-sm text-stone-600"><span>Subtotal</span><span>${money(subtotal)}</span></div><div class="flex justify-between text-sm font-semibold text-brand-700"><span>Offer: ${ORDER_OFFER.percent}% off above ${money(ORDER_OFFER.threshold)}</span><span>−${money(discount)}</span></div>`
+        : "";
+      const short = ORDER_OFFER.threshold - subtotal;
+      const note = discount > 0
+        ? `<p class="offer-note">You saved ${money(discount)} with the ${ORDER_OFFER.percent}% offer.</p>`
+        : short >= 0 && subtotal > 0 ? `<p class="offer-note">Add more than ${money(short)} to get ${ORDER_OFFER.percent}% off your order.</p>` : "";
+      return { rows, note };
+    }
     function renderCart() {
       const container = document.getElementById("cart-container");
       updateCartBadge();
       if (!cart.items?.length) { container.innerHTML = `<div class="text-center py-16 bg-white border border-stone-200 rounded-xl"><i data-lucide="shopping-cart" class="w-12 h-12 text-stone-300 mx-auto mb-3"></i><h3 class="text-lg font-bold">Your cart is empty</h3><p class="text-stone-400 text-sm mb-6">Explore the store and add products.</p><button onclick="navigate('products')" class="bg-brand-700 text-white px-6 py-2 rounded-lg">Browse Store</button></div>`; if(window.lucide)lucide.createIcons(); return; }
-      container.innerHTML = `<div class="bg-white rounded-xl border border-stone-200 p-6 shadow-sm"><div class="divide-y">${cart.items.map(item=>`<div id="cart-row-${item.id}" class="cart-row py-4 flex flex-wrap gap-3 items-center justify-between"><div class="flex min-w-0 items-center gap-3"><img src="${esc(getProductImage({name:item.product_name, image_url:item.image_url}))}" alt="${esc(item.product_name)}" class="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover border border-stone-200 bg-stone-50 flex-shrink-0" onerror="this.classList.add('hidden')"><div class="min-w-0"><h4 class="font-bold text-sm">${esc(item.product_name)}</h4><p class="text-xs text-stone-500">${money(item.unit_price)} each · Item #${item.id}</p></div></div><div class="flex items-center gap-3"><div class="flex items-center border rounded-lg"><button onclick="changeQty(${item.id},${Number(item.quantity)-1})" class="px-3 py-1 hover:bg-stone-100">−</button><span class="px-2 text-sm">${item.quantity}</span><button onclick="changeQty(${item.id},${Number(item.quantity)+1})" class="px-3 py-1 hover:bg-stone-100">+</button></div><b class="w-24 text-right">${money(item.subtotal)}</b><button onclick="removeCartItem(${item.id})" class="text-red-600 text-sm">Remove</button></div></div>`).join("")}</div><div class="border-t mt-4 pt-4 flex justify-between font-bold text-lg"><span>Total</span><span>${money(cart.total)}</span></div><div class="mt-5 flex flex-wrap gap-3"><button onclick="clearCart()" class="border rounded-lg px-4 py-3 text-sm">Clear cart</button><button onclick="navigate('checkout')" class="flex-1 bg-brand-accent text-brand-800 font-bold py-3 rounded-lg">Proceed to checkout</button></div></div>`;
+      container.innerHTML = `<div class="bg-white rounded-xl border border-stone-200 p-6 shadow-sm"><div class="divide-y">${cart.items.map(item=>`<div id="cart-row-${item.id}" class="cart-row py-4 flex flex-wrap gap-3 items-center justify-between"><div class="flex min-w-0 items-center gap-3"><img src="${esc(getProductImage({name:item.product_name, image_url:item.image_url}))}" alt="${esc(item.product_name)}" class="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover border border-stone-200 bg-stone-50 flex-shrink-0" onerror="this.classList.add('hidden')"><div class="min-w-0"><h4 class="font-bold text-sm">${esc(item.product_name)}</h4><p class="text-xs text-stone-500">${money(item.unit_price)} each · Item #${item.id}</p></div></div><div class="flex items-center gap-3"><div class="flex items-center border rounded-lg"><button onclick="changeQty(${item.id},${Number(item.quantity)-1})" class="px-3 py-1 hover:bg-stone-100">−</button><span class="px-2 text-sm">${item.quantity}</span><button onclick="changeQty(${item.id},${Number(item.quantity)+1})" class="px-3 py-1 hover:bg-stone-100">+</button></div><b class="w-24 text-right">${money(item.subtotal)}</b><button onclick="removeCartItem(${item.id})" class="text-red-600 text-sm">Remove</button></div></div>`).join("")}</div><div class="border-t mt-4 pt-4 space-y-1">${cartTotalsHtml(cart).rows}<div class="flex justify-between font-bold text-lg"><span>Total</span><span>${money(cart.total)}</span></div>${cartTotalsHtml(cart).note}</div><div class="mt-5 flex flex-wrap gap-3"><button onclick="clearCart()" class="border rounded-lg px-4 py-3 text-sm">Clear cart</button><button onclick="navigate('checkout')" class="flex-1 bg-brand-accent text-brand-800 font-bold py-3 rounded-lg">Proceed to checkout</button></div></div>`;
     }
     async function changeQty(itemId, quantity) {
       try { if (quantity < 1) await removeCartItem(itemId); else { cart=await api(`/api/cart/items/${itemId}`,{method:"PATCH",body:{quantity}}); renderCart(); flashRow(itemId); } }
@@ -1689,7 +1950,7 @@
         addresses = await api("/api/addresses/");
         selectedAddressId = addresses.find(a=>a.is_default)?.id || addresses[0]?.id || null;
         renderAddresses();
-        document.getElementById("checkout-summary").innerHTML = cart.items.map(i=>`<div class="flex justify-between gap-3"><span>${esc(i.product_name)} × ${i.quantity}</span><b>${money(i.subtotal)}</b></div>`).join("") + `<div class="border-t pt-3 flex justify-between font-bold text-base"><span>Total</span><span>${money(cart.total)}</span></div>`;
+        document.getElementById("checkout-summary").innerHTML = cart.items.map(i=>`<div class="flex justify-between gap-3"><span>${esc(i.product_name)} × ${i.quantity}</span><b>${money(i.subtotal)}</b></div>`).join("") + `<div class="border-t pt-3 space-y-1">${cartTotalsHtml(cart).rows}<div class="flex justify-between font-bold text-base"><span>Total</span><span>${money(cart.total)}</span></div>${cartTotalsHtml(cart).note}</div>`;
       } catch(error) { notify(error.message); }
     }
     function renderAddresses() {
@@ -1898,7 +2159,7 @@
         el.innerHTML=orders.map((o,idx)=>{
           const items=Array.isArray(o.items) ? o.items : [];
           const canCancel=String(o.status || "").toLowerCase()==="pending";
-          return `<article class="bg-white border border-stone-200 rounded-xl p-5 fade-up" style="animation-delay:${Math.min(idx,8)*70}ms">${orderHeaderHtml(o)}<div class="border-t mt-4 pt-3 space-y-3 text-sm">${items.map(i=>`<div class="flex items-center justify-between gap-3"><div class="flex items-center gap-3 min-w-0"><img src="${esc(getProductImage({name:i.product_name, image_url:i.image_url}))}" alt="${esc(i.product_name)}" class="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover border border-stone-200 bg-stone-50 flex-shrink-0" onerror="this.classList.add('hidden')"><span class="min-w-0">${esc(i.product_name)} × ${esc(i.quantity)} ${esc(i.unit)}</span></div><span class="text-stone-600 flex-shrink-0">${money(i.subtotal)}</span></div>`).join("")}</div><div class="border-t mt-4 pt-3 flex flex-wrap items-start justify-between gap-3"><div class="text-xs text-stone-500">Deliver to: ${esc(o.recipient_name)}, ${esc(o.address_line1)}, ${esc(o.city)}, ${esc(o.state)} ${esc(o.postal_code)} · ${esc(String(o.payment_method || "").replaceAll("_"," "))}</div><div class="text-right"><p class="text-xs text-stone-500">Order total</p><p class="font-bold text-brand-800">${money(o.total_amount)}</p></div></div><div class="mt-4 flex flex-wrap gap-2">${canCancel?`<button onclick="cancelOrder(${Number(o.id)})" class="text-sm border border-red-300 text-red-700 rounded-lg px-3 py-2 hover:bg-red-50">Cancel order</button>`:""}<button onclick="navigate('tracking')" class="text-sm border border-stone-300 text-stone-700 rounded-lg px-3 py-2 hover:bg-stone-50">Track shipment</button></div></article>`;
+          return `<article class="bg-white border border-stone-200 rounded-xl p-5 fade-up" style="animation-delay:${Math.min(idx,8)*70}ms">${orderHeaderHtml(o)}<div class="border-t mt-4 pt-3 space-y-3 text-sm">${items.map(i=>`<div class="flex items-center justify-between gap-3"><div class="flex items-center gap-3 min-w-0"><img src="${esc(getProductImage({name:i.product_name, image_url:i.image_url}))}" alt="${esc(i.product_name)}" class="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover border border-stone-200 bg-stone-50 flex-shrink-0" onerror="this.classList.add('hidden')"><span class="min-w-0">${esc(i.product_name)} × ${esc(i.quantity)} ${esc(i.unit)}</span></div><span class="text-stone-600 flex-shrink-0">${money(i.subtotal)}</span></div>`).join("")}</div><div class="border-t mt-4 pt-3 flex flex-wrap items-start justify-between gap-3"><div class="text-xs text-stone-500">Deliver to: ${esc(o.recipient_name)}, ${esc(o.address_line1)}, ${esc(o.city)}, ${esc(o.state)} ${esc(o.postal_code)} · ${esc(String(o.payment_method || "").replaceAll("_"," "))}</div><div class="text-right">${Number(o.discount_amount) > 0 ? `<p class="text-xs text-brand-700 font-semibold">Offer −${money(o.discount_amount)}</p>` : ""}<p class="text-xs text-stone-500">Order total</p><p class="font-bold text-brand-800">${money(o.total_amount)}</p></div></div><div class="mt-4 flex flex-wrap gap-2">${canCancel?`<button onclick="cancelOrder(${Number(o.id)})" class="text-sm border border-red-300 text-red-700 rounded-lg px-3 py-2 hover:bg-red-50">Cancel order</button>`:""}<button onclick="navigate('tracking')" class="text-sm border border-stone-300 text-stone-700 rounded-lg px-3 py-2 hover:bg-stone-50">Track shipment</button></div></article>`;
         }).join("");
         if (window.lucide) lucide.createIcons();
       } catch(error){el.innerHTML=`<p class="text-red-700">${esc(error.message)}</p>`;}
@@ -2323,7 +2584,7 @@
         return `<article class="bg-white border border-stone-200 border-l-4 rounded-xl p-5 shadow-sm hover:shadow-md transition fade-up" style="border-left-color:${ORDER_COLORS[o.status]||'#d6d3d1'}">
           <div class="flex flex-wrap justify-between gap-4">
             <div><h3 class="font-bold text-lg">Order #${o.id}</h3><p class="text-xs text-stone-500 mt-1">${o.created_at ? new Date(o.created_at).toLocaleString() : "Date unavailable"}</p><p class="text-sm mt-2">Customer ID: ${esc(o.customer_id ?? "—")} · ${esc(o.recipient_name || "Customer")}</p><p class="text-sm text-stone-500">${esc(o.phone || "")}</p></div>
-            <div class="text-right"><p class="font-bold text-xl text-brand-800">${money(o.total_amount)}</p><div class="flex flex-wrap gap-2 justify-end mt-2">Order ${adminBadge(o.status)} Payment ${adminBadge(o.payment_status)}</div></div>
+            <div class="text-right"><p class="font-bold text-xl text-brand-800">${money(o.total_amount)}</p>${Number(o.discount_amount) > 0 ? `<p class="text-xs text-brand-700 font-semibold">Includes offer −${money(o.discount_amount)}</p>` : ""}<div class="flex flex-wrap gap-2 justify-end mt-2">Order ${adminBadge(o.status)} Payment ${adminBadge(o.payment_status)}</div></div>
           </div>
           <div class="grid md:grid-cols-2 gap-5 border-t mt-4 pt-4">
             <div><h4 class="font-semibold mb-2">Items</h4>${items || '<p class="text-sm text-stone-500">No item details returned.</p>'}</div>
@@ -2606,6 +2867,229 @@
     });
 
 
+    // ---- Admin: products ----
+    // Files in frontend/images, offered as suggestions in the image field.
+    const PRODUCT_IMAGE_FILES = ["regular-rice.jpg", "brown-rice.jpg", "red-chilli-powder.jpg", "ghee.jpg", "basmati-rice.jpg", "sona-masoori-rice.jpg", "toor-dal.jpg", "masoor-dal.jpg", "moong-dal.jpg", "whole-green-gram.jpg", "red-mirchi.jpg", "turmeric.jpg", "spices.jpg", "desi-ghee.jpg", "groundnut-oil.jpg", "sesame-oil.jpg", "sunflower-oil.jpg", "jaggery.jpg", "sugar.jpg", "wheat-flour.jpg", "ragi-flour.jpg"];
+    let adminProducts = [];
+
+    async function loadAdminProducts() {
+      const list = document.getElementById("admin-products-list");
+      list.innerHTML = '<p class="text-sm text-stone-500">Loading products...</p>';
+      document.getElementById("pf-images").innerHTML = PRODUCT_IMAGE_FILES.map(f => `<option value="images/${f}">`).join("");
+      try {
+        adminProducts = await api("/api/products/?limit=100&active_only=false");
+        document.getElementById("pf-categories").innerHTML = [...new Set(adminProducts.map(p => p.category))].map(c => `<option value="${esc(c)}">`).join("");
+        renderAdminProducts();
+      } catch (error) { list.innerHTML = `<p class="text-sm text-red-700">${esc(error.message)}</p>`; }
+    }
+
+    function renderAdminProducts() {
+      const list = document.getElementById("admin-products-list");
+      const q = document.getElementById("admin-product-search").value.trim().toLowerCase();
+      const showHidden = document.getElementById("admin-product-show-hidden").checked;
+      const rows = adminProducts.filter(p => (showHidden || p.is_active) && (!q || `${p.name} ${p.category}`.toLowerCase().includes(q)));
+      if (!rows.length) { list.innerHTML = '<p class="text-sm text-stone-500 py-4">No products found. Use "New product" to add one, or run <code>uv run python -m app.cli seed-products</code>.</p>'; return; }
+      list.innerHTML = `<table class="min-w-full text-sm"><thead><tr class="text-left border-b text-xs uppercase tracking-wide text-stone-500"><th class="py-3 pr-3">Product</th><th class="py-3 pr-3">Retail</th><th class="py-3 pr-3">Wholesale</th><th class="py-3 pr-3">Stock</th><th class="py-3"></th></tr></thead><tbody>${rows.map(p => {
+        const img = getProductImage(p);
+        return `<tr class="border-b last:border-b-0 align-middle ${p.is_active ? "" : "opacity-60"}">
+          <td class="py-3 pr-3"><div class="flex items-center gap-3 min-w-48">${img ? `<img src="${esc(img)}" alt="" class="w-11 h-11 rounded-lg object-cover border border-stone-200 bg-stone-50 flex-shrink-0" onerror="this.style.visibility='hidden'">` : `<span class="w-11 h-11 rounded-lg bg-stone-100 flex-shrink-0"></span>`}<div class="min-w-0"><p class="font-semibold">${esc(p.name)}${p.is_active ? "" : ' <span class="text-xs font-semibold bg-stone-200 text-stone-700 rounded-full px-2 py-0.5">Hidden</span>'}</p><p class="text-xs text-stone-500">${esc(p.category)} · per ${esc(p.unit)}${p.image_url ? "" : " · no image set"}</p></div></div></td>
+          <td class="py-3 pr-3 whitespace-nowrap">${money(p.retail_price)}</td>
+          <td class="py-3 pr-3 whitespace-nowrap">${money(p.wholesale_price)}<p class="text-xs text-stone-500">from ${esc(p.min_wholesale_quantity)} ${esc(p.unit)}</p></td>
+          <td class="py-3 pr-3 whitespace-nowrap ${Number(p.stock_quantity) <= 0 ? "text-red-700 font-semibold" : ""}">${esc(p.stock_quantity)}</td>
+          <td class="py-3"><div class="flex flex-wrap gap-2 justify-end"><button class="border rounded-lg px-3 py-1 text-xs hover:bg-stone-50" onclick="editProduct(${p.id})">Edit</button><button class="border rounded-lg px-3 py-1 text-xs hover:bg-stone-50" onclick="toggleProductActive(${p.id}, this)">${p.is_active ? "Hide" : "Show"}</button><button class="border border-red-200 text-red-700 rounded-lg px-3 py-1 text-xs hover:bg-red-50" onclick="deleteProduct(${p.id})">Delete</button></div></td></tr>`;
+      }).join("")}</tbody></table>`;
+    }
+
+    function updateProductImagePreview() {
+      const value = document.getElementById("pf-image").value.trim();
+      const img = document.getElementById("pf-image-preview");
+      img.classList.toggle("hidden", !value);
+      if (value) { img.onerror = () => img.classList.add("hidden"); img.src = value; }
+    }
+    document.getElementById("pf-image")?.addEventListener("input", updateProductImagePreview);
+
+    function startNewProduct() {
+      const form = document.getElementById("admin-product-form");
+      form.reset();
+      form.elements.id.value = "";
+      document.getElementById("admin-product-form-title").textContent = "New product";
+      document.getElementById("pf-submit").textContent = "Create product";
+      document.getElementById("pf-stock-wrap").classList.remove("hidden");
+      document.getElementById("pf-stock-note").classList.add("hidden");
+      updateProductImagePreview();
+      form.elements.name.focus();
+    }
+
+    function editProduct(id) {
+      const p = adminProducts.find(x => x.id === id);
+      if (!p) return;
+      const f = document.getElementById("admin-product-form").elements;
+      f.id.value = p.id; f.name.value = p.name; f.category.value = p.category; f.unit.value = p.unit;
+      f.description.value = p.description || ""; f.retail_price.value = p.retail_price; f.wholesale_price.value = p.wholesale_price;
+      f.min_wholesale_quantity.value = p.min_wholesale_quantity; f.image_url.value = p.image_url || ""; f.is_active.checked = p.is_active;
+      document.getElementById("admin-product-form-title").textContent = `Edit ${p.name}`;
+      document.getElementById("pf-submit").textContent = "Save changes";
+      // Stock changes go through Inventory so they are recorded with a reason.
+      document.getElementById("pf-stock-wrap").classList.add("hidden");
+      document.getElementById("pf-stock-note").classList.remove("hidden");
+      updateProductImagePreview();
+      document.getElementById("admin-product-form").scrollIntoView({behavior: "smooth", block: "start"});
+    }
+
+    document.getElementById("admin-product-form")?.addEventListener("submit", async event => {
+      event.preventDefault();
+      const f = event.currentTarget.elements, id = f.id.value;
+      const retail = Number(f.retail_price.value), wholesale = Number(f.wholesale_price.value);
+      if (wholesale > retail) { notify("Wholesale price cannot be higher than retail price."); return; }
+      const body = {
+        name: f.name.value.trim(), category: f.category.value.trim(), unit: f.unit.value.trim(),
+        description: f.description.value.trim() || null, retail_price: retail, wholesale_price: wholesale,
+        min_wholesale_quantity: Number(f.min_wholesale_quantity.value), image_url: f.image_url.value.trim() || null,
+        is_active: f.is_active.checked,
+      };
+      if (!id) body.stock_quantity = Number(f.stock_quantity.value || 0);
+      try {
+        await withBusy(document.getElementById("pf-submit"), "Saving…", () =>
+          api(id ? `/api/products/${id}` : "/api/products/", {method: id ? "PUT" : "POST", body}));
+        notify(id ? "Product updated." : "Product created.");
+        startNewProduct();
+        await loadAdminProducts();
+        loadCatalog();
+      } catch (error) { notify(`Could not save product: ${error.message}`); }
+    });
+
+    async function toggleProductActive(id, btn) {
+      const p = adminProducts.find(x => x.id === id);
+      if (!p) return;
+      try {
+        await withBusy(btn, "…", () => api(`/api/products/${id}`, {method: "PUT", body: {is_active: !p.is_active}}));
+        notify(p.is_active ? `${p.name} is hidden from the storefront.` : `${p.name} is back on the storefront.`);
+        await loadAdminProducts();
+        loadCatalog();
+      } catch (error) { notify(error.message); }
+    }
+
+    async function deleteProduct(id) {
+      const p = adminProducts.find(x => x.id === id);
+      if (!p || !confirm(`Delete ${p.name} permanently? Products that have orders can only be hidden.`)) return;
+      try {
+        await api(`/api/products/${id}`, {method: "DELETE"});
+        notify(`${p.name} deleted.`);
+        await loadAdminProducts();
+        loadCatalog();
+      } catch (error) { notify(error.message); }
+    }
+
+    // ---- Admin: payments ----
+    let adminPayments = [];
+    const RECON_LABELS = {
+      order_paid_without_successful_transaction: "Order marked paid, but no paid transaction exists",
+      successful_transaction_order_not_paid: "A transaction is paid, but the order is not marked paid",
+      multiple_successful_transactions: "More than one paid transaction (possible double charge)",
+    };
+
+    async function loadAdminPayments() {
+      const list = document.getElementById("admin-payments-list");
+      list.innerHTML = '<p class="text-sm text-stone-500">Loading payments...</p>';
+      try {
+        const [payments, recon] = await Promise.all([api("/api/payments/admin/history"), api("/api/payments/admin/reconciliation")]);
+        adminPayments = payments;
+        const sum = s => payments.filter(p => p.status === s).reduce((a, p) => a + Number(p.amount), 0);
+        const count = s => payments.filter(p => p.status === s).length;
+        document.getElementById("admin-payments-summary").innerHTML = [["Paid", "paid"], ["Pending", "pending"], ["Failed", "failed"]].map(([label, s]) =>
+          `<div class="bg-white border border-stone-200 rounded-xl p-4"><p class="text-xs text-stone-500">${label} (${count(s)})</p><p class="text-xl font-bold">${money(sum(s))}</p></div>`).join("")
+          + `<div class="bg-white border border-stone-200 rounded-xl p-4"><p class="text-xs text-stone-500">Orders checked</p><p class="text-xl font-bold">${esc(recon.total_orders_checked)}</p></div>`;
+        document.getElementById("admin-payments-recon").innerHTML = recon.discrepancy_count
+          ? `<div class="bg-red-50 border border-red-200 rounded-xl p-4"><p class="font-semibold text-red-800 mb-2">${recon.discrepancy_count} payment problem${recon.discrepancy_count === 1 ? "" : "s"} found</p><ul class="text-sm text-red-900 space-y-1">${recon.discrepancies.map(d => `<li>Order #${esc(d.order_id)}: ${esc(RECON_LABELS[d.issue] || d.issue)}</li>`).join("")}</ul></div>`
+          : '<div class="bg-green-50 border border-green-200 text-green-800 rounded-xl p-4 text-sm">Reconciliation: every order payment status matches its transactions.</div>';
+        renderAdminPayments();
+      } catch (error) { list.innerHTML = `<p class="text-sm text-red-700">${esc(error.message)}</p>`; }
+    }
+
+    function renderAdminPayments() {
+      const list = document.getElementById("admin-payments-list");
+      const q = document.getElementById("admin-payment-search").value.trim().toLowerCase().replace(/^#/, "");
+      const status = document.getElementById("admin-payment-status").value;
+      const rows = adminPayments.filter(p => (!status || p.status === status) && (!q || String(p.order_id) === q || String(p.transaction_reference || "").toLowerCase().includes(q)));
+      if (!rows.length) { list.innerHTML = '<p class="text-sm text-stone-500 py-4">No payments found. Payment records are created when a customer chooses online payment.</p>'; return; }
+      list.innerHTML = `<table class="min-w-full text-sm"><thead><tr class="text-left border-b text-xs uppercase tracking-wide text-stone-500"><th class="py-3 pr-3">#</th><th class="py-3 pr-3">Order</th><th class="py-3 pr-3">Method</th><th class="py-3 pr-3">Amount</th><th class="py-3 pr-3">Status</th><th class="py-3 pr-3">Date</th><th class="py-3"></th></tr></thead><tbody>${rows.map(p => `
+        <tr class="border-b last:border-b-0 align-top"><td class="py-3 pr-3">${esc(p.id)}</td><td class="py-3 pr-3">#${esc(p.order_id)}</td>
+        <td class="py-3 pr-3">${p.payment_method === "online" ? "Online" : "Cash on delivery"}${p.transaction_reference ? `<p class="text-xs text-stone-500">${esc(p.transaction_reference)}</p>` : ""}</td>
+        <td class="py-3 pr-3 whitespace-nowrap">${money(p.amount)}</td><td class="py-3 pr-3">${adminBadge(p.status)}${p.failure_reason ? `<p class="text-xs text-stone-500 mt-1">${esc(p.failure_reason)}</p>` : ""}</td>
+        <td class="py-3 pr-3 whitespace-nowrap">${esc(new Date(p.created_at).toLocaleString())}</td>
+        <td class="py-3">${p.status === "pending" ? `<div class="flex gap-2 justify-end"><button class="border border-green-300 text-green-800 rounded-lg px-3 py-1 text-xs hover:bg-green-50" onclick="setPaymentStatus(${p.id}, 'paid', this)">Mark paid</button><button class="border border-red-200 text-red-700 rounded-lg px-3 py-1 text-xs hover:bg-red-50" onclick="setPaymentStatus(${p.id}, 'failed', this)">Mark failed</button></div>` : ""}</td></tr>`).join("")}</tbody></table>`;
+    }
+
+    async function setPaymentStatus(id, status, btn) {
+      const body = {status};
+      if (status === "paid" && !confirm(`Mark payment #${id} as paid? Do this only after confirming the money was received.`)) return;
+      if (status === "failed") {
+        const reason = prompt("Reason for failure (optional):", "");
+        if (reason === null) return;
+        body.failure_reason = reason.trim() || null;
+      }
+      try {
+        await withBusy(btn, "…", () => api(`/api/payments/admin/${id}/status`, {method: "PATCH", body}));
+        notify(`Payment #${id} marked ${status}.`);
+        await loadAdminPayments();
+      } catch (error) { notify(error.message); }
+    }
+
+    // ---- Admin: customers ----
+    let adminCustomers = [];
+
+    async function loadAdminCustomers() {
+      const list = document.getElementById("admin-customers-list");
+      list.innerHTML = '<p class="text-sm text-stone-500">Loading customers...</p>';
+      try { adminCustomers = await api("/api/admin/customers"); renderAdminCustomers(); }
+      catch (error) { list.innerHTML = `<p class="text-sm text-red-700">${esc(error.message)}</p>`; }
+    }
+
+    function renderAdminCustomers() {
+      const list = document.getElementById("admin-customers-list");
+      const q = document.getElementById("admin-customer-search").value.trim().toLowerCase();
+      const role = document.getElementById("admin-customer-role").value;
+      const rows = adminCustomers.filter(c => (!role || c.role === role) && (!q || `${c.name} ${c.email}`.toLowerCase().includes(q)));
+      if (!rows.length) { list.innerHTML = '<p class="text-sm text-stone-500 py-4">No customers found.</p>'; return; }
+      list.innerHTML = `<table class="min-w-full text-sm"><thead><tr class="text-left border-b text-xs uppercase tracking-wide text-stone-500"><th class="py-3 pr-3">Customer</th><th class="py-3 pr-3">Type</th><th class="py-3 pr-3">Role</th><th class="py-3 pr-3">Orders</th><th class="py-3 pr-3">Joined</th><th class="py-3"></th></tr></thead><tbody>${rows.map(c => {
+        const self = c.id === currentUser?.id;
+        return `<tr class="border-b last:border-b-0 align-top ${c.is_active ? "" : "opacity-60"}">
+          <td class="py-3 pr-3"><p class="font-semibold">${esc(c.name)}${self ? ' <span class="text-xs text-stone-500">(you)</span>' : ""}${c.is_active ? "" : ' <span class="text-xs font-semibold bg-red-100 text-red-800 rounded-full px-2 py-0.5">Inactive</span>'}</p><p class="text-xs text-stone-500">${esc(c.email)}${c.has_google_login ? " · Google" : ""}${c.email_verified ? "" : " · not verified"}</p></td>
+          <td class="py-3 pr-3"><select class="border rounded-lg p-1 text-xs" onchange="updateCustomer(${c.id}, {customer_type: this.value})"><option value="retail" ${c.customer_type === "retail" ? "selected" : ""}>Retail</option><option value="wholesale" ${c.customer_type === "wholesale" ? "selected" : ""}>Wholesale</option></select></td>
+          <td class="py-3 pr-3">${c.role === "admin" ? '<span class="text-xs font-semibold bg-brand-100 text-brand-800 rounded-full px-2 py-0.5">Admin</span>' : "Customer"}</td>
+          <td class="py-3 pr-3">${esc(c.order_count)}</td>
+          <td class="py-3 pr-3 whitespace-nowrap">${esc(new Date(c.created_at).toLocaleDateString())}</td>
+          <td class="py-3">${self ? "" : `<div class="flex flex-wrap gap-2 justify-end">
+            <button class="border rounded-lg px-3 py-1 text-xs hover:bg-stone-50" onclick="toggleCustomerRole(${c.id})">${c.role === "admin" ? "Remove admin" : "Make admin"}</button>
+            <button class="border ${c.is_active ? "border-red-200 text-red-700 hover:bg-red-50" : "hover:bg-stone-50"} rounded-lg px-3 py-1 text-xs" onclick="toggleCustomerActive(${c.id})">${c.is_active ? "Deactivate" : "Reactivate"}</button></div>`}</td></tr>`;
+      }).join("")}</tbody></table>`;
+    }
+
+    // Only the numeric id goes into onclick; names are looked up here, so a
+    // customer name can never break out of the attribute.
+    function toggleCustomerRole(id) {
+      const c = adminCustomers.find(x => x.id === id);
+      if (!c) return;
+      const makeAdmin = c.role !== "admin";
+      updateCustomer(id, {role: makeAdmin ? "admin" : "customer"}, `${makeAdmin ? "Give admin access to" : "Remove admin access from"} ${c.name}?`);
+    }
+    function toggleCustomerActive(id) {
+      const c = adminCustomers.find(x => x.id === id);
+      if (!c) return;
+      updateCustomer(id, {is_active: !c.is_active}, c.is_active ? `Deactivate ${c.name}? They will not be able to log in.` : `Reactivate ${c.name}?`);
+    }
+
+    async function updateCustomer(id, changes, question) {
+      if (question && !confirm(question)) { renderAdminCustomers(); return; }
+      try {
+        const updated = await api(`/api/admin/customers/${id}`, {method: "PATCH", body: changes});
+        adminCustomers = adminCustomers.map(c => c.id === id ? updated : c);
+        renderAdminCustomers();
+        notify(`${updated.name} updated.`);
+      } catch (error) { notify(error.message); renderAdminCustomers(); }
+    }
+
+
     // ---- Interaction layer: pops, scroll, hover, click, counters, live admin alerts ----
     const ORDER_COLORS = {pending:"#f59e0b", processing:"#3b82f6", shipped:"#8b5cf6", delivered:"#22c55e", cancelled:"#ef4444"};
     let _lastMaxOrder = null;
@@ -2651,9 +3135,16 @@
         countTo(el, to, undefined, _cnt[key] ?? 0); _cnt[key] = to; el.removeAttribute("data-count");
       });
     }
-    function setActiveNav(v) { document.querySelectorAll("header nav button").forEach(b => b.classList.toggle("nav-active", b.id === "nav-" + v)); }
+    function setActiveNav(v) {
+      document.querySelectorAll("header nav button").forEach(b => b.classList.toggle("nav-active", b.id === "nav-" + v));
+      document.querySelectorAll("#app-tabbar button[data-view]").forEach(b => {
+        const on = b.dataset.view === v;
+        b.classList.toggle("is-active", on);
+        if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+      });
+    }
     const _origNavigate = navigate;
-    window.navigate = function (v) { _origNavigate(v); setActiveNav(v); };
+    window.navigate = function (v, options) { _origNavigate(v, options); setActiveNav(v); };
     setActiveNav("home");
 
     (function initInteractions() {
@@ -2733,6 +3224,10 @@
       if(token){try{cart=await api("/api/cart");updateCartBadge();}catch{}}
       await loadCatalog();
       await renderProducts();
+      // Open the view named in the address (e.g. #products) and seed the history entry.
+      const startView = location.hash.slice(1);
+      if (startView && startView !== "home" && document.getElementById(`view-${startView}`)) navigate(startView);
+      else history.replaceState(viewState("home"), "", location.href);
     });
   </script>
 </body>

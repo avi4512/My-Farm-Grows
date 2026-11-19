@@ -15,7 +15,7 @@ from app.models.order import Order, OrderItem
 from app.services.email import send_email
 from app.schemas.order import OrderCreate, OrderResponse
 from app.services.inventory import record_inventory_movement
-from app.services.pricing import get_unit_price
+from app.services.pricing import get_order_discount, get_unit_price
 
 router = APIRouter(prefix="/api/orders", tags=["Orders"])
 
@@ -153,6 +153,8 @@ async def create_order(
             )
 
         total_amount = total_amount.quantize(Decimal("0.01"))
+        discount_amount = get_order_discount(total_amount)
+        total_amount -= discount_amount
 
         # 5. Create the order and persist its ID inside the transaction.
         order = Order(
@@ -167,6 +169,7 @@ async def create_order(
             state=address.state,
             postal_code=address.postal_code,
             country=address.country,
+            discount_amount=discount_amount,
             total_amount=total_amount,
             status="pending",
             payment_method=payload.payment_method,
@@ -220,11 +223,16 @@ async def create_order(
         # Save the ID before loading the response.
         order_id = order.id
 
+        discount_line = (
+            f"<p>Offer discount: -₹{order.discount_amount}</p>"
+            if order.discount_amount
+            else ""
+        )
         try:
             await send_email(
                 customer.email,
                 f"My Farm Grow order confirmation #{order_id}",
-                f"<p>Hi {escape(customer.name)},</p><p>Your order <strong>#{order_id}</strong> has been placed successfully.</p><p>Order total: ₹{order.total_amount}</p><p>Thank you for shopping with My Farm Grow.</p>",
+                f"<p>Hi {escape(customer.name)},</p><p>Your order <strong>#{order_id}</strong> has been placed successfully.</p>{discount_line}<p>Order total: ₹{order.total_amount}</p><p>Thank you for shopping with My Farm Grow.</p>",
             )
         except Exception:
             logging.getLogger("myfarmgrows.email").warning(

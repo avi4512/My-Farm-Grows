@@ -164,6 +164,41 @@ class TestPlacingAnOrder:
 
         assert Decimal(order["total_amount"]) == Decimal(cart["total"])
 
+    def test_order_above_5000_gets_the_ten_percent_offer(
+        self, client, make_customer, make_product, make_address, add_to_cart, auth
+    ):
+        customer = make_customer()
+        product = make_product(
+            retail_price="200.55", wholesale_price="200.55", stock_quantity=100
+        )
+        cart = add_to_cart(customer, product, 26)
+
+        response = place_order(
+            client, auth(customer), make_address(customer), payment_method="online"
+        )
+
+        assert response.status_code == 201, response.text
+        order = response.json()
+        # 26 x 200.55 = 5214.30; 10% = 521.43
+        assert Decimal(order["discount_amount"]) == Decimal("521.43")
+        assert Decimal(order["total_amount"]) == Decimal("4692.87")
+        assert Decimal(order["total_amount"]) == Decimal(cart["total"])
+        assert sum(Decimal(i["subtotal"]) for i in order["items"]) == Decimal("5214.30")
+
+    def test_order_at_5000_gets_no_discount(
+        self, client, make_customer, make_product, make_address, add_to_cart, auth
+    ):
+        customer = make_customer()
+        product = make_product(
+            retail_price=200, wholesale_price=200, stock_quantity=100
+        )
+        add_to_cart(customer, product, 25)
+
+        order = place_order(client, auth(customer), make_address(customer)).json()
+
+        assert Decimal(order["discount_amount"]) == 0
+        assert Decimal(order["total_amount"]) == Decimal("5000.00")
+
 
 class TestRejectedOrders:
     def test_order_requires_login(self, client):

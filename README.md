@@ -27,14 +27,19 @@ Online grocery ordering platform for retail and wholesale customers
    uv run alembic upgrade head
    ```
 
+   If Windows blocks `alembic.exe` ("An Application Control policy has
+   blocked this file"), run `uv run python -m alembic upgrade head` instead.
+
    The migrations are safe to run on a database that already contains the
    tables (for example one created by an older version of this project).
 
-4. Create an administrator. Register a normal account from the storefront,
-   then promote it in PostgreSQL:
+4. Load the starting product catalog (safe to run again; existing products
+   are never changed). Stock starts at 0, so add stock in
+   **Admin > Inventory** afterwards and check the wholesale prices in
+   **Admin > Products**.
 
-   ```sql
-   UPDATE customers SET role = 'admin' WHERE email = 'you@example.com';
+   ```powershell
+   uv run python -m app.cli seed-products
    ```
 
 5. Run the backend from the project root:
@@ -43,7 +48,17 @@ Online grocery ordering platform for retail and wholesale customers
    uv run uvicorn app.main:app --reload
    ```
 
-6. To open the site on a phone on the same Wi-Fi, run the backend with
+6. Create the first administrator. Register a normal account on the
+   storefront, then run this in a second terminal:
+
+   ```powershell
+   uv run python -m app.cli promote-admin you@example.com
+   ```
+
+   After that, admins can give or remove admin access from
+   **Admin > Customers**.
+
+7. To open the site on a phone on the same Wi-Fi, run the backend with
    `--host 0.0.0.0` and open `http://<your-computer-ip>:8000/` on the phone
    (`ipconfig` shows the IP). Opening `frontend/index.html` as a file shows the
    layout only: products, login, and cart need the server.
@@ -75,6 +90,46 @@ Products must already exist in the database; the storefront does not insert demo
 products automatically. Public registration creates customer accounts only.
 Admin product creation and editing remain available through the authenticated
 admin API endpoints.
+
+## Admin screens
+
+Log in as an administrator and open the menu at the top right.
+
+| Screen | What it does |
+| --- | --- |
+| Track & manage orders | Change order status and payment status |
+| Delivery & shipments | Create shipments and update delivery progress |
+| Inventory management | Add or remove stock with a reason |
+| Inventory movement history | Every stock change |
+| Products | Add products, edit prices and images, hide or delete products |
+| Payments | All payment transactions, mark pending ones paid or failed, reconciliation check |
+| Customers | Change retail / wholesale, give or remove admin access, deactivate accounts |
+
+A product image is either a file in `frontend/images` (`images/toor-dal.jpg`)
+or a full `https://` link. Products with orders cannot be deleted; hide them
+instead. An admin cannot remove their own admin access or deactivate their
+own account, so the shop always keeps at least one admin.
+
+## Storefront design and offers
+
+The storefront follows the Project-Preview design: offer banner, home order
+tracker animation, About and Contact pages, and on phones a bottom tab bar
+(Home, Products, About, Contact, Account) with the back button stepping
+through pages.
+
+- **10% offer:** orders above Rs 5,000 get 10% off. The backend applies it
+  (`ORDER_DISCOUNT_THRESHOLD` / `ORDER_DISCOUNT_PERCENT` in
+  `app/services/pricing.py`) to the cart total, the order total and the payment
+  amount; the discount is saved on each order as `discount_amount`. If you
+  change the offer, also change the banner text and `ORDER_OFFER` in
+  `frontend/index.html`.
+- **Rice bag sizes:** rice is still priced per kg, but rice cards show 25 kg and
+  50 kg buttons. Add puts a whole bag (25 or 50 kg) in the cart, so a 50 kg bag
+  gets the wholesale price. The categories and sizes are set in `BAG_SIZES` in
+  `frontend/index.html`.
+
+After pulling this change, run `uv run python -m alembic upgrade head` to add
+the `orders.discount_amount` column.
 
 ## Delivery and order status
 
