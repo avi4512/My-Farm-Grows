@@ -3,7 +3,8 @@ from decimal import ROUND_HALF_UP, Decimal
 from app.models import Product
 
 # Order offer shown on the storefront banner: 10% off orders above Rs 5,000.
-# The banner text in frontend/index.html (ORDER_OFFER) must match these values.
+# The banner text in frontend/index.html and ORDER_OFFER in frontend/js/shop.js
+# must match these values.
 ORDER_DISCOUNT_THRESHOLD = Decimal("5000.00")
 ORDER_DISCOUNT_PERCENT = Decimal("10")
 
@@ -28,7 +29,7 @@ def get_order_discount(subtotal: Decimal) -> Decimal:
 
 # Delivery is offered in these states only. It is free above the threshold,
 # measured on the goods total after the offer discount.
-# DELIVERY in frontend/index.html must match these values.
+# DELIVERY in frontend/js/shop.js must match these values.
 DELIVERY_CHARGES = {
     "andhra pradesh": Decimal("50.00"),
     "telangana": Decimal("150.00"),

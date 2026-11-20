@@ -64,6 +64,7 @@ app.mount(
 )
 # index.html uses relative asset paths so it also renders when opened as a file.
 app.mount("/css", StaticFiles(directory=str(FRONTEND_DIR / "css")), name="css")
+app.mount("/js", StaticFiles(directory=str(FRONTEND_DIR / "js")), name="js")
 app.mount("/images", StaticFiles(directory=str(FRONTEND_DIR / "images")), name="images")
 
 app.include_router(products_router)

@@ -511,7 +511,7 @@ def update_delivery(
     # but a supplied status cannot be null.
     if "status" in changes and changes["status"] is None:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Status cannot be null",
         )
 

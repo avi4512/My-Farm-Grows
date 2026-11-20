@@ -20,3 +20,6 @@ wheels/
 logs/
 .ruff_cache/
 .pytest_cache/
+
+# Frontend build tools (built CSS and icons are committed)
+node_modules/

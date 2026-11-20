@@ -159,7 +159,7 @@ def update_address(
     for field, value in update_data.items():
         if field in required_fields and value is None:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=f"{field} cannot be null",
             )
 

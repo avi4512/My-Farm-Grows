@@ -1,0 +1,15 @@
+{
+  "name": "myfarmgrows-frontend",
+  "private": true,
+  "description": "Builds the storefront CSS and copies the icon library. The built files are committed, so running the app needs only Python.",
+  "scripts": {
+    "build": "npm run build:css && npm run build:icons",
+    "build:css": "tailwindcss -c tailwind.config.js -i frontend/css/tailwind.src.css -o frontend/css/tailwind.css --minify",
+    "build:icons": "node -e \"require('fs').copyFileSync('node_modules/lucide/dist/umd/lucide.min.js','frontend/js/vendor/lucide.min.js')\"",
+    "watch:css": "tailwindcss -c tailwind.config.js -i frontend/css/tailwind.src.css -o frontend/css/tailwind.css --watch"
+  },
+  "devDependencies": {
+    "lucide": "1.67.0",
+    "tailwindcss": "3.4.19"
+  }
+}

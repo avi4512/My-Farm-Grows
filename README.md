@@ -91,6 +91,38 @@ products automatically. Public registration creates customer accounts only.
 Admin product creation and editing remain available through the authenticated
 admin API endpoints.
 
+## Frontend files and build
+
+The page is `frontend/index.html`; its JavaScript is in `frontend/js/`, split by
+feature and loaded in this order:
+
+| File | What it does |
+|---|---|
+| `core.js` | Shared state, the `api()` helper, formatting, motion helpers, mobile menu |
+| `auth.js` | Login, registration, email OTP, password reset, Google sign-in, account menus |
+| `shop.js` | Navigation, catalog, product cards, cart, offer / bag size / delivery constants |
+| `checkout.js` | Checkout, delivery charge preview, placing the order, Razorpay, success page |
+| `account.js` | Customer dashboard, orders, tracking, payment history, addresses, receipts |
+| `admin.js` | Admin orders, deliveries, inventory, products, payments, customers |
+| `app.js` | Interaction effects and page start-up (must stay last) |
+
+They are plain scripts, not ES modules: the HTML calls functions through
+`onclick` attributes, so the files share one global scope. Code that runs while a
+file loads must only use things from earlier files.
+
+Tailwind CSS is built to `frontend/css/tailwind.css`, and the lucide icon library
+is served from `frontend/js/vendor/lucide.min.js` (pinned version). Both files
+are committed, so running the app needs only Python. After changing Tailwind
+classes, the Tailwind config, or the lucide version in `package.json`, rebuild
+them with Node.js 18 or newer:
+
+```bash
+npm install
+npm run build        # or: npm run watch:css while editing
+```
+
+CI fails if the committed files do not match a fresh build.
+
 ## Admin screens
 
 Log in as an administrator and open the menu at the top right.
@@ -121,12 +153,12 @@ through pages.
   (`ORDER_DISCOUNT_THRESHOLD` / `ORDER_DISCOUNT_PERCENT` in
   `app/services/pricing.py`) to the cart total, the order total and the payment
   amount; the discount is saved on each order as `discount_amount`. If you
-  change the offer, also change the banner text and `ORDER_OFFER` in
-  `frontend/index.html`.
+  change the offer, also change the banner text in `frontend/index.html` and
+  `ORDER_OFFER` in `frontend/js/shop.js`.
 - **Rice bag sizes:** rice is still priced per kg, but rice cards show 25 kg and
   50 kg buttons. Add puts a whole bag (25 or 50 kg) in the cart, so a 50 kg bag
   gets the wholesale price. The categories and sizes are set in `BAG_SIZES` in
-  `frontend/index.html`.
+  `frontend/js/shop.js`.
 
 After pulling this change, run `uv run python -m alembic upgrade head` to add
 the `orders.discount_amount` column.
@@ -256,7 +288,7 @@ Status emails are sent after the response, so a slow or failing email provider n
 
 ### Delivery area and charges
 
-Orders are delivered in Andhra Pradesh and Telangana only; the address form offers just these two states and the server rejects an order to any other state. The delivery charge is Rs 50 in Andhra Pradesh and Rs 150 in Telangana, and delivery is free when the goods total after the offer discount is above Rs 2,000. It is stored on the order as `delivery_charge` and included in `total_amount`, so online payments charge it too. The values live in `app/services/pricing.py` (`DELIVERY_CHARGES`, `FREE_DELIVERY_THRESHOLD`); the checkout preview in `frontend/index.html` (`DELIVERY`) must match them. Run `alembic upgrade head` to add the column.
+Orders are delivered in Andhra Pradesh and Telangana only; the address form offers just these two states and the server rejects an order to any other state. The delivery charge is Rs 50 in Andhra Pradesh and Rs 150 in Telangana, and delivery is free when the goods total after the offer discount is above Rs 2,000. It is stored on the order as `delivery_charge` and included in `total_amount`, so online payments charge it too. The values live in `app/services/pricing.py` (`DELIVERY_CHARGES`, `FREE_DELIVERY_THRESHOLD`); the checkout preview in `frontend/js/shop.js` (`DELIVERY`) must match them. Run `alembic upgrade head` to add the column.
 
 ### Order receipts
 
