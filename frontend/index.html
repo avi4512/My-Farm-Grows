@@ -433,7 +433,7 @@
             <input name="address_line2" placeholder="Address line 2 (optional)" class="border rounded-lg p-2 text-sm sm:col-span-2">
             <input name="landmark" placeholder="Landmark (optional)" class="border rounded-lg p-2 text-sm sm:col-span-2">
             <input name="city" required placeholder="City" class="border rounded-lg p-2 text-sm">
-            <input name="state" required placeholder="State" class="border rounded-lg p-2 text-sm">
+            <select name="state" required class="border rounded-lg p-2 text-sm bg-white"><option value="">State</option><option>Andhra Pradesh</option><option>Telangana</option></select>
             <input name="postal_code" required placeholder="Postal code" class="border rounded-lg p-2 text-sm">
             <input name="country" value="India" required placeholder="Country" class="border rounded-lg p-2 text-sm">
             <label class="text-sm flex items-center gap-2 sm:col-span-2"><input type="checkbox" name="is_default"> Set as default address</label>
@@ -567,7 +567,7 @@
             <input name="address_line2" maxlength="255" placeholder="Address line 2 (optional)" class="border rounded-lg p-2 text-sm sm:col-span-2">
             <input name="landmark" maxlength="150" placeholder="Landmark (optional)" class="border rounded-lg p-2 text-sm sm:col-span-2">
             <input name="city" required minlength="2" maxlength="100" placeholder="City" class="border rounded-lg p-2 text-sm">
-            <input name="state" required minlength="2" maxlength="100" placeholder="State" class="border rounded-lg p-2 text-sm">
+            <select name="state" required class="border rounded-lg p-2 text-sm bg-white"><option value="">State</option><option>Andhra Pradesh</option><option>Telangana</option></select>
             <input name="postal_code" required minlength="4" maxlength="10" placeholder="Postal code" class="border rounded-lg p-2 text-sm">
             <input name="country" value="India" required maxlength="100" placeholder="Country" class="border rounded-lg p-2 text-sm">
             <label class="text-sm flex items-center gap-2 sm:col-span-2"><input type="checkbox" name="is_default"> Set as default address</label>
@@ -1096,6 +1096,7 @@
         l.classList.toggle("bg-brand-50", on);
         if (on) { l.classList.remove("addr-pop"); void l.offsetWidth; l.classList.add("addr-pop"); }
       });
+      renderCheckoutSummary();
     }
     let _ovTimers = [], _ovStart = 0;
     function showOrderOverlay() {
@@ -1711,6 +1712,18 @@
 
     // Order offer shown in the banner. The backend applies it (app/services/pricing.py); these only drive the hints.
     const ORDER_OFFER = {threshold: 5000, percent: 10};
+    // Delivery charges. The backend charges them (DELIVERY_CHARGES in
+    // app/services/pricing.py); keep these values in step with it.
+    const DELIVERY = {charges: {"andhra pradesh": 50, "telangana": 150}, freeAbove: 2000};
+    const DELIVERY_NOTE = `Delivery ${money(DELIVERY.charges["andhra pradesh"])} in Andhra Pradesh, ${money(DELIVERY.charges.telangana)} in Telangana. Free above ${money(DELIVERY.freeAbove)}.`;
+    // Returns the charge for a state, or null when the state is not served.
+    function deliveryChargeFor(state, goodsTotal) {
+      const aliases = {ap: "andhra pradesh", ts: "telangana", tg: "telangana", telengana: "telangana"};
+      const key = String(state || "").replaceAll(".", "").toLowerCase().split(/\s+/).filter(Boolean).join(" ");
+      const charge = DELIVERY.charges[aliases[key] || key];
+      if (charge === undefined) return null;
+      return Number(goodsTotal) > DELIVERY.freeAbove ? 0 : charge;
+    }
 
     // Products sold in whole bags, by category. Prices stay per kg in the database:
     // a 25 kg bag adds 25 kg to the cart at the price for 25 kg.
@@ -1935,7 +1948,7 @@
       const container = document.getElementById("cart-container");
       updateCartBadge();
       if (!cart.items?.length) { container.innerHTML = `<div class="text-center py-16 bg-white border border-stone-200 rounded-xl"><i data-lucide="shopping-cart" class="w-12 h-12 text-stone-300 mx-auto mb-3"></i><h3 class="text-lg font-bold">Your cart is empty</h3><p class="text-stone-400 text-sm mb-6">Explore the store and add products.</p><button onclick="navigate('products')" class="bg-brand-700 text-white px-6 py-2 rounded-lg">Browse Store</button></div>`; if(window.lucide)lucide.createIcons(); return; }
-      container.innerHTML = `<div class="bg-white rounded-xl border border-stone-200 p-6 shadow-sm"><div class="divide-y">${cart.items.map(item=>`<div id="cart-row-${item.id}" class="cart-row py-4 flex flex-wrap gap-3 items-center justify-between"><div class="flex min-w-0 items-center gap-3"><img src="${esc(getProductImage({name:item.product_name, image_url:item.image_url}))}" alt="${esc(item.product_name)}" class="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover border border-stone-200 bg-stone-50 flex-shrink-0" onerror="this.classList.add('hidden')"><div class="min-w-0"><h4 class="font-bold text-sm">${esc(item.product_name)}</h4><p class="text-xs text-stone-500">${money(item.unit_price)} each · Item #${item.id}</p></div></div><div class="flex items-center gap-3"><div class="flex items-center border rounded-lg"><button onclick="changeQty(${item.id},${Number(item.quantity)-1})" class="px-3 py-1 hover:bg-stone-100">−</button><span class="px-2 text-sm">${item.quantity}</span><button onclick="changeQty(${item.id},${Number(item.quantity)+1})" class="px-3 py-1 hover:bg-stone-100">+</button></div><b class="w-24 text-right">${money(item.subtotal)}</b><button onclick="removeCartItem(${item.id})" class="text-red-600 text-sm">Remove</button></div></div>`).join("")}</div><div class="border-t mt-4 pt-4 space-y-1">${cartTotalsHtml(cart).rows}<div class="flex justify-between font-bold text-lg"><span>Total</span><span>${money(cart.total)}</span></div>${cartTotalsHtml(cart).note}</div><div class="mt-5 flex flex-wrap gap-3"><button onclick="clearCart()" class="border rounded-lg px-4 py-3 text-sm">Clear cart</button><button onclick="navigate('checkout')" class="flex-1 bg-brand-accent text-brand-800 font-bold py-3 rounded-lg">Proceed to checkout</button></div></div>`;
+      container.innerHTML = `<div class="bg-white rounded-xl border border-stone-200 p-6 shadow-sm"><div class="divide-y">${cart.items.map(item=>`<div id="cart-row-${item.id}" class="cart-row py-4 flex flex-wrap gap-3 items-center justify-between"><div class="flex min-w-0 items-center gap-3"><img src="${esc(getProductImage({name:item.product_name, image_url:item.image_url}))}" alt="${esc(item.product_name)}" class="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover border border-stone-200 bg-stone-50 flex-shrink-0" onerror="this.classList.add('hidden')"><div class="min-w-0"><h4 class="font-bold text-sm">${esc(item.product_name)}</h4><p class="text-xs text-stone-500">${money(item.unit_price)} each · Item #${item.id}</p></div></div><div class="flex items-center gap-3"><div class="flex items-center border rounded-lg"><button onclick="changeQty(${item.id},${Number(item.quantity)-1})" class="px-3 py-1 hover:bg-stone-100">−</button><span class="px-2 text-sm">${item.quantity}</span><button onclick="changeQty(${item.id},${Number(item.quantity)+1})" class="px-3 py-1 hover:bg-stone-100">+</button></div><b class="w-24 text-right">${money(item.subtotal)}</b><button onclick="removeCartItem(${item.id})" class="text-red-600 text-sm">Remove</button></div></div>`).join("")}</div><div class="border-t mt-4 pt-4 space-y-1">${cartTotalsHtml(cart).rows}<div class="flex justify-between font-bold text-lg"><span>Total</span><span>${money(cart.total)}</span></div>${cartTotalsHtml(cart).note}<p class="text-xs text-stone-500">${DELIVERY_NOTE}</p></div><div class="mt-5 flex flex-wrap gap-3"><button onclick="clearCart()" class="border rounded-lg px-4 py-3 text-sm">Clear cart</button><button onclick="navigate('checkout')" class="flex-1 bg-brand-accent text-brand-800 font-bold py-3 rounded-lg">Proceed to checkout</button></div></div>`;
     }
     async function changeQty(itemId, quantity) {
       try { if (quantity < 1) await removeCartItem(itemId); else { cart=await api(`/api/cart/items/${itemId}`,{method:"PATCH",body:{quantity}}); renderCart(); flashRow(itemId); } }
@@ -1951,8 +1964,22 @@
         addresses = await api("/api/addresses/");
         selectedAddressId = addresses.find(a=>a.is_default)?.id || addresses[0]?.id || null;
         renderAddresses();
-        document.getElementById("checkout-summary").innerHTML = cart.items.map(i=>`<div class="flex justify-between gap-3"><span>${esc(i.product_name)} × ${i.quantity}</span><b>${money(i.subtotal)}</b></div>`).join("") + `<div class="border-t pt-3 space-y-1">${cartTotalsHtml(cart).rows}<div class="flex justify-between font-bold text-base"><span>Total</span><span>${money(cart.total)}</span></div>${cartTotalsHtml(cart).note}</div>`;
+        renderCheckoutSummary();
       } catch(error) { notify(error.message); }
+    }
+    // Items, offer, delivery for the selected address, and the amount to pay.
+    function renderCheckoutSummary() {
+      const el = document.getElementById("checkout-summary");
+      if (!el || !cart.items?.length) return;
+      const address = addresses.find(a => a.id === selectedAddressId);
+      const delivery = address ? deliveryChargeFor(address.state, cart.total) : undefined;
+      const deliveryRow = delivery === undefined
+        ? `<div class="flex justify-between text-sm text-stone-600"><span>Delivery</span><span>Select an address</span></div>`
+        : delivery === null
+          ? `<p class="text-sm text-red-700 bg-red-50 rounded-lg p-2">We deliver only in Andhra Pradesh and Telangana right now. Please choose an address in one of these states.</p>`
+          : `<div class="flex justify-between text-sm ${delivery ? "text-stone-600" : "font-semibold text-brand-700"}"><span>Delivery</span><span>${delivery ? money(delivery) : "Free"}</span></div>`;
+      const total = Number(cart.total) + (delivery || 0);
+      el.innerHTML = cart.items.map(i=>`<div class="flex justify-between gap-3"><span>${esc(i.product_name)} × ${i.quantity}</span><b>${money(i.subtotal)}</b></div>`).join("") + `<div class="border-t pt-3 space-y-1">${cartTotalsHtml(cart).rows}${deliveryRow}<div class="flex justify-between font-bold text-base"><span>Total</span><span>${money(total)}</span></div>${cartTotalsHtml(cart).note}<p class="text-xs text-stone-500">${DELIVERY_NOTE}</p></div>`;
     }
     function renderAddresses() {
       const el=document.getElementById("address-list");
@@ -1997,7 +2024,7 @@
     document.getElementById("address-form").addEventListener("submit", async event=>{
       event.preventDefault(); const f=new FormData(event.currentTarget);
       const payload={recipient_name:f.get("recipient_name"),phone:f.get("phone"),address_line1:f.get("address_line1"),address_line2:f.get("address_line2")||null,landmark:f.get("landmark")||null,city:f.get("city"),state:f.get("state"),postal_code:f.get("postal_code"),country:f.get("country"),is_default:f.get("is_default")==="on"};
-      try { const a=await api("/api/addresses/",{method:"POST",body:payload}); addresses=await api("/api/addresses/"); selectedAddressId=a.id; renderAddresses(); event.currentTarget.reset(); event.currentTarget.elements.country.value="India"; notify("Address saved."); }
+      try { const a=await api("/api/addresses/",{method:"POST",body:payload}); addresses=await api("/api/addresses/"); selectedAddressId=a.id; renderAddresses(); renderCheckoutSummary(); event.currentTarget.reset(); event.currentTarget.elements.country.value="India"; notify("Address saved."); }
       catch(error){notify(error.message);}
     });
     async function placeOrder() {
@@ -2225,7 +2252,7 @@
           const items=Array.isArray(o.items) ? o.items : [];
           const canCancel=String(o.status || "").toLowerCase()==="pending";
           const canPay=paymentConfig.online_enabled && o.payment_method==="online" && o.status!=="cancelled" && ["pending","failed"].includes(o.payment_status);
-          return `<article class="bg-white border border-stone-200 rounded-xl p-5 fade-up" style="animation-delay:${Math.min(idx,8)*70}ms">${orderHeaderHtml(o)}<div class="border-t mt-4 pt-3 space-y-3 text-sm">${items.map(i=>`<div class="flex items-center justify-between gap-3"><div class="flex items-center gap-3 min-w-0"><img src="${esc(getProductImage({name:i.product_name, image_url:i.image_url}))}" alt="${esc(i.product_name)}" class="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover border border-stone-200 bg-stone-50 flex-shrink-0" onerror="this.classList.add('hidden')"><span class="min-w-0">${esc(i.product_name)} × ${esc(i.quantity)} ${esc(i.unit)}</span></div><span class="text-stone-600 flex-shrink-0">${money(i.subtotal)}</span></div>`).join("")}</div><div class="border-t mt-4 pt-3 flex flex-wrap items-start justify-between gap-3"><div class="text-xs text-stone-500">Deliver to: ${esc(o.recipient_name)}, ${esc(o.address_line1)}, ${esc(o.city)}, ${esc(o.state)} ${esc(o.postal_code)} · ${esc(String(o.payment_method || "").replaceAll("_"," "))}</div><div class="text-right">${Number(o.discount_amount) > 0 ? `<p class="text-xs text-brand-700 font-semibold">Offer −${money(o.discount_amount)}</p>` : ""}<p class="text-xs text-stone-500">Order total</p><p class="font-bold text-brand-800">${money(o.total_amount)}</p></div></div><div class="mt-4 flex flex-wrap gap-2">${canPay?`<button onclick="payOnlineFromOrders(${Number(o.id)}, this)" class="text-sm bg-brand-700 hover:bg-brand-800 text-white rounded-lg px-3 py-2 font-semibold">Pay now</button>`:""}${canCancel?`<button onclick="cancelOrder(${Number(o.id)})" class="text-sm border border-red-300 text-red-700 rounded-lg px-3 py-2 hover:bg-red-50">Cancel order</button>`:""}<button onclick="navigate('tracking')" class="text-sm border border-stone-300 text-stone-700 rounded-lg px-3 py-2 hover:bg-stone-50">Track shipment</button></div></article>`;
+          return `<article class="bg-white border border-stone-200 rounded-xl p-5 fade-up" style="animation-delay:${Math.min(idx,8)*70}ms">${orderHeaderHtml(o)}<div class="border-t mt-4 pt-3 space-y-3 text-sm">${items.map(i=>`<div class="flex items-center justify-between gap-3"><div class="flex items-center gap-3 min-w-0"><img src="${esc(getProductImage({name:i.product_name, image_url:i.image_url}))}" alt="${esc(i.product_name)}" class="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover border border-stone-200 bg-stone-50 flex-shrink-0" onerror="this.classList.add('hidden')"><span class="min-w-0">${esc(i.product_name)} × ${esc(i.quantity)} ${esc(i.unit)}</span></div><span class="text-stone-600 flex-shrink-0">${money(i.subtotal)}</span></div>`).join("")}</div><div class="border-t mt-4 pt-3 flex flex-wrap items-start justify-between gap-3"><div class="text-xs text-stone-500">Deliver to: ${esc(o.recipient_name)}, ${esc(o.address_line1)}, ${esc(o.city)}, ${esc(o.state)} ${esc(o.postal_code)} · ${esc(String(o.payment_method || "").replaceAll("_"," "))}</div><div class="text-right">${Number(o.discount_amount) > 0 ? `<p class="text-xs text-brand-700 font-semibold">Offer −${money(o.discount_amount)}</p>` : ""}<p class="text-xs text-stone-500">Delivery ${Number(o.delivery_charge) > 0 ? money(o.delivery_charge) : "free"}</p><p class="text-xs text-stone-500">Order total</p><p class="font-bold text-brand-800">${money(o.total_amount)}</p></div></div><div class="mt-4 flex flex-wrap gap-2">${canPay?`<button onclick="payOnlineFromOrders(${Number(o.id)}, this)" class="text-sm bg-brand-700 hover:bg-brand-800 text-white rounded-lg px-3 py-2 font-semibold">Pay now</button>`:""}${canCancel?`<button onclick="cancelOrder(${Number(o.id)})" class="text-sm border border-red-300 text-red-700 rounded-lg px-3 py-2 hover:bg-red-50">Cancel order</button>`:""}<button onclick="navigate('tracking')" class="text-sm border border-stone-300 text-stone-700 rounded-lg px-3 py-2 hover:bg-stone-50">Track shipment</button>${o.status!=="cancelled"?`<button onclick="downloadReceipt(${Number(o.id)}, this)" class="text-sm border border-stone-300 text-stone-700 rounded-lg px-3 py-2 hover:bg-stone-50">Download receipt</button>`:""}</div></article>`;
         }).join("");
         if (window.lucide) lucide.createIcons();
       } catch(error){el.innerHTML=`<p class="text-red-700">${esc(error.message)}</p>`;}
@@ -2396,6 +2423,22 @@
       catch(error){ notify(error.message); }
     }
 
+    // The receipt needs the login token, so fetch it and save it from a blob URL.
+    async function downloadReceipt(id, button) {
+      button.disabled = true;
+      try {
+        const response = await fetch(`${API_BASE}/api/orders/${id}/receipt`, {headers: {Authorization: `Bearer ${token}`}});
+        if (!response.ok) {
+          const data = await response.json().catch(() => null);
+          throw new Error(data?.detail || `Could not download the receipt (${response.status})`);
+        }
+        const url = URL.createObjectURL(await response.blob());
+        const link = Object.assign(document.createElement("a"), {href: url, download: `myfarmgrow-receipt-${id}.pdf`});
+        document.body.appendChild(link); link.click(); link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } catch (error) { notify(error.message); }
+      finally { button.disabled = false; }
+    }
     async function cancelOrder(id) { if(!confirm(`Cancel order #${id}?`))return; try{await api(`/api/orders/${id}/cancel`,{method:"POST"});notify("Order cancelled and eligible stock restored.");loadOrders();}catch(error){notify(error.message);} }
     async function reorderOrder(orderId) {
       if (!token || !currentUser) {

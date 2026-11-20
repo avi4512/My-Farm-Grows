@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from sqlalchemy import func, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
@@ -21,6 +21,7 @@ from app.schemas.order import (
     PaymentStatusUpdate,
 )
 from app.services.delivery_sync import sync_order_status_from_delivery
+from app.services.email import queue_order_status_email
 from app.services.inventory import record_inventory_movement
 from app.services.payments import refund_paid_online_payment
 from app.services.razorpay import RazorpayError
@@ -66,6 +67,7 @@ def list_all_orders(
 def update_order_status(
     order_id: int,
     payload: OrderStatusUpdate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_admin: Customer = Depends(require_admin),
 ):
@@ -175,6 +177,9 @@ def update_order_status(
                 ) from error
 
         db.commit()
+
+        if new_status in ("shipped", "delivered", "cancelled"):
+            queue_order_status_email(background_tasks, db, order, new_status)
 
         return (
             db.query(Order)
@@ -467,6 +472,7 @@ def create_delivery(
 def update_delivery(
     delivery_id: int,
     payload: DeliveryUpdate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_admin: Customer = Depends(require_admin),
 ):
@@ -550,15 +556,27 @@ def update_delivery(
                 ),
             )
 
+    previous_status = delivery.status
+
     try:
         for field, value in changes.items():
             setattr(delivery, field, value)
 
+        order_moved = False
         if new_status is not None:
-            sync_order_status_from_delivery(order, delivery.status)
+            order_moved = sync_order_status_from_delivery(order, delivery.status)
 
         db.commit()
         db.refresh(delivery)
+
+        # Out for delivery is its own email. Shipped and delivered are sent
+        # only when they move the order, so the customer never gets the same
+        # email twice from the order and delivery screens.
+        if new_status == "out_for_delivery" and previous_status != new_status:
+            queue_order_status_email(background_tasks, db, order, "out_for_delivery")
+        elif order_moved and order.status in ("shipped", "delivered"):
+            queue_order_status_email(background_tasks, db, order, order.status)
+
         return delivery
 
     except Exception:

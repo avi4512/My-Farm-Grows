@@ -24,3 +24,36 @@ def get_order_discount(subtotal: Decimal) -> Decimal:
     return (subtotal * ORDER_DISCOUNT_PERCENT / 100).quantize(
         _CENT, rounding=ROUND_HALF_UP
     )
+
+
+# Delivery is offered in these states only. It is free above the threshold,
+# measured on the goods total after the offer discount.
+# DELIVERY in frontend/index.html must match these values.
+DELIVERY_CHARGES = {
+    "andhra pradesh": Decimal("50.00"),
+    "telangana": Decimal("150.00"),
+}
+FREE_DELIVERY_THRESHOLD = Decimal("2000.00")
+
+# Short forms and a common misspelling customers type for the state.
+_STATE_ALIASES = {
+    "ap": "andhra pradesh",
+    "ts": "telangana",
+    "tg": "telangana",
+    "telengana": "telangana",
+}
+
+
+def normalize_state(state: str) -> str:
+    key = " ".join(state.replace(".", "").lower().split())
+    return _STATE_ALIASES.get(key, key)
+
+
+def get_delivery_charge(state: str, goods_total: Decimal) -> Decimal | None:
+    """Return the delivery charge for a state, or None if it is not served."""
+    charge = DELIVERY_CHARGES.get(normalize_state(state))
+    if charge is None:
+        return None
+    if goods_total > FREE_DELIVERY_THRESHOLD:
+        return Decimal("0.00")
+    return charge

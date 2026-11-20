@@ -179,7 +179,7 @@ class TestStartingPayment:
 
         assert response.status_code == 200, response.text
         body = response.json()
-        assert body["amount"] == 49900  # 2 x 249.50 in paise
+        assert body["amount"] == 54900  # 2 x 249.50 + Rs 50 delivery, in paise
         assert body["currency"] == "INR"
         assert body["key_id"] == "rzp_test_key"
         assert body["razorpay_order_id"] == "order_test1"
@@ -247,7 +247,7 @@ class TestVerifyingCheckout:
         self, client, db, auth, online_order, gateway
     ):
         rzp_order = start_payment(client, auth, online_order).json()
-        gateway.add_payment("pay_1", rzp_order["razorpay_order_id"], 49900)
+        gateway.add_payment("pay_1", rzp_order["razorpay_order_id"], 54900)
 
         response = verify(
             client,
@@ -267,7 +267,7 @@ class TestVerifyingCheckout:
     ):
         rzp_order = start_payment(client, auth, online_order).json()
         gateway.add_payment(
-            "pay_1", rzp_order["razorpay_order_id"], 49900, status="authorized"
+            "pay_1", rzp_order["razorpay_order_id"], 54900, status="authorized"
         )
 
         response = verify(
@@ -283,7 +283,7 @@ class TestVerifyingCheckout:
 
     def test_wrong_signature_is_rejected(self, client, auth, online_order, gateway):
         rzp_order = start_payment(client, auth, online_order).json()
-        gateway.add_payment("pay_1", rzp_order["razorpay_order_id"], 49900)
+        gateway.add_payment("pay_1", rzp_order["razorpay_order_id"], 54900)
 
         response = verify(
             client,
@@ -320,7 +320,7 @@ class TestVerifyingCheckout:
         self, client, auth, online_order, gateway
     ):
         rzp_order = start_payment(client, auth, online_order).json()
-        gateway.add_payment("pay_1", "order_someone_else", 49900)
+        gateway.add_payment("pay_1", "order_someone_else", 54900)
 
         response = verify(
             client,
@@ -336,7 +336,7 @@ class TestVerifyingCheckout:
         self, client, db, auth, online_order, gateway
     ):
         rzp_order = start_payment(client, auth, online_order).json()
-        gateway.add_payment("pay_1", rzp_order["razorpay_order_id"], 49900)
+        gateway.add_payment("pay_1", rzp_order["razorpay_order_id"], 54900)
         args = (client, auth, online_order["customer"], rzp_order["razorpay_order_id"])
 
         verify(*args, "pay_1")
@@ -352,7 +352,7 @@ class TestVerifyingCheckout:
         gateway.add_payment(
             "pay_1",
             rzp_order["razorpay_order_id"],
-            49900,
+            54900,
             status="failed",
             error_description="Card declined",
         )
@@ -387,7 +387,7 @@ class TestWebhook:
         response = send_webhook(
             client,
             payment_event(
-                "payment.captured", "pay_1", rzp_order["razorpay_order_id"], 49900
+                "payment.captured", "pay_1", rzp_order["razorpay_order_id"], 54900
             ),
         )
 
@@ -399,7 +399,7 @@ class TestWebhook:
     ):
         rzp_order = start_payment(client, auth, online_order).json()
         event = payment_event(
-            "payment.captured", "pay_1", rzp_order["razorpay_order_id"], 49900
+            "payment.captured", "pay_1", rzp_order["razorpay_order_id"], 54900
         )
 
         send_webhook(client, event, event_id="evt_same")
@@ -432,7 +432,7 @@ class TestWebhook:
                 "payment.failed",
                 "pay_1",
                 rzp_order["razorpay_order_id"],
-                49900,
+                54900,
                 status="failed",
             ),
         )
@@ -445,10 +445,10 @@ class TestWebhook:
         rzp_order = start_payment(client, auth, online_order).json()
         rzp_id = rzp_order["razorpay_order_id"]
 
-        send_webhook(client, payment_event("payment.captured", "pay_1", rzp_id, 49900))
+        send_webhook(client, payment_event("payment.captured", "pay_1", rzp_id, 54900))
         send_webhook(
             client,
-            payment_event("payment.failed", "pay_1", rzp_id, 49900, status="failed"),
+            payment_event("payment.failed", "pay_1", rzp_id, 54900, status="failed"),
             event_id="evt_2",
         )
 
@@ -464,7 +464,7 @@ class TestWebhook:
 
 def pay(client, auth, online_order, gateway):
     rzp_order = start_payment(client, auth, online_order).json()
-    gateway.add_payment("pay_1", rzp_order["razorpay_order_id"], 49900)
+    gateway.add_payment("pay_1", rzp_order["razorpay_order_id"], 54900)
     verify(
         client, auth, online_order["customer"], rzp_order["razorpay_order_id"], "pay_1"
     )
@@ -484,7 +484,7 @@ class TestRefunds:
 
         assert response.status_code == 200, response.text
         assert response.json()["payment_status"] == "refunded"
-        assert gateway.refunds == [("pay_1", 49900)]
+        assert gateway.refunds == [("pay_1", 54900)]
         assert stock_of(db, online_order["product"]) == 10
 
     def test_admin_cancelling_a_paid_order_refunds_it(
@@ -567,11 +567,11 @@ class TestRefunds:
         send_webhook(
             client,
             payment_event(
-                "payment.captured", "pay_late", rzp_order["razorpay_order_id"], 49900
+                "payment.captured", "pay_late", rzp_order["razorpay_order_id"], 54900
             ),
         )
 
-        assert gateway.refunds == [("pay_late", 49900)]
+        assert gateway.refunds == [("pay_late", 54900)]
         assert order_payment_status(client, auth, online_order) == "refunded"
 
 

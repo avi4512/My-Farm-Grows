@@ -52,6 +52,9 @@ class Order(Base):
     discount_amount: Mapped[Decimal] = mapped_column(
         Numeric(12, 2), nullable=False, default=Decimal("0.00"), server_default="0"
     )
+    delivery_charge: Mapped[Decimal] = mapped_column(
+        Numeric(12, 2), nullable=False, default=Decimal("0.00"), server_default="0"
+    )
 
     total_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
 

@@ -41,7 +41,8 @@ class TestPlacingAnOrder:
 
         assert response.status_code == 201, response.text
         order = response.json()
-        assert Decimal(order["total_amount"]) == Decimal("390.50")
+        assert Decimal(order["delivery_charge"]) == Decimal("50.00")
+        assert Decimal(order["total_amount"]) == Decimal("440.50")
         assert order["status"] == "pending"
         assert order["payment_status"] == "pending"
         assert {i["product_name"]: i["quantity"] for i in order["items"]} == {
@@ -136,7 +137,8 @@ class TestPlacingAnOrder:
 
         order = place_order(client, auth(customer), make_address(customer)).json()
 
-        assert Decimal(order["total_amount"]) == Decimal(cart["total"])
+        goods_total = Decimal(order["total_amount"]) - Decimal(order["delivery_charge"])
+        assert goods_total == Decimal(cart["total"])
 
     def test_order_total_matches_the_cart_for_a_wholesale_customer(
         self, client, make_customer, make_product, make_address, add_to_cart, auth
@@ -149,7 +151,8 @@ class TestPlacingAnOrder:
 
         order = place_order(client, auth(customer), make_address(customer)).json()
 
-        assert Decimal(order["total_amount"]) == Decimal(cart["total"])
+        goods_total = Decimal(order["total_amount"]) - Decimal(order["delivery_charge"])
+        assert goods_total == Decimal(cart["total"])
 
     def test_order_total_matches_the_cart_for_a_large_retail_order(
         self, client, make_customer, make_product, make_address, add_to_cart, auth
@@ -162,7 +165,8 @@ class TestPlacingAnOrder:
 
         order = place_order(client, auth(customer), make_address(customer)).json()
 
-        assert Decimal(order["total_amount"]) == Decimal(cart["total"])
+        goods_total = Decimal(order["total_amount"]) - Decimal(order["delivery_charge"])
+        assert goods_total == Decimal(cart["total"])
 
     def test_order_above_5000_gets_the_ten_percent_offer(
         self, client, make_customer, make_product, make_address, add_to_cart, auth
@@ -182,7 +186,8 @@ class TestPlacingAnOrder:
         # 26 x 200.55 = 5214.30; 10% = 521.43
         assert Decimal(order["discount_amount"]) == Decimal("521.43")
         assert Decimal(order["total_amount"]) == Decimal("4692.87")
-        assert Decimal(order["total_amount"]) == Decimal(cart["total"])
+        goods_total = Decimal(order["total_amount"]) - Decimal(order["delivery_charge"])
+        assert goods_total == Decimal(cart["total"])
         assert sum(Decimal(i["subtotal"]) for i in order["items"]) == Decimal("5214.30")
 
     def test_order_at_5000_gets_no_discount(
