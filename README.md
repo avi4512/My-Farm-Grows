@@ -243,6 +243,25 @@ For Resend, verify the sender domain and configure the exact sender address in `
 
 OTP codes are HMAC-hashed using the application JWT secret, expire after five minutes, allow at most five incorrect attempts and have a 60-second resend cooldown. The OTP value is never returned by the API.
 
+### Order emails
+
+The same Resend settings send order emails to the customer:
+
+- **Placed** — order confirmation with the total.
+- **Shipped** and **delivered** — when the order reaches that status, from either the order or the delivery screen. Only one email is sent per status change. The shipped email includes the delivery partner, tracking number and expected date when they are set.
+- **Out for delivery** — when the delivery is marked out for delivery.
+- **Cancelled** — whether the customer or an administrator cancels. Paid online orders also mention the refund.
+
+Status emails are sent after the response, so a slow or failing email provider never blocks or undoes a status change; failures are logged as `order_status_email_failed`.
+
+### Delivery area and charges
+
+Orders are delivered in Andhra Pradesh and Telangana only; the address form offers just these two states and the server rejects an order to any other state. The delivery charge is Rs 50 in Andhra Pradesh and Rs 150 in Telangana, and delivery is free when the goods total after the offer discount is above Rs 2,000. It is stored on the order as `delivery_charge` and included in `total_amount`, so online payments charge it too. The values live in `app/services/pricing.py` (`DELIVERY_CHARGES`, `FREE_DELIVERY_THRESHOLD`); the checkout preview in `frontend/index.html` (`DELIVERY`) must match them. Run `alembic upgrade head` to add the column.
+
+### Order receipts
+
+Customers can download a PDF receipt for any order that is not cancelled, from **Download receipt** on their order history (`GET /api/orders/{order_id}/receipt`). It lists the items, the offer discount, the total and the payment status. The store is not GST registered yet, so this is a plain receipt and says it is not a tax invoice. Set `BUSINESS_ADDRESS` and `BUSINESS_PHONE` to print them under the store name.
+
 ### Google sign-in
 
 The frontend uses Google Identity Services to obtain an ID token. `POST /api/auth/google` verifies that token on the backend against the configured client ID, checks Google's verified-email claim, and issues the application's existing JWT. New Google users are always assigned the `customer` role. Existing accounts with the same verified email are linked instead of duplicated.

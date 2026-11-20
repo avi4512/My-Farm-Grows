@@ -62,6 +62,7 @@ class OrderResponse(BaseModel):
     country: str
 
     discount_amount: Decimal = Decimal("0.00")
+    delivery_charge: Decimal = Decimal("0.00")
     total_amount: Decimal
     status: str
     payment_method: str

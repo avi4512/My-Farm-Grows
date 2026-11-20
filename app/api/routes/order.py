@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response, status
 import logging
 from html import escape
 from sqlalchemy.orm import Session, selectinload
@@ -12,10 +12,15 @@ from app.models.address import Address
 from app.models.cart import CartItem
 from app.models.customer import Customer
 from app.models.order import Order, OrderItem
-from app.services.email import send_email
+from app.services.email import queue_order_status_email, send_email
 from app.schemas.order import OrderCreate, OrderResponse
 from app.services.inventory import record_inventory_movement
-from app.services.pricing import get_order_discount, get_unit_price
+from app.services.pricing import (
+    get_delivery_charge,
+    get_order_discount,
+    get_unit_price,
+)
+from app.services.receipt import build_receipt_pdf
 from app.services.payments import refund_paid_online_payment
 from app.services.razorpay import RazorpayError
 
@@ -158,6 +163,17 @@ async def create_order(
         discount_amount = get_order_discount(total_amount)
         total_amount -= discount_amount
 
+        delivery_charge = get_delivery_charge(address.state, total_amount)
+        if delivery_charge is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "We deliver only in Andhra Pradesh and Telangana right now. "
+                    "Please choose an address in one of these states."
+                ),
+            )
+        total_amount += delivery_charge
+
         # 5. Create the order and persist its ID inside the transaction.
         order = Order(
             customer_id=customer.id,
@@ -172,6 +188,7 @@ async def create_order(
             postal_code=address.postal_code,
             country=address.country,
             discount_amount=discount_amount,
+            delivery_charge=delivery_charge,
             total_amount=total_amount,
             status="pending",
             payment_method=payload.payment_method,
@@ -225,16 +242,21 @@ async def create_order(
         # Save the ID before loading the response.
         order_id = order.id
 
-        discount_line = (
+        price_lines = (
             f"<p>Offer discount: -₹{order.discount_amount}</p>"
             if order.discount_amount
             else ""
+        )
+        price_lines += (
+            f"<p>Delivery: ₹{order.delivery_charge}</p>"
+            if order.delivery_charge
+            else "<p>Delivery: Free</p>"
         )
         try:
             await send_email(
                 customer.email,
                 f"My Farm Grow order confirmation #{order_id}",
-                f"<p>Hi {escape(customer.name)},</p><p>Your order <strong>#{order_id}</strong> has been placed successfully.</p>{discount_line}<p>Order total: ₹{order.total_amount}</p><p>Thank you for shopping with My Farm Grow.</p>",
+                f"<p>Hi {escape(customer.name)},</p><p>Your order <strong>#{order_id}</strong> has been placed successfully.</p>{price_lines}<p>Order total: ₹{order.total_amount}</p><p>Thank you for shopping with My Farm Grow.</p>",
             )
         except Exception:
             logging.getLogger("myfarmgrows.email").warning(
@@ -281,9 +303,40 @@ def get_order(
     )
 
 
+@router.get(
+    "/{order_id}/receipt",
+    response_class=Response,
+    responses={200: {"content": {"application/pdf": {}}}},
+)
+def download_receipt(
+    order_id: int,
+    db: Session = Depends(get_db),
+    customer: Customer = Depends(get_current_customer),
+):
+    """Return a PDF receipt for one of the customer's orders."""
+    order = get_order_or_404(db, order_id, customer.id)
+
+    if order.status == "cancelled":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cancelled orders have no receipt",
+        )
+
+    return Response(
+        content=build_receipt_pdf(order, customer.email),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": (
+                f'attachment; filename="myfarmgrow-receipt-{order.id}.pdf"'
+            )
+        },
+    )
+
+
 @router.post("/{order_id}/cancel", response_model=OrderResponse)
 def cancel_order(
     order_id: int,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     customer: Customer = Depends(get_current_customer),
 ):
@@ -388,6 +441,8 @@ def cancel_order(
             ) from error
 
         db.commit()
+
+        queue_order_status_email(background_tasks, db, order, "cancelled")
 
         return get_order_or_404(
             db,

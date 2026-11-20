@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     resend_api_key: str | None = None
     email_from: str | None = None
     google_client_id: str | None = None
+    # Printed under the store name on order receipts, when set.
+    business_address: str | None = None
+    business_phone: str | None = None
     # Razorpay. Online payment is offered only when the key id and secret are set.
     # Use test keys (rzp_test_...) until the sandbox flow has been checked end to end.
     razorpay_key_id: str | None = None
