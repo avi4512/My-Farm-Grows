@@ -92,6 +92,9 @@ async function placeOrder() {
     });
     lastPlacedOrder = order;
     lastOrderMessage = "";
+    // The server empties the cart with the order; match it so the badge and product steppers reset.
+    cart = {items: [], total: 0};
+    updateCartBadge();
 
     await finishOrderOverlay();
     if (order.payment_method === "online") {
