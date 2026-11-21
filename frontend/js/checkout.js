@@ -158,6 +158,8 @@ async function payOnline(orderId) {
         description: `Order #${session.order_id}`,
         prefill: {name: session.customer_name, email: session.customer_email},
         theme: {color: "#3f7d20"},
+        // Used only when Razorpay cannot open its bank popup and moves the whole tab instead.
+        callback_url: `${API_BASE}/api/payments/razorpay/callback`,
         handler: async response => {
           try {
             const payment = await api("/api/payments/razorpay/verify", {method: "POST", body: response});
@@ -175,6 +177,20 @@ async function payOnline(orderId) {
     notify(error.message);
     return "failed";
   }
+}
+// After a full-tab Razorpay payment the server sends us back to /?payment=...#orders.
+function showPaymentReturn() {
+  const params = new URLSearchParams(location.search);
+  const result = params.get("payment");
+  if (!result) return;
+  const order = params.get("order") ? `Order #${params.get("order")}: ` : "";
+  const messages = {
+    paid: "Payment received. Thank you!",
+    pending: "Payment is still processing. Check again in a minute.",
+    failed: "The payment did not go through. You can try again below.",
+  };
+  notify(order + (messages[result] || messages.failed));
+  history.replaceState(history.state, "", location.pathname + location.hash);
 }
 async function payOnlineFromOrders(orderId, button) {
   if (button) { button.disabled = true; button.textContent = "Opening…"; }

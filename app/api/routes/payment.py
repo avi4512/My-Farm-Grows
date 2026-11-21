@@ -3,6 +3,7 @@ import json
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import RedirectResponse
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -231,30 +232,43 @@ def verify_razorpay_payment(
     customer: Customer = Depends(get_current_customer),
 ):
     """Confirm a payment from Razorpay Checkout before marking the order paid."""
-    payment, order = _locked_payment_and_order(
-        db, payload.razorpay_order_id, customer.id
+    return _confirm_checkout_payment(
+        db,
+        payload.razorpay_order_id,
+        payload.razorpay_payment_id,
+        payload.razorpay_signature,
+        customer_id=customer.id,
     )
+
+
+def _confirm_checkout_payment(
+    db: Session,
+    gateway_order_id: str,
+    gateway_payment_id: str,
+    signature: str,
+    customer_id=None,
+) -> Payment:
+    """Check the Checkout signature, then ask Razorpay before marking the order paid."""
+    payment, order = _locked_payment_and_order(db, gateway_order_id, customer_id)
     if payment is None:
         raise HTTPException(status_code=404, detail="Payment not found")
 
     if not razorpay.payment_signature_is_valid(
-        payload.razorpay_order_id,
-        payload.razorpay_payment_id,
-        payload.razorpay_signature,
+        gateway_order_id, gateway_payment_id, signature
     ):
         db.rollback()
         raise HTTPException(status_code=400, detail="Payment could not be verified")
 
     try:
         # Never trust the browser for amount or status: ask Razorpay.
-        entity = razorpay.fetch_payment(payload.razorpay_payment_id)
+        entity = razorpay.fetch_payment(gateway_payment_id)
         check_gateway_payment(payment, entity)
         if entity.get("status") == "authorized":
             entity = razorpay.capture_payment(
-                payload.razorpay_payment_id, razorpay.to_paise(payment.amount)
+                gateway_payment_id, razorpay.to_paise(payment.amount)
             )
         if entity.get("status") == "captured":
-            mark_paid(db, payment, order, payload.razorpay_payment_id)
+            mark_paid(db, payment, order, gateway_payment_id)
             _refund_if_cancelled(db, order)
         elif entity.get("status") == "failed":
             mark_failed(db, payment, order, entity.get("error_description"))
@@ -279,6 +293,51 @@ def verify_razorpay_payment(
 
     db.refresh(payment)
     return payment
+
+
+@router.post("/razorpay/callback", include_in_schema=False)
+async def razorpay_callback(request: Request, db: Session = Depends(get_db)):
+    """Where Razorpay sends the customer when it cannot use a popup (phones,
+    in-app browsers, blocked popups). The tab arrives here without a login,
+    so the Checkout signature is what proves the payment."""
+    form = await request.form()
+    gateway_order_id = str(form.get("razorpay_order_id") or "")
+    gateway_payment_id = str(form.get("razorpay_payment_id") or "")
+    signature = str(form.get("razorpay_signature") or "")
+    if not gateway_order_id:
+        # A failed attempt only names its order inside error[metadata].
+        try:
+            metadata = json.loads(str(form.get("error[metadata]") or "{}"))
+        except ValueError:
+            metadata = {}
+        gateway_order_id = str(metadata.get("order_id") or "")
+
+    result = "failed"
+    if gateway_payment_id and signature:
+        try:
+            payment = _confirm_checkout_payment(
+                db, gateway_order_id, gateway_payment_id, signature
+            )
+            result = "paid" if payment.status == "paid" else "failed"
+        except HTTPException as error:
+            result = "pending" if error.status_code == 409 else "failed"
+    else:
+        logger.info(
+            "razorpay_callback_failed order=%s reason=%s",
+            gateway_order_id,
+            form.get("error[description]"),
+        )
+
+    payment = (
+        db.query(Payment).filter(Payment.gateway_order_id == gateway_order_id).first()
+        if gateway_order_id
+        else None
+    )
+    order_part = f"&order={payment.order_id}" if payment else ""
+    return RedirectResponse(
+        f"/?payment={result}{order_part}#orders",
+        status_code=status.HTTP_303_SEE_OTHER,
+    )
 
 
 def _record_event(db: Session, event_id: str, event_type: str) -> bool:

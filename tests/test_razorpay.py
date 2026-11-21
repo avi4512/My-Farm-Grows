@@ -373,6 +373,75 @@ class TestVerifyingCheckout:
         assert order_payment_status(client, auth, online_order) == "pending"
 
 
+class TestFullTabCallback:
+    """Razorpay posts here when it moves the whole tab instead of using a popup."""
+
+    def callback(self, client, data):
+        return client.post(
+            "/api/payments/razorpay/callback", data=data, follow_redirects=False
+        )
+
+    def test_valid_payment_marks_the_order_paid_and_returns_to_orders(
+        self, client, auth, online_order, gateway
+    ):
+        rzp_order = start_payment(client, auth, online_order).json()
+        order_id = rzp_order["razorpay_order_id"]
+        gateway.add_payment("pay_1", order_id, 54900)
+
+        response = self.callback(
+            client,
+            {
+                "razorpay_order_id": order_id,
+                "razorpay_payment_id": "pay_1",
+                "razorpay_signature": checkout_signature(order_id, "pay_1"),
+            },
+        )
+
+        assert response.status_code == 303
+        assert response.headers["location"] == (
+            f"/?payment=paid&order={online_order['order']['id']}#orders"
+        )
+        assert order_payment_status(client, auth, online_order) == "paid"
+
+    def test_wrong_signature_changes_nothing(self, client, auth, online_order, gateway):
+        rzp_order = start_payment(client, auth, online_order).json()
+        order_id = rzp_order["razorpay_order_id"]
+        gateway.add_payment("pay_1", order_id, 54900)
+
+        response = self.callback(
+            client,
+            {
+                "razorpay_order_id": order_id,
+                "razorpay_payment_id": "pay_1",
+                "razorpay_signature": checkout_signature(order_id, "pay_1", "wrong"),
+            },
+        )
+
+        assert response.headers["location"].startswith("/?payment=failed")
+        assert order_payment_status(client, auth, online_order) == "pending"
+
+    def test_failed_attempt_returns_to_orders_without_marking_anything(
+        self, client, auth, online_order, gateway
+    ):
+        rzp_order = start_payment(client, auth, online_order).json()
+        metadata = {"order_id": rzp_order["razorpay_order_id"], "payment_id": "pay_1"}
+
+        response = self.callback(
+            client,
+            {
+                "error[code]": "BAD_REQUEST_ERROR",
+                "error[description]": "Payment failed",
+                "error[metadata]": json.dumps(metadata),
+            },
+        )
+
+        assert response.status_code == 303
+        assert response.headers["location"] == (
+            f"/?payment=failed&order={online_order['order']['id']}#orders"
+        )
+        assert order_payment_status(client, auth, online_order) == "pending"
+
+
 class TestWebhook:
     def test_bad_signature_is_rejected(self, client, gateway):
         response = send_webhook(client, {"event": "payment.captured"}, secret="wrong")

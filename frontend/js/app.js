@@ -136,6 +136,7 @@ window.addEventListener("DOMContentLoaded", async ()=>{
   if(token){try{cart=await api("/api/cart");updateCartBadge();}catch{}}
   await loadCatalog();
   await renderProducts();
+  showPaymentReturn();
   // Open the view named in the address (e.g. #products) and seed the history entry.
   const startView = location.hash.slice(1);
   if (startView && startView !== "home" && document.getElementById(`view-${startView}`)) navigate(startView);
