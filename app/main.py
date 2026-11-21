@@ -29,6 +29,7 @@ app = FastAPI(
     version="0.1.0",
 )
 
+
 @app.middleware("http")
 async def request_logging_middleware(request: Request, call_next):
     started = time.perf_counter()
@@ -56,15 +57,28 @@ async def request_logging_middleware(request: Request, call_next):
 
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 FRONTEND_INDEX = FRONTEND_DIR / "index.html"
+# Browsers may otherwise keep running an old copy of the storefront after an
+# update; "no-cache" makes them check first (an unchanged file is a cheap 304).
+REVALIDATE = {"Cache-Control": "no-cache"}
+
+
+class RevalidatedStaticFiles(StaticFiles):
+    def file_response(self, *args, **kwargs):
+        response = super().file_response(*args, **kwargs)
+        response.headers.update(REVALIDATE)
+        return response
+
 
 app.mount(
     "/static",
-    StaticFiles(directory=str(FRONTEND_DIR)),
+    RevalidatedStaticFiles(directory=str(FRONTEND_DIR)),
     name="static",
 )
 # index.html uses relative asset paths so it also renders when opened as a file.
-app.mount("/css", StaticFiles(directory=str(FRONTEND_DIR / "css")), name="css")
-app.mount("/js", StaticFiles(directory=str(FRONTEND_DIR / "js")), name="js")
+app.mount(
+    "/css", RevalidatedStaticFiles(directory=str(FRONTEND_DIR / "css")), name="css"
+)
+app.mount("/js", RevalidatedStaticFiles(directory=str(FRONTEND_DIR / "js")), name="js")
 app.mount("/images", StaticFiles(directory=str(FRONTEND_DIR / "images")), name="images")
 
 app.include_router(products_router)
@@ -79,7 +93,7 @@ app.include_router(payments_router)
 @app.get("/", include_in_schema=False)
 def home():
     """Serve the storefront; the API lives under /api."""
-    return FileResponse(FRONTEND_INDEX)
+    return FileResponse(FRONTEND_INDEX, headers=REVALIDATE)
 
 
 @app.get("/health")
